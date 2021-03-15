@@ -1,0 +1,17 @@
+stages:
+  - tests
+
+default:
+  image: binkhq/python:3.8
+
+flake8:
+  stage: tests
+  script:
+    - pip install flake8
+    - flake8
+
+complexity:
+  stage: tests
+  script:
+    - pip install xenon flake8_polyfill
+    - xenon --max-average A --max-modules B --max-absolute B .
