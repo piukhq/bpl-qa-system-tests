@@ -3,6 +3,8 @@ import os
 import typing as t
 from collections.abc import Callable
 
+from azure.vault import KeyVault
+
 
 class ConfigVarRequiredError(Exception):
     pass
@@ -31,4 +33,14 @@ logger.setLevel(log_level)
 SQLALCHEMY_DATABASE_URI = getenv("SQLALCHEMY_DATABASE_URI")
 
 VAULT_URL = getenv("VAULT_URL")
-BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN")
+
+USE_BLOB_STORAGE = getenv("USE_BLOB_STORAGE", default="True", conv=boolconv)
+BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN") if USE_BLOB_STORAGE else None
+REPORT_CONTAINER = getenv("REPORT_CONTAINER", default="qareports")
+REPORT_DIRECTORY = getenv("REPORT_DIRECTORY", default="bpl/isolated/")
+
+vault = KeyVault(VAULT_URL)
+
+
+class Secrets:
+    test_merchant_auth_secret = vault.get_secret("bpl-customer-mgmt-auth-token")
