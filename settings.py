@@ -34,10 +34,7 @@ SQLALCHEMY_DATABASE_URI = getenv("SQLALCHEMY_DATABASE_URI")
 
 VAULT_URL = getenv("VAULT_URL")
 vault = KeyVault(VAULT_URL)
-
-
-class Secrets:
-    test_merchant_auth_secret = vault.get_secret("bpl-customer-mgmt-auth-token")
+CUSTOMER_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-customer-mgmt-auth-token")
 
 
 LOCAL = getenv("LOCAL", default="True", conv=boolconv)
@@ -52,3 +49,5 @@ SCHEDULE = getenv("SCHEDULE")
 COMMAND = getenv("COMMAND")
 ALERT_ON_SUCCESS = getenv("ALERT_ON_SUCCESS", default="True")
 ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True")
+
+ENV_BASE_URL = getenv("ENV_BASE_URL")

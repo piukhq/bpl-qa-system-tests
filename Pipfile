@@ -21,6 +21,7 @@ azure-storage-blob = "*"
 azure-identity = "*"
 pytest-html = "*"
 apscheduler = "*"
+faker = "*"
 
 [dev-packages]
 black = "==20.8b1"
