@@ -16,5 +16,5 @@ def get_headers() -> dict:
     return headers
 
 
-def get_url(merchant: str, endpoint: Endpoints) -> str:
-    return ENV_BASE_URL + f"/api/v1/{merchant}" + endpoint
+def get_url(retailer_slug: str, endpoint: Endpoints) -> str:
+    return ENV_BASE_URL + f"/api/v1/{retailer_slug}" + endpoint

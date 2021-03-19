@@ -51,3 +51,4 @@ ALERT_ON_SUCCESS = getenv("ALERT_ON_SUCCESS", default="True")
 ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True")
 
 ENV_BASE_URL = getenv("ENV_BASE_URL")
+MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")

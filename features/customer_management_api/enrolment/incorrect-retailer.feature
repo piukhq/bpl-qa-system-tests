@@ -11,4 +11,4 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
     When I Enrol a incorrect-retailer User account passing in all required and all optional fields
     Then I receive a HTTP 403 status code in the response
     And I get a invalid_merchant response body
-    And my user is not saved in the database
+    And the account holder is not saved in the database
