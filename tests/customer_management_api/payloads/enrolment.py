@@ -30,7 +30,7 @@ def all_required_and_all_optional_credentials():
 def static_request_info():
     return {
         "credentials": {
-            "email": f"pytest-static-account-holder@bink.com",
+            "email": "pytest-static-account-holder@bink.com",
             "first_name": "Robo",
             "last_name": "Bink",
             "date_of_birth": "01/01/1991",

@@ -1,5 +1,3 @@
-from enum import Enum
-
 from db.models import Retailer
 from db.session import SessionMaker
 
