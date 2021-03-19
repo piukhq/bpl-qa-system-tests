@@ -6,5 +6,6 @@ Base = automap_base()
 Base.prepare(engine, reflect=True)
 
 # get models from Base mapping
-User = Base.classes.user
-UserProfile = Base.classes.userprofile
+AccountHolder = Base.classes.account_holder
+AccountHolderProfile = Base.classes.account_holder_profile
+Retailer = Base.classes.retailer
