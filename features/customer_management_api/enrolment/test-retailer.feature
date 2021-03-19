@@ -8,7 +8,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
   @bpl
   Scenario: Create a new account holder for test-retailer
 
-    When I Enrol a test-retailer User account passing in all required and all optional fields
+    When I Enrol a test-retailer account holder passing in all required and all optional fields
     Then I receive a HTTP 202 status code in the response
     And I get a success response body
     And all fields I sent in the enrol request are saved in the database
@@ -20,4 +20,4 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
     And the previous response returned a HTTP 202 status code
     When I Enrol a test-retailer account holder passing in the same email as an existing account holder
     Then I receive a HTTP 409 status code in the response
-    And I get a user_already_exists response body
+    And I get a account_holder_already_exists response body

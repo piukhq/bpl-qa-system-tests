@@ -1,12 +1,12 @@
 
 SUCCESS = {}
 
-INVALID_MERCHANT = {
+INVALID_RETAILER = {
   "display_message": "Requested retailer is invalid.",
   "error": "INVALID_RETAILER"
 }
 
-USER_ALREADY_EXISTS = {
+ACCOUNT_HOLDER_ALREADY_EXISTS = {
   "display_message": "There is already an account with that email address",
   "error": "ACCOUNT_EXISTS",
   "fields": [
@@ -19,8 +19,8 @@ class EnrolResponses:
 
     def __init__(self):
         self.success = SUCCESS
-        self.invalid_merchant = INVALID_MERCHANT
-        self.user_already_exists = USER_ALREADY_EXISTS
+        self.invalid_retailer = INVALID_RETAILER
+        self.account_holder_already_exists = ACCOUNT_HOLDER_ALREADY_EXISTS
 
     def get_json(self, key: str) -> dict:
         key = key.lower()

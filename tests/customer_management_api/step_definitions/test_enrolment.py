@@ -20,7 +20,7 @@ def request_context():
     return {}
 
 
-@given(parsers.parse("There is an existing user with the same email in the database for {retailer}"))
+@given(parsers.parse("There is an existing account holder with the same email in the database for {retailer}"))
 def post_enrolment_existing_account_holder(retailer):
     request_context["retailer_slug"] = retailer
     request_body = all_required_and_all_optional_credentials()
@@ -30,7 +30,7 @@ def post_enrolment_existing_account_holder(retailer):
 
 @given(parsers.parse("I previously enrolled a {retailer_slug} account holder "
                      "passing in all required and all optional fields"))
-@when(parsers.parse("I Enrol a {retailer_slug} User account passing in all required and all optional fields"))
+@when(parsers.parse("I Enrol a {retailer_slug} account holder passing in all required and all optional fields"))
 def post_enrolment(retailer_slug: str, request_context: dict):
     request_context["retailer_slug"] = retailer_slug
     request_body = all_required_and_all_optional_credentials()
@@ -82,9 +82,9 @@ def check_all_fields_saved_in_db(request_context: dict):
 
 
 @then(parsers.parse("the account holder is not saved in the database"))
-def check_user_is_not_saved_in_db(request_context: dict):
+def check_account_holder_is_not_saved_in_db(request_context: dict):
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
-    user = get_account_holder(email, retailer_slug)
-    assert user is None
+    account_holder = get_account_holder(email, retailer_slug)
+    assert account_holder is None
