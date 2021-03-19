@@ -2,7 +2,7 @@ stages:
   - tests
 
 default:
-  image: binkhq/python:3.8
+  image: binkhq/python:3.9
 
 flake8:
   stage: tests

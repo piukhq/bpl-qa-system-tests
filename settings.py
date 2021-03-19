@@ -3,6 +3,8 @@ import os
 import typing as t
 from collections.abc import Callable
 
+from azure.vault import KeyVault
+
 
 class ConfigVarRequiredError(Exception):
     pass
@@ -31,4 +33,22 @@ logger.setLevel(log_level)
 SQLALCHEMY_DATABASE_URI = getenv("SQLALCHEMY_DATABASE_URI")
 
 VAULT_URL = getenv("VAULT_URL")
-BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN")
+vault = KeyVault(VAULT_URL)
+CUSTOMER_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-customer-mgmt-auth-token")
+
+
+LOCAL = getenv("LOCAL", default="True", conv=boolconv)
+
+BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN") if not LOCAL else None
+REPORT_CONTAINER = getenv("REPORT_CONTAINER", default="qareports")
+REPORT_DIRECTORY = getenv("REPORT_DIRECTORY", default="bpl/isolated/")
+
+TEAMS_WEBHOOK = getenv("TEAMS_WEBHOOK") if not LOCAL else None
+FRIENDLY_NAME = getenv("FRIENDLY_NAME")
+SCHEDULE = getenv("SCHEDULE")
+COMMAND = getenv("COMMAND")
+ALERT_ON_SUCCESS = getenv("ALERT_ON_SUCCESS", default="True")
+ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True")
+
+ENV_BASE_URL = getenv("ENV_BASE_URL")
+MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")
