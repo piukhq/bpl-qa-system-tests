@@ -20,7 +20,7 @@ def get_invalid_headers() -> dict:
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        'Authorization': f"Token token"
+        "Authorization": "Token token"
     }
     return headers
 

@@ -1,5 +1,3 @@
-import self as self
-
 SUCCESS = {}
 
 INVALID_RETAILER = {

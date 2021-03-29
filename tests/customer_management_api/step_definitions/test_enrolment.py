@@ -65,8 +65,9 @@ def post_enrolment_invalid_Token(retailer_slug: str, request_context: dict):
     request_body = all_required_and_all_optional_credentials()
     resp = send_Invalid_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
-    assert resp.status_code == 401
     logging.info(f"POST Enrol Request: {request_body} \n Response: {resp.json()}, status code: {resp.status_code}")
+    assert resp.status_code == 401
+
 
 
 @when(parsers.parse("I Enrol a {retailer_slug} account holder "
