@@ -27,6 +27,25 @@ def all_required_and_all_optional_credentials():
     }
 
 
+def invalid_retailer():
+    return {
+        "credentials": {
+            "email": f"pytest{uuid4()}@bink.com",
+            "first_name": fake.first_name(),
+            "last_name": fake.last_name(),
+            "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
+            "phone": str(random.randint(10000000000, 99999999999)),
+            "address_line1": fake.secondary_address(),
+            "address_line2": fake.street_address(),
+            "postcode": fake.postcode(),
+            "city": fake.city()
+        },
+        "marketing_preferences": [],
+        # change to a mocked service once one is deployed
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer1"
+    }
+
+
 def static_request_info():
     return {
         "credentials": {
@@ -39,6 +58,28 @@ def static_request_info():
             "address_line2": "Fake street",
             "postcode": "1FA 1KE",
             "city": "Fake city"
+        },
+        "marketing_preferences": [],
+        # change to a mocked service once one is deployed
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
+    }
+
+
+def malformed_request_body():
+    return "malformed request"
+
+
+def missing_credentials_request_body():
+    return {
+        "credentials": {
+            "email": f"pytest{uuid4()}@bink.com",
+            "last_name": fake.last_name(),
+            "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
+            "phone": str(random.randint(10000000000, 99999999999)),
+            "address_line1": fake.secondary_address(),
+            "address_line2": fake.street_address(),
+            "postcode": fake.postcode(),
+            "city": fake.city()
         },
         "marketing_preferences": [],
         # change to a mocked service once one is deployed

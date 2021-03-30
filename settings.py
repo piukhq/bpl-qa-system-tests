@@ -27,8 +27,7 @@ def boolconv(s: str) -> bool:
 
 logging.basicConfig(format="%(process)s %(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("bpl_automation_tests_logger")
-log_level = getenv("LOG_LEVEL", default="DEBUG")
-logger.setLevel(log_level)
+logger.setLevel(logging.DEBUG)
 
 SQLALCHEMY_DATABASE_URI = getenv("SQLALCHEMY_DATABASE_URI")
 
