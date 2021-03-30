@@ -8,7 +8,7 @@ from tests.customer_management_api.db.account_holder import get_account_holder, 
     assert_enrol_request_body_with_account_holder_table, assert_enrol_request_body_with_account_holder_profile_table
 from tests.customer_management_api.db.retailer import get_retailer
 from tests.customer_management_api.payloads.enrolment import missing_credentials_request_body, malformed_request_body, \
-    all_required_and_all_optional_credentials
+    all_required_and_all_optional_credentials, missing_validation_request_body
 from tests.customer_management_api.requests.enrolment import send_post_enrolment, send_Invalid_post_enrolment, \
     send_malformed_enrolment
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
@@ -54,6 +54,15 @@ def post_malformed_request(retailer_slug: str, request_context: dict):
 def post_missing_credential_request(retailer_slug: str, request_context: dict):
     request_context["retailer_slug"] = retailer_slug
     request_body = missing_credentials_request_body()
+    resp = send_post_enrolment(retailer_slug, request_body)
+    request_context["response"] = resp
+    logging.info(f"POST Enrol Request: {request_body} \n Response: {resp.json()}, status code: {resp.status_code}")
+
+
+@given(parsers.parse("I Enrol a {retailer_slug} account holder with an missing validation in request"))
+def post_missing_validation_request(retailer_slug: str, request_context: dict):
+    request_context["retailer_slug"] = retailer_slug
+    request_body = missing_validation_request_body()
     resp = send_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
     logging.info(f"POST Enrol Request: {request_body} \n Response: {resp.json()}, status code: {resp.status_code}")
