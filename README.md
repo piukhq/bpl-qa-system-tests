@@ -32,7 +32,7 @@ az login
 
 ##### Run test suite (pointing at dev):
 ```
-pytest --html report.html --self-contained-html -s -m customer_management_api
+pytest --html report.html --self-contained-html -s -m bpl
 ```
 
 
