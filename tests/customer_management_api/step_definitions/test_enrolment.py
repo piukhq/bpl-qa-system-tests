@@ -7,8 +7,8 @@ from pytest_bdd import parsers, when, then, scenarios, given
 from tests.customer_management_api.db.account_holder import get_account_holder, get_account_holder_profile, \
     assert_enrol_request_body_with_account_holder_table, assert_enrol_request_body_with_account_holder_profile_table
 from tests.customer_management_api.db.retailer import get_retailer
-from tests.customer_management_api.payloads.enrolment import all_required_and_all_optional_credentials, \
-    malformed_request_body, missing_credentials_request_body, invalid_retailer
+from tests.customer_management_api.payloads.enrolment import missing_credentials_request_body, malformed_request_body, \
+    all_required_and_all_optional_credentials
 from tests.customer_management_api.requests.enrolment import send_post_enrolment, send_Invalid_post_enrolment, \
     send_malformed_enrolment
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
@@ -51,7 +51,7 @@ def post_malformed_request(retailer_slug: str, request_context: dict):
 
 
 @given(parsers.parse("I Enrol a {retailer_slug} account holder with an missing credential in request"))
-def post_missingcredential_request(retailer_slug: str, request_context: dict):
+def post_missing_credential_request(retailer_slug: str, request_context: dict):
     request_context["retailer_slug"] = retailer_slug
     request_body = missing_credentials_request_body()
     resp = send_post_enrolment(retailer_slug, request_body)
@@ -67,7 +67,6 @@ def post_enrolment_invalid_Token(retailer_slug: str, request_context: dict):
     request_context["response"] = resp
     logging.info(f"POST Enrol Request: {request_body} \n Response: {resp.json()}, status code: {resp.status_code}")
     assert resp.status_code == 401
-
 
 
 @when(parsers.parse("I Enrol a {retailer_slug} account holder "
