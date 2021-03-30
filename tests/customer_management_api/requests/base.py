@@ -17,4 +17,4 @@ def get_headers() -> dict:
 
 
 def get_url(retailer_slug: str, endpoint: Endpoints) -> str:
-    return ENV_BASE_URL + f"/api/v1/{retailer_slug}" + endpoint
+    return ENV_BASE_URL + f"/bpl/loyalty/{retailer_slug}" + endpoint
