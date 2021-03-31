@@ -18,14 +18,14 @@ ACCOUNT_HOLDER_ALREADY_EXISTS = {
     ]
 }
 
-MISSING_CREDENTIALS = [
-    {
-        "display_message": "Missing credentials from request.",
-        "error": "MISSING_CREDENTIALS",
-        "fields": [
-            "first_name"
-        ]
-    }
+MISSING_FIELDS = [
+  {
+    "display_message": "Missing credentials from request.",
+    "error": "MISSING_FIELDS",
+    "fields": [
+      "first_name"
+    ]
+  }
 ]
 
 MALFORMED_REQUEST = {
@@ -51,7 +51,7 @@ class EnrolResponses:
         self.invalid_retailer = INVALID_RETAILER
         self.account_holder_already_exists = ACCOUNT_HOLDER_ALREADY_EXISTS
         self.malformed_request = MALFORMED_REQUEST
-        self.missing_credentials = MISSING_CREDENTIALS
+        self.missing_fields = MISSING_FIELDS
         self.invalid_token = INVALID_TOKEN
         self.validation_failed = VALIDATION_FAILED_REQUEST
 

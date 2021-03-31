@@ -50,7 +50,7 @@ def post_malformed_request(retailer_slug: str, request_context: dict):
     logging.info(f"POST Enrol Request: {request_body} \n Response: {resp.json()}, status code: {resp.status_code}")
 
 
-@given(parsers.parse("I Enrol a {retailer_slug} account holder with an missing credential in request"))
+@given(parsers.parse("I Enrol a {retailer_slug} account holder with an missing fields in request"))
 def post_missing_credential_request(retailer_slug: str, request_context: dict):
     request_context["retailer_slug"] = retailer_slug
     request_body = missing_credentials_request_body()
