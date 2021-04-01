@@ -3,12 +3,13 @@ import logging
 
 import pytest
 from pytest_bdd import parsers, when, then, scenarios, given
+from json import JSONDecodeError
 
 from tests.customer_management_api.db.account_holder import get_account_holder, get_account_holder_profile, \
     assert_enrol_request_body_with_account_holder_table, assert_enrol_request_body_with_account_holder_profile_table
 from tests.customer_management_api.db.retailer import get_retailer
 from tests.customer_management_api.payloads.enrolment import missing_credentials_request_body, malformed_request_body, \
-    all_required_and_all_optional_credentials
+    all_required_and_all_optional_credentials, missing_validation_request_body
 from tests.customer_management_api.requests.enrolment import send_post_enrolment, send_Invalid_post_enrolment, \
     send_malformed_enrolment
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
@@ -47,16 +48,25 @@ def post_malformed_request(retailer_slug: str, request_context: dict):
     request_body = malformed_request_body()
     resp = send_malformed_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"POST Enrol Request: {request_body} \n Response: {resp.json()}, status code: {resp.status_code}")
+    logging.info(f"{resp.json()}, status code: {resp.status_code}")
 
 
-@given(parsers.parse("I Enrol a {retailer_slug} account holder with an missing credential in request"))
+@given(parsers.parse("I Enrol a {retailer_slug} account holder with an missing fields in request"))
 def post_missing_credential_request(retailer_slug: str, request_context: dict):
     request_context["retailer_slug"] = retailer_slug
     request_body = missing_credentials_request_body()
     resp = send_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"POST Enrol Request: {request_body} \n Response: {resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
+
+
+@given(parsers.parse("I Enrol a {retailer_slug} account  holder and passing in fields will fail validation request"))
+def post_missing_validation_request(retailer_slug: str, request_context: dict):
+    request_context["retailer_slug"] = retailer_slug
+    request_body = missing_validation_request_body()
+    resp = send_post_enrolment(retailer_slug, request_body)
+    request_context["response"] = resp
+    logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
 
 
 @given(parsers.parse("I Enrol a {retailer_slug} account holder with an invalid token"))
@@ -65,7 +75,7 @@ def post_enrolment_invalid_Token(retailer_slug: str, request_context: dict):
     request_body = all_required_and_all_optional_credentials()
     resp = send_Invalid_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"POST Enrol Request: {request_body} \n Response: {resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
     assert resp.status_code == 401
 
 
@@ -95,7 +105,8 @@ def check_enrolment_status_code(status_code: int, request_context: dict):
 def check_enrolment_response(response_fixture: str, request_context: dict):
     expected_response_body = enrol_responses.get_json(response_fixture)
     resp = request_context["response"]
-    logging.info(f"POST Enrol Expected Response: {expected_response_body} \n Actual Response: {resp.json()}")
+    logging.info(
+        f"POST Enrol Expected Response: {json.dumps(expected_response_body)} \n Actual Response: {resp.json()}")
     assert resp.json() == expected_response_body
 
 
@@ -121,3 +132,11 @@ def check_account_holder_is_not_saved_in_db(request_context: dict):
     retailer_slug = request_context["retailer_slug"]
     account_holder = get_account_holder(email, retailer_slug)
     assert account_holder is None
+
+
+def response_to_json(response):
+    try:
+        response_json = response.json()
+    except JSONDecodeError or Exception:
+        raise Exception(f"Empty response and the response Status Code is {str(response.status_code)}")
+    return response_json

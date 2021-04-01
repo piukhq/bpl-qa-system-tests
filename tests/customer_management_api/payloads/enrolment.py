@@ -1,6 +1,7 @@
 import random
 from uuid import uuid4
-
+import logging
+import json
 from faker import Faker
 
 from settings import MOCK_SERVICE_BASE_URL
@@ -9,7 +10,7 @@ fake = Faker(locale="en_GB")
 
 
 def all_required_and_all_optional_credentials():
-    return {
+    payload = {
         "credentials": {
             "email": f"pytest{uuid4()}@bink.com",
             "first_name": fake.first_name(),
@@ -25,10 +26,12 @@ def all_required_and_all_optional_credentials():
         # change to a mocked service once one is deployed
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
     }
+    logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
+    return payload
 
 
 def invalid_retailer():
-    return {
+    payload = {
         "credentials": {
             "email": f"pytest{uuid4()}@bink.com",
             "first_name": fake.first_name(),
@@ -45,9 +48,12 @@ def invalid_retailer():
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer1"
     }
 
+    logging.info("`Request body for POST Enrol with invalid retailer" + json.dumps(payload, indent=4))
+    return payload
+
 
 def static_request_info():
-    return {
+    payload = {
         "credentials": {
             "email": "pytest-static-account-holder@bink.com",
             "first_name": "Robo",
@@ -63,6 +69,8 @@ def static_request_info():
         # change to a mocked service once one is deployed
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
     }
+    logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
+    return payload
 
 
 def malformed_request_body():
@@ -70,7 +78,7 @@ def malformed_request_body():
 
 
 def missing_credentials_request_body():
-    return {
+    payload = {
         "credentials": {
             "email": f"pytest{uuid4()}@bink.com",
             "last_name": fake.last_name(),
@@ -85,3 +93,27 @@ def missing_credentials_request_body():
         # change to a mocked service once one is deployed
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
     }
+
+    logging.info("`Request body for missing credentials  " + json.dumps(payload, indent=4))
+    return payload
+
+
+def missing_validation_request_body():
+    payload = {
+        "credentials": {
+            "email": f"pytest{uuid4()}bink.com",
+            "last_name": fake.last_name(),
+            "first_name": fake.first_name(),
+            "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
+            "phone": str(random.randint(10000000000, 99999999999)),
+            "address_line1": fake.secondary_address(),
+            "address_line2": fake.street_address(),
+            "postcode": fake.postcode(),
+            "city": fake.city()
+        },
+        "marketing_preferences": [],
+        # change to a mocked service once one is deployed
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
+    }
+    logging.info("`Request body for missing validation " + json.dumps(payload, indent=4))
+    return payload

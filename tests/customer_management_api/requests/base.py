@@ -1,5 +1,6 @@
 from enum import Enum
-
+import logging
+import json
 from settings import ENV_BASE_URL, CUSTOMER_MANAGEMENT_API_TOKEN
 
 
@@ -13,6 +14,7 @@ def get_headers() -> dict:
         "Content-Type": "application/json",
         'Authorization': f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}"
     }
+    logging.info(f"Header is : {json.dumps(headers, indent=4)}")
     return headers
 
 

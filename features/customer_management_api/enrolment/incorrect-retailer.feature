@@ -22,11 +22,20 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
 
 
   @bpl
-  Scenario: POST Enrol request to create an account holder with a with an missing credential in request
+  Scenario: POST Enrol request to create an account holder with a with an missing fields in request
 
-    Given I Enrol a test-retailer account holder with an missing credential in request
+    Given I Enrol a test-retailer account holder with an missing fields in request
     Then I receive a HTTP 422 status code in the response
-    And I get a missing_credentials response body
+    And I get a missing_fields response body
+    And the account holder is not saved in the database
+
+
+  @bpl
+  Scenario: POST Enrol request to create an account holder passing in fields that will fail validation in the request
+
+    Given I Enrol a test-retailer account  holder and passing in fields will fail validation request
+    Then I receive a HTTP 422 status code in the response
+    And I get a validation_failed response body
     And the account holder is not saved in the database
 
 
@@ -37,3 +46,5 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
     Then I receive a HTTP 401 status code in the response
     And I get a invalid_token response body
     And the account holder is not saved in the database
+
+
