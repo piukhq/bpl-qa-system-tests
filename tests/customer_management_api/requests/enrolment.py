@@ -18,7 +18,7 @@ def send_malformed_enrolment(retailer_slug, request_body):
     headers = get_headers()
     session = retry_session()
     logging.info(f"POST enrol URL is : {url}")
-    return session.post(url, headers=headers, data=json.dumps(request_body))
+    return session.post(url, headers=headers, data=request_body)
 
 
 def send_Invalid_post_enrolment(retailer_slug, request_body):
