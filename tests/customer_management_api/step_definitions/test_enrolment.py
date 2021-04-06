@@ -1,6 +1,5 @@
 import json
 import logging
-
 import pytest
 from pytest_bdd import parsers, when, then, scenarios, given
 from json import JSONDecodeError
