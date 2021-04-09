@@ -6,6 +6,7 @@ from settings import ENV_BASE_URL, CUSTOMER_MANAGEMENT_API_TOKEN
 
 class Endpoints(str, Enum):
     ENROL = "/accounts/enrolment"
+    GETBYCREDENTIALS = "/accounts/getbycredentials"
 
 
 def get_headers() -> dict:

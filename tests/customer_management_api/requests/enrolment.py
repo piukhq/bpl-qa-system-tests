@@ -21,7 +21,7 @@ def send_malformed_enrolment(retailer_slug, request_body):
     return session.post(url, headers=headers, data=request_body)
 
 
-def send_Invalid_post_enrolment(retailer_slug, request_body):
+def send_invalid_post_enrolment(retailer_slug, request_body):
     url = get_url(retailer_slug, Endpoints.ENROL)
     headers = get_invalid_headers()
     session = retry_session()

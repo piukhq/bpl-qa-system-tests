@@ -22,7 +22,11 @@ azure-identity = "*"
 pytest-html = "*"
 apscheduler = "*"
 faker = "*"
+python-dotenv = "*"
 
 [dev-packages]
 black = "==20.8b1"
 flake8 = "*"
+mypy = "*"
+isort = "*"
+xenon = "*"

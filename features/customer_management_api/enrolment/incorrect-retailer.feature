@@ -10,7 +10,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
 
     When I Enrol a incorrect-retailer account holder passing in all required and all optional fields
     Then I receive a HTTP 403 status code in the response
-    And I get a invalid_retailer response body
+    And I get a invalid_retailer enrol response body
     And the account holder is not saved in the database
 
   @bpl
@@ -18,7 +18,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
 
     When I Enrol a test-retailer account holder with an malformed request
     Then I receive a HTTP 400 status code in the response
-    And I get a malformed_request response body
+    And I get a malformed_request enrol response body
 
 
   @bpl
@@ -26,7 +26,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
 
     Given I Enrol a test-retailer account holder with an missing fields in request
     Then I receive a HTTP 422 status code in the response
-    And I get a missing_fields response body
+    And I get a missing_fields enrol response body
     And the account holder is not saved in the database
 
 
@@ -35,7 +35,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
 
     Given I Enrol a test-retailer account  holder and passing in fields will fail validation request
     Then I receive a HTTP 422 status code in the response
-    And I get a validation_failed response body
+    And I get a validation_failed enrol response body
     And the account holder is not saved in the database
 
 
@@ -44,7 +44,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
 
     Given I Enrol a test-retailer account holder with an invalid token
     Then I receive a HTTP 401 status code in the response
-    And I get a invalid_token response body
+    And I get a invalid_token enrol response body
     And the account holder is not saved in the database
 
 

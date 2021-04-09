@@ -1,7 +1,10 @@
 import logging
 import os
 import typing as t
+
 from collections.abc import Callable
+
+from dotenv import load_dotenv
 
 from azure.vault import KeyVault
 
@@ -24,6 +27,8 @@ def getenv(key: str, default: str = None, conv: Callable[[str], t.Any] = str, re
 def boolconv(s: str) -> bool:
     return s.lower() in ["true", "t", "yes"]
 
+
+load_dotenv()
 
 logging.basicConfig(format="%(process)s %(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("bpl_automation_tests_logger")
