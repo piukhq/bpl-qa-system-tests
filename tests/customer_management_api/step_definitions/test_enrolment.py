@@ -9,6 +9,7 @@ from tests.customer_management_api.db.account_holder import get_account_holder, 
 from tests.customer_management_api.db.retailer import get_retailer
 from tests.customer_management_api.payloads.enrolment import missing_credentials_request_body, malformed_request_body, \
     all_required_and_all_optional_credentials, missing_validation_request_body
+from tests.customer_management_api.requests.base import get_headers
 from tests.customer_management_api.requests.enrolment import send_post_enrolment, send_Invalid_post_enrolment, \
     send_malformed_enrolment
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
@@ -76,6 +77,18 @@ def post_enrolment_invalid_Token(retailer_slug: str, request_context: dict):
     request_context["response"] = resp
     logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
     assert resp.status_code == 401
+
+
+@given(parsers.parse("I POST a {retailer_slug} account holder enrol request without a channel HTTP header"))
+def post_no_channel_header(retailer_slug: str, request_context: dict):
+    request_context["retailer_slug"] = retailer_slug
+    request_body = all_required_and_all_optional_credentials()
+    headers = get_headers()
+    headers.pop('Bpl-User-Channel')
+    resp = send_post_enrolment(retailer_slug, request_body, headers=headers)
+    request_context["response"] = resp
+    logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
+    assert resp.status_code == 400
 
 
 @when(parsers.parse("I Enrol a {retailer_slug} account holder "

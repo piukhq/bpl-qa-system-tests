@@ -5,12 +5,11 @@ from tests.customer_management_api.requests.base import get_url, Endpoints, get_
 from tests.retry_requests import retry_session
 
 
-def send_post_enrolment(retailer_slug, request_body):
+def send_post_enrolment(retailer_slug, request_body, headers=None):
     url = get_url(retailer_slug, Endpoints.ENROL)
-    headers = get_headers()
     session = retry_session()
     logging.info(f"POST enrol URL is :{url}")
-    return session.post(url, headers=headers, data=json.dumps(request_body))
+    return session.post(url, headers=headers or get_headers(), data=json.dumps(request_body))
 
 
 def send_malformed_enrolment(retailer_slug, request_body):
