@@ -12,7 +12,8 @@ def get_headers() -> dict:
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        'Authorization': f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}"
+        "Authorization": f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}",
+        "Bpl-User-Channel": "user-channel",
     }
     logging.info(f"Header is : {json.dumps(headers, indent=4)}")
     return headers
@@ -22,7 +23,8 @@ def get_invalid_headers() -> dict:
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "Authorization": "Token token"
+        "Authorization": "Token token",
+        "Bpl-User-Channel": "user-channel",
     }
     return headers
 

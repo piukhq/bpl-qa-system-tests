@@ -47,4 +47,12 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
     And I get a invalid_token response body
     And the account holder is not saved in the database
 
+  @bpl
+  Scenario: POST request without a channel HTTP header
+
+    Given I POST a test-retailer account holder enrol request without a channel HTTP header
+    Then I receive a HTTP 400 status code in the response
+    And I get a missing_channel_header response body
+    And the account holder is not saved in the database
+
 
