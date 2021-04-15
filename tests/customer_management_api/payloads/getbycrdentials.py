@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 if TYPE_CHECKING:
-    from db.models import AccountHolder  # type: ignore
+    from db.models import AccountHolder
 
 
 def _get_random_account_number(prefix: str) -> str:
+    # nb: valid until we change the max length for account numbers
     return f"{prefix}{str(random.randint(1, (10 ** 10) - 1)).zfill(10)}"
 
 

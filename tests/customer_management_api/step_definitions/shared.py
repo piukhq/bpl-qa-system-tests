@@ -1,7 +1,7 @@
 import logging
 
+from tests.customer_management_api.api_requests.enrolment import send_post_enrolment
 from tests.customer_management_api.payloads.enrolment import all_required_and_all_optional_credentials
-from tests.customer_management_api.requests.enrolment import send_post_enrolment
 
 
 def check_response_status_code(status_code: int, request_context: dict, endpoint: str) -> None:

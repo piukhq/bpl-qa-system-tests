@@ -1,52 +1,32 @@
-SUCCESS = {}
+SUCCESS: dict = {}
 
-INVALID_RETAILER = {
-    "display_message": "Requested retailer is invalid.",
-    "error": "INVALID_RETAILER"
-}
+INVALID_RETAILER = {"display_message": "Requested retailer is invalid.", "error": "INVALID_RETAILER"}
 
-INVALID_TOKEN = {
-    "display_message": "Supplied token is invalid.",
-    "error": "INVALID_TOKEN"
-}
+INVALID_TOKEN = {"display_message": "Supplied token is invalid.", "error": "INVALID_TOKEN"}
 
 ACCOUNT_HOLDER_ALREADY_EXISTS = {
     "display_message": "It appears this account already exists.",
     "error": "ACCOUNT_EXISTS",
-    "fields": [
-        "email"
-    ]
+    "fields": ["email"],
 }
 
 MISSING_FIELDS = [
-  {
-    "display_message": "Missing credentials from request.",
-    "error": "MISSING_FIELDS",
-    "fields": [
-      "first_name"
-    ]
-  }
+    {"display_message": "Missing credentials from request.", "error": "MISSING_FIELDS", "fields": ["first_name"]}
 ]
 
-MALFORMED_REQUEST = {
-    "display_message": "Malformed request.",
-    "error": "MALFORMED_REQUEST"
-}
+MALFORMED_REQUEST = {"display_message": "Malformed request.", "error": "MALFORMED_REQUEST"}
 
 VALIDATION_FAILED_REQUEST = [
     {
         "display_message": "Submitted credentials did not pass validation.",
         "error": "VALIDATION_FAILED",
-        "fields": [
-            "email"
-        ]
+        "fields": ["email"],
     }
 ]
 
 
 class EnrolResponses:
-
-    def __init__(self):
+    def __init__(self) -> None:
         self.success = SUCCESS
         self.invalid_retailer = INVALID_RETAILER
         self.account_holder_already_exists = ACCOUNT_HOLDER_ALREADY_EXISTS

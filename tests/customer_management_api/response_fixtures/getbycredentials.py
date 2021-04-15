@@ -1,35 +1,18 @@
-INVALID_RETAILER = {
-    "display_message": "Requested retailer is invalid.",
-    "error": "INVALID_RETAILER"
-}
+INVALID_RETAILER = {"display_message": "Requested retailer is invalid.", "error": "INVALID_RETAILER"}
 
-INVALID_TOKEN = {
-    "display_message": "Supplied token is invalid.",
-    "error": "INVALID_TOKEN"
-}
+INVALID_TOKEN = {"display_message": "Supplied token is invalid.", "error": "INVALID_TOKEN"}
 
 MISSING_FIELDS = [
-    {
-        "display_message": "Missing credentials from request.",
-        "error": "MISSING_FIELDS",
-        "fields": [
-            "account_number"
-        ]
-    }
+    {"display_message": "Missing credentials from request.", "error": "MISSING_FIELDS", "fields": ["account_number"]}
 ]
 
-MALFORMED_REQUEST = {
-    "display_message": "Malformed request.",
-    "error": "MALFORMED_REQUEST"
-}
+MALFORMED_REQUEST = {"display_message": "Malformed request.", "error": "MALFORMED_REQUEST"}
 
 VALIDATION_FAILED = [
     {
         "display_message": "Submitted credentials did not pass validation.",
         "error": "VALIDATION_FAILED",
-        "fields": [
-            "email"
-        ]
+        "fields": ["email"],
     }
 ]
 
@@ -40,8 +23,7 @@ NO_ACCOUNT_FOUND = {
 
 
 class GetByCredentialsResponses:
-
-    def __init__(self):
+    def __init__(self) -> None:
         self.invalid_retailer = INVALID_RETAILER
         self.no_account_found = NO_ACCOUNT_FOUND
         self.malformed_request = MALFORMED_REQUEST

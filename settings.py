@@ -6,7 +6,7 @@ from collections.abc import Callable
 
 from dotenv import load_dotenv
 
-from azure.vault import KeyVault
+from azure_actions.vault import KeyVault
 
 
 class ConfigVarRequiredError(Exception):

@@ -35,7 +35,9 @@ def get_account_holder_profile(account_holder_id: str) -> AccountHolderProfile:
         return db_session.query(AccountHolderProfile).filter_by(account_holder_id=account_holder_id).first()
 
 
-def assert_enrol_request_body_with_account_holder_table(account_holder, request_body, retailer_id) -> None:
+def assert_enrol_request_body_with_account_holder_table(
+    account_holder: AccountHolder, request_body: dict, retailer_id: int
+) -> None:
     account_holder_request_info = {"email": request_body["credentials"]["email"], "retailer_id": retailer_id}
 
     for field, request_value in account_holder_request_info.items():
@@ -45,7 +47,7 @@ def assert_enrol_request_body_with_account_holder_table(account_holder, request_
 def assert_enrol_request_body_with_account_holder_profile_table(
     account_holder_profile: AccountHolderProfile, request_body: dict
 ) -> None:
-    # commented out db fields that arent getting saved yet on the prototype
+    # commented out db_actions fields that arent getting saved yet on the prototype
     account_holder_profile_request_info = {
         "first_name": request_body["credentials"]["first_name"],
         "last_name": request_body["credentials"]["last_name"],
