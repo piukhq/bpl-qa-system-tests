@@ -1,13 +1,18 @@
-import json
-import logging
+from typing import TYPE_CHECKING
 
-from tests.customer_management_api.requests.base import get_url, Endpoints, get_headers
-from tests.retry_requests import retry_session
+from .base import send_post_request, send_invalid_post_request, send_malformed_post_request, Endpoints
+
+if TYPE_CHECKING:
+    from requests import Response
 
 
-def send_post_getbycredentials(retailer_slug, request_body):
-    url = get_url(retailer_slug, Endpoints.GETBYCREDENTIALS)
-    headers = get_headers()
-    session = retry_session()
-    logging.info(f"POST getbycredentials URL is :{url}")
-    return session.post(url, headers=headers, data=json.dumps(request_body))
+def send_post_getbycredentials(retailer_slug: str, request_body: dict) -> "Response":
+    return send_post_request(retailer_slug, request_body, Endpoints.GETBYCREDENTIALS)
+
+
+def send_malformed_post_getbycredentials(retailer_slug: str, request_body: str) -> "Response":
+    return send_malformed_post_request(retailer_slug, request_body, Endpoints.GETBYCREDENTIALS)
+
+
+def send_invalid_post_getbycredentials(retailer_slug: str, request_body: dict) -> "Response":
+    return send_invalid_post_request(retailer_slug, request_body, Endpoints.GETBYCREDENTIALS)

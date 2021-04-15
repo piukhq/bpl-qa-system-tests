@@ -1,29 +1,18 @@
-import json
-import logging
+from typing import TYPE_CHECKING
 
-from tests.customer_management_api.requests.base import get_url, Endpoints, get_headers, get_invalid_headers
-from tests.retry_requests import retry_session
+from .base import send_post_request, send_invalid_post_request, send_malformed_post_request, Endpoints
 
-
-def send_post_enrolment(retailer_slug, request_body):
-    url = get_url(retailer_slug, Endpoints.ENROL)
-    headers = get_headers()
-    session = retry_session()
-    logging.info(f"POST enrol URL is :{url}")
-    return session.post(url, headers=headers, data=json.dumps(request_body))
+if TYPE_CHECKING:
+    from requests import Response
 
 
-def send_malformed_enrolment(retailer_slug, request_body):
-    url = get_url(retailer_slug, Endpoints.ENROL)
-    headers = get_headers()
-    session = retry_session()
-    logging.info(f"POST enrol URL is : {url}")
-    return session.post(url, headers=headers, data=request_body)
+def send_post_enrolment(retailer_slug: str, request_body: dict) -> "Response":
+    return send_post_request(retailer_slug, request_body, Endpoints.ENROL)
 
 
-def send_invalid_post_enrolment(retailer_slug, request_body):
-    url = get_url(retailer_slug, Endpoints.ENROL)
-    headers = get_invalid_headers()
-    session = retry_session()
-    logging.info(f"POST enrol URL is :{url}")
-    return session.post(url, headers=headers, data=json.dumps(request_body))
+def send_malformed_post_enrolment(retailer_slug: str, request_body: str) -> "Response":
+    return send_malformed_post_request(retailer_slug, request_body, Endpoints.ENROL)
+
+
+def send_invalid_post_enrolment(retailer_slug: str, request_body: dict) -> "Response":
+    return send_invalid_post_request(retailer_slug, request_body, Endpoints.ENROL)

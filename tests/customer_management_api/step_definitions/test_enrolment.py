@@ -10,8 +10,9 @@ from tests.customer_management_api.db.retailer import get_retailer
 from tests.customer_management_api.payloads.enrolment import missing_credentials_request_body, malformed_request_body, \
     all_required_and_all_optional_credentials, missing_validation_request_body
 from tests.customer_management_api.requests.enrolment import send_post_enrolment, send_invalid_post_enrolment, \
-    send_malformed_enrolment
+    send_malformed_post_enrolment
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
+from tests.customer_management_api.step_definitions.shared import check_response_status_code, enrol_account_holder
 
 scenarios("customer_management_api/enrolment/")
 
@@ -30,17 +31,14 @@ def post_enrolment_existing_account_holder(retailer: str, request_context: dict)
                      "passing in all required and all optional fields"))
 @when(parsers.parse("I Enrol a {retailer_slug} account holder passing in all required and all optional fields"))
 def post_enrolment(retailer_slug: str, request_context: dict):
-    request_context["retailer_slug"] = retailer_slug
-    request_body = all_required_and_all_optional_credentials()
-    resp = send_post_enrolment(retailer_slug, request_body)
-    request_context["response"] = resp
+    enrol_account_holder(retailer_slug, request_context)
 
 
 @when(parsers.parse("I Enrol a {retailer_slug} account holder with an malformed request"))
 def post_malformed_request(retailer_slug: str, request_context: dict):
     request_context["retailer_slug"] = retailer_slug
     request_body = malformed_request_body()
-    resp = send_malformed_enrolment(retailer_slug, request_body)
+    resp = send_malformed_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
     logging.info(f"{resp.json()}, status code: {resp.status_code}")
 
@@ -85,6 +83,12 @@ def post_enrolment_with_previous_request_details(retailer_slug: str, request_con
     retailer_slug = request_context["retailer_slug"]
     resp = send_post_enrolment(retailer_slug, new_request_body)
     request_context["response"] = resp
+
+
+@given(parsers.parse("the previous response returned a HTTP {status_code:d} status code"))
+@then(parsers.parse("I receive a HTTP {status_code:d} status code in the response"))
+def check_enrolment_status_code(status_code: int, request_context: dict):
+    check_response_status_code(status_code, request_context, "Enrol")
 
 
 @then(parsers.parse("I get a {response_fixture} enrol response body"))

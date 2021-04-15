@@ -1,4 +1,4 @@
-@bpl
+@bpl @enrol
 Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise and call Customer management api system
   As a customer
   I want to utilise POST enrol endpoint
