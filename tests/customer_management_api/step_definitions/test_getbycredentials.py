@@ -53,9 +53,12 @@ def check_successful_getbycredentials_response(request_context: dict) -> None:
     expected_response_body = {
         "UUID": str(request_context["account_holder"].id),
         "email": request_context["account_holder"].email,
-        "created_at": request_context["account_holder"].created_at.isoformat(),
+        "created_date": int(request_context["account_holder"].created_at.timestamp()),
         "status": "active",
         "account_number": request_context["account_holder"].account_number,
+        "current_balances": [],
+        "transaction_history": [],
+        "vouchers": []
     }
     resp = request_context["response"]
     logging.info(

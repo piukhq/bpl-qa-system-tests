@@ -17,7 +17,7 @@ VALIDATION_FAILED = [
 ]
 
 NO_ACCOUNT_FOUND = {
-    "display_message": "Account not found for provided credentials",
+    "display_message": "Account not found for provided credentials.",
     "error": "NO_ACCOUNT_FOUND",
 }
 
