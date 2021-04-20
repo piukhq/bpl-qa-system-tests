@@ -58,7 +58,7 @@ def check_successful_getbycredentials_response(request_context: dict) -> None:
         "account_number": request_context["account_holder"].account_number,
         "current_balances": [],
         "transaction_history": [],
-        "vouchers": []
+        "vouchers": [],
     }
     resp = request_context["response"]
     logging.info(
