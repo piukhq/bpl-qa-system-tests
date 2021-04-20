@@ -1,6 +1,6 @@
 import logging
 
-from azure.core.exceptions import ServiceRequestError, ResourceNotFoundError, HttpResponseError
+from azure.core.exceptions import HttpResponseError, ResourceNotFoundError, ServiceRequestError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 

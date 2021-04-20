@@ -1,22 +1,14 @@
-SUCCESS: dict = {}
-
 INVALID_RETAILER = {"display_message": "Requested retailer is invalid.", "error": "INVALID_RETAILER"}
 
 INVALID_TOKEN = {"display_message": "Supplied token is invalid.", "error": "INVALID_TOKEN"}
 
-ACCOUNT_HOLDER_ALREADY_EXISTS = {
-    "display_message": "It appears this account already exists.",
-    "error": "ACCOUNT_EXISTS",
-    "fields": ["email"],
-}
-
 MISSING_FIELDS = [
-    {"display_message": "Missing credentials from request.", "error": "MISSING_FIELDS", "fields": ["first_name"]}
+    {"display_message": "Missing credentials from request.", "error": "MISSING_FIELDS", "fields": ["account_number"]}
 ]
 
 MALFORMED_REQUEST = {"display_message": "Malformed request.", "error": "MALFORMED_REQUEST"}
 
-VALIDATION_FAILED_REQUEST = [
+VALIDATION_FAILED = [
     {
         "display_message": "Submitted credentials did not pass validation.",
         "error": "VALIDATION_FAILED",
@@ -24,28 +16,24 @@ VALIDATION_FAILED_REQUEST = [
     }
 ]
 
-MISSING_CHANNEL_HEADER = {
-    "display_message": "Missing header",
-    "error": "MISSING_HTTP_HEADER",
-    "fields": [
-        "bpl-user-channel",
-    ],
+NO_ACCOUNT_FOUND = {
+    "display_message": "Account not found for provided credentials.",
+    "error": "NO_ACCOUNT_FOUND",
 }
 
 
-class EnrolResponses:
+class GetByCredentialsResponses:
     def __init__(self) -> None:
-        self.success = SUCCESS
         self.invalid_retailer = INVALID_RETAILER
-        self.account_holder_already_exists = ACCOUNT_HOLDER_ALREADY_EXISTS
+        self.no_account_found = NO_ACCOUNT_FOUND
         self.malformed_request = MALFORMED_REQUEST
         self.missing_fields = MISSING_FIELDS
         self.invalid_token = INVALID_TOKEN
-        self.validation_failed = VALIDATION_FAILED_REQUEST
-        self.missing_channel_header = MISSING_CHANNEL_HEADER
+        self.validation_failed = VALIDATION_FAILED
 
     def get_json(self, key: str) -> dict:
         key = key.lower()
+
         try:
             return getattr(self, key)
         except AttributeError as e:

@@ -3,7 +3,7 @@ import requests
 from settings import FRIENDLY_NAME
 
 
-def post_to_teams(webhook, status, url):
+def post_to_teams(webhook: str, status: str, url: str) -> requests.Response:
     if status == "Success":
         themeColor = "00FF00"
     else:

@@ -1,7 +1,9 @@
-import random
-from uuid import uuid4
-import logging
 import json
+import logging
+import random
+
+from uuid import uuid4
+
 from faker import Faker
 
 from settings import MOCK_SERVICE_BASE_URL
@@ -9,7 +11,7 @@ from settings import MOCK_SERVICE_BASE_URL
 fake = Faker(locale="en_GB")
 
 
-def all_required_and_all_optional_credentials():
+def all_required_and_all_optional_credentials() -> dict:
     payload = {
         "credentials": {
             "email": f"pytest{uuid4()}@bink.com",
@@ -20,17 +22,17 @@ def all_required_and_all_optional_credentials():
             "address_line1": fake.secondary_address(),
             "address_line2": fake.street_address(),
             "postcode": fake.postcode(),
-            "city": fake.city()
+            "city": fake.city(),
         },
         "marketing_preferences": [],
         # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
     }
     logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
     return payload
 
 
-def invalid_retailer():
+def invalid_retailer() -> dict:
     payload = {
         "credentials": {
             "email": f"pytest{uuid4()}@bink.com",
@@ -41,18 +43,18 @@ def invalid_retailer():
             "address_line1": fake.secondary_address(),
             "address_line2": fake.street_address(),
             "postcode": fake.postcode(),
-            "city": fake.city()
+            "city": fake.city(),
         },
         "marketing_preferences": [],
         # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer1"
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer1",
     }
 
     logging.info("`Request body for POST Enrol with invalid retailer" + json.dumps(payload, indent=4))
     return payload
 
 
-def static_request_info():
+def static_request_info() -> dict:
     payload = {
         "credentials": {
             "email": "pytest-static-account-holder@bink.com",
@@ -63,21 +65,21 @@ def static_request_info():
             "address_line1": "1 Fake road",
             "address_line2": "Fake street",
             "postcode": "1FA 1KE",
-            "city": "Fake city"
+            "city": "Fake city",
         },
         "marketing_preferences": [],
         # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
     }
     logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
     return payload
 
 
-def malformed_request_body():
+def malformed_request_body() -> str:
     return "malformed request"
 
 
-def missing_credentials_request_body():
+def missing_credentials_request_body() -> dict:
     payload = {
         "credentials": {
             "email": f"pytest{uuid4()}@bink.com",
@@ -87,18 +89,18 @@ def missing_credentials_request_body():
             "address_line1": fake.secondary_address(),
             "address_line2": fake.street_address(),
             "postcode": fake.postcode(),
-            "city": fake.city()
+            "city": fake.city(),
         },
         "marketing_preferences": [],
         # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
     }
 
     logging.info("`Request body for missing credentials  " + json.dumps(payload, indent=4))
     return payload
 
 
-def missing_validation_request_body():
+def missing_validation_request_body() -> dict:
     payload = {
         "credentials": {
             "email": f"pytest{uuid4()}bink.com",
@@ -109,11 +111,11 @@ def missing_validation_request_body():
             "address_line1": fake.secondary_address(),
             "address_line2": fake.street_address(),
             "postcode": fake.postcode(),
-            "city": fake.city()
+            "city": fake.city(),
         },
         "marketing_preferences": [],
         # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer"
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
     }
     logging.info("`Request body for missing validation " + json.dumps(payload, indent=4))
     return payload
