@@ -28,7 +28,7 @@ MISSING_CHANNEL_HEADER = {
     "display_message": "Missing header",
     "error": "MISSING_HTTP_HEADER",
     "fields": [
-        "Bpl-User-Channel",
+        "bpl-user-channel",
     ],
 }
 

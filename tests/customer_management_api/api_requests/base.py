@@ -1,6 +1,5 @@
 import json
 import logging
-
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -25,7 +24,7 @@ def get_headers() -> dict:
         "Accept": "application/json",
         "Content-Type": "application/json",
         "Authorization": f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}",
-        "Bpl-User-Channel": "asd",
+        "Bpl-User-Channel": "user-channel",
     }
     logging.info(f"Header is : {json.dumps(headers, indent=4)}")
     return headers
@@ -36,7 +35,7 @@ def get_invalid_headers() -> dict:
         "Accept": "application/json",
         "Content-Type": "application/json",
         "Authorization": "Token token",
-        "Bpl-User-Channel": "asd",
+        "Bpl-User-Channel": "user-channel",
     }
     return headers
 
@@ -52,8 +51,10 @@ def _send_post_request(retailer_slug: str, endpoint: Endpoints, headers: dict, r
     return session.post(url, headers=headers, data=request_body)
 
 
-def send_post_request(retailer_slug: str, request_body: dict, endpoint: Endpoints) -> "Response":
-    headers = get_headers()
+def send_post_request(retailer_slug: str, request_body: dict, endpoint: Endpoints, headers: dict = None) -> "Response":
+    if headers is None:
+        headers = get_headers()
+
     return _send_post_request(retailer_slug, endpoint, headers, json.dumps(request_body))
 
 
