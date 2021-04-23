@@ -1,25 +1,19 @@
-INVALID_RETAILER = {"display_message": "Requested retailer is invalid.", "error": "INVALID_RETAILER"}
-
-INVALID_TOKEN = {"display_message": "Supplied token is invalid.", "error": "INVALID_TOKEN"}
+from .shared import (
+    INVALID_RETAILER,
+    INVALID_TOKEN,
+    MALFORMED_REQUEST,
+    MISSING_CHANNEL_HEADER,
+    NO_ACCOUNT_FOUND,
+    VALIDATION_FAILED,
+)
 
 MISSING_FIELDS = [
-    {"display_message": "Missing credentials from request.", "error": "MISSING_FIELDS", "fields": ["account_number"]}
-]
-
-MALFORMED_REQUEST = {"display_message": "Malformed request.", "error": "MALFORMED_REQUEST"}
-
-VALIDATION_FAILED = [
     {
-        "display_message": "Submitted credentials did not pass validation.",
-        "error": "VALIDATION_FAILED",
-        "fields": ["email"],
+        "display_message": "Missing credentials from request.",
+        "error": "MISSING_FIELDS",
+        "fields": ["account_number"],
     }
 ]
-
-NO_ACCOUNT_FOUND = {
-    "display_message": "Account not found for provided credentials.",
-    "error": "NO_ACCOUNT_FOUND",
-}
 
 
 class GetByCredentialsResponses:
@@ -30,6 +24,7 @@ class GetByCredentialsResponses:
         self.missing_fields = MISSING_FIELDS
         self.invalid_token = INVALID_TOKEN
         self.validation_failed = VALIDATION_FAILED
+        self.missing_channel_header = MISSING_CHANNEL_HEADER
 
     def get_json(self, key: str) -> dict:
         key = key.lower()

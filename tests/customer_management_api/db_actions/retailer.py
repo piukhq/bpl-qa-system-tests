@@ -1,8 +1,10 @@
+from typing import TYPE_CHECKING
+
 from db.models import Retailer
-from db.session import SessionMaker
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
-def get_retailer(slug: str) -> Retailer:
-    with SessionMaker() as db_session:
-        retailer = db_session.query(Retailer).filter_by(slug=slug).first()
-        return retailer
+def get_retailer(db_session: "Session", slug: str) -> Retailer:
+    return db_session.query(Retailer).filter_by(slug=slug).first()

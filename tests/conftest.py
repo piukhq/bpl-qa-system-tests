@@ -1,8 +1,12 @@
 import logging
-
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import pytest
+
+from db.session import SessionMaker
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 # Hooks
@@ -27,3 +31,9 @@ def pytest_html_report_title(report: Any) -> None:
 @pytest.fixture(scope="function")
 def request_context() -> dict:
     return {}
+
+
+@pytest.fixture(scope="session")
+def db_session() -> "Session":
+    with SessionMaker() as db_session:
+        yield db_session

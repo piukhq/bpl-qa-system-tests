@@ -1,6 +1,5 @@
 import json
 import logging
-
 from json import JSONDecodeError
 from typing import TYPE_CHECKING
 
@@ -30,6 +29,7 @@ from tests.customer_management_api.step_definitions.shared import check_response
 
 if TYPE_CHECKING:
     from requests import Response
+    from sqlalchemy.orm import Session
 
 scenarios("customer_management_api/enrolment/")
 
@@ -96,7 +96,7 @@ def post_no_channel_header(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     request_body = all_required_and_all_optional_credentials()
     headers = get_headers()
-    headers.pop("Bpl-User-Channel")
+    headers.pop("bpl-user-channel")
     resp = send_post_enrolment(retailer_slug, request_body, headers=headers)
     request_context["response"] = resp
     logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
@@ -135,26 +135,26 @@ def check_enrolment_response(response_fixture: str, request_context: dict) -> No
 
 
 @then(parsers.parse("all fields I sent in the enrol request are saved in the database"))
-def check_all_fields_saved_in_db(request_context: dict) -> None:
+def check_all_fields_saved_in_db(db_session: "Session", request_context: dict) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
-    retailer = get_retailer(retailer_slug)
+    retailer = get_retailer(db_session, retailer_slug)
 
-    account_holder = get_account_holder(email, retailer)
+    account_holder = get_account_holder(db_session, email, retailer)
     account_holder_id = account_holder.id
-    account_holder_profile = get_account_holder_profile(account_holder_id)
+    account_holder_profile = get_account_holder_profile(db_session, account_holder_id)
 
     assert_enrol_request_body_with_account_holder_table(account_holder, request_body, retailer.id)
     assert_enrol_request_body_with_account_holder_profile_table(account_holder_profile, request_body)
 
 
 @then(parsers.parse("the account holder is not saved in the database"))
-def check_account_holder_is_not_saved_in_db(request_context: dict) -> None:
+def check_account_holder_is_not_saved_in_db(db_session: "Session", request_context: dict) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
-    account_holder = get_account_holder(email, retailer_slug)
+    account_holder = get_account_holder(db_session, email, retailer_slug)
     assert account_holder is None
 
 

@@ -1,3 +1,4 @@
+import json
 import logging
 
 from tests.customer_management_api.api_requests.enrolment import send_post_enrolment
@@ -15,3 +16,17 @@ def enrol_account_holder(retailer_slug: str, request_context: dict) -> None:
     request_body = all_required_and_all_optional_credentials()
     resp = send_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
+
+
+def non_existent_account_holder(retailer_slug: str, request_context: dict) -> None:
+    request_context["retailer_slug"] = retailer_slug
+    request_context["account_holder_exists"] = False
+
+    class UnsentRequest:
+        body = json.dumps(all_required_and_all_optional_credentials())
+
+    class FakeResponse:
+        status = 202
+        request = UnsentRequest
+
+    request_context["response"] = FakeResponse
