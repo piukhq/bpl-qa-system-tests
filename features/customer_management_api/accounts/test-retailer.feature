@@ -1,4 +1,4 @@
-@accounts
+@bpl @accounts
 Feature: Bink BPL - Ensure that as a channel user I can retrieve a test-retailer account holder details by UUID
   As a Channel User
   Using the GET /test-retailer/accounts/[AccountHolder.id] endpoint
