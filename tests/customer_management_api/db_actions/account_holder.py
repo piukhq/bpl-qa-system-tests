@@ -2,7 +2,6 @@ from time import sleep
 from typing import TYPE_CHECKING, Union
 
 from db.models import AccountHolder, AccountHolderProfile, Retailer
-from db.session import SessionMaker
 
 if TYPE_CHECKING:
     from uuid import UUID
