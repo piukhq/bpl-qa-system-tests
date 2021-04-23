@@ -1,5 +1,6 @@
 import json
 import logging
+
 from json import JSONDecodeError
 from typing import TYPE_CHECKING
 

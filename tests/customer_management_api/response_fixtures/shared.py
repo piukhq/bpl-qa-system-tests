@@ -4,6 +4,7 @@ from tests.customer_management_api.db_actions.account_holder import get_account_
 
 if TYPE_CHECKING:
     from uuid import UUID
+
     from sqlalchemy.orm import Session
 
 

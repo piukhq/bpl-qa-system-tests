@@ -1,12 +1,10 @@
 import logging
-from typing import Any, TYPE_CHECKING
+
+from typing import Any, Generator
 
 import pytest
 
 from db.session import SessionMaker
-
-if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
 
 
 # Hooks
@@ -34,6 +32,6 @@ def request_context() -> dict:
 
 
 @pytest.fixture(scope="session")
-def db_session() -> "Session":
+def db_session() -> Generator:
     with SessionMaker() as db_session:
         yield db_session

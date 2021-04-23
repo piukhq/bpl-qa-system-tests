@@ -1,5 +1,6 @@
 import json
 import logging
+
 from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -20,8 +21,11 @@ from tests.customer_management_api.payloads.getbycrdentials import (
 )
 from tests.customer_management_api.response_fixtures.getbycredentials import GetByCredentialsResponses
 from tests.customer_management_api.response_fixtures.shared import account_holder_details_response_body
-from tests.customer_management_api.step_definitions.shared import check_response_status_code, enrol_account_holder, \
-    non_existent_account_holder
+from tests.customer_management_api.step_definitions.shared import (
+    check_response_status_code,
+    enrol_account_holder,
+    non_existent_account_holder,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

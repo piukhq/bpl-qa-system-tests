@@ -1,6 +1,7 @@
 import json
 import logging
 import random
+
 from uuid import uuid4
 
 from faker import Faker

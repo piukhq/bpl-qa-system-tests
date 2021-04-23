@@ -1,11 +1,12 @@
 from time import sleep
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from db.models import AccountHolder, AccountHolderProfile, Retailer
 from db.session import SessionMaker
 
 if TYPE_CHECKING:
     from uuid import UUID
+
     from sqlalchemy.orm import Session
 
 
@@ -27,7 +28,7 @@ def get_active_account_holder(db_session: "Session", email: str, retailer: Union
     account_holder = db_session.query(AccountHolder).filter_by(email=email, retailer=retailer).first()
 
     for i in range(1, 3):
-        if account_holder.account_number is not None:
+        if account_holder and account_holder.account_number is not None:
             break
 
         sleep(i)

@@ -1,19 +1,26 @@
 import json
 import logging
 import uuid
+
 from typing import TYPE_CHECKING
 
-from pytest_bdd import parsers, when, given, then, scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from tests.customer_management_api.api_requests.accounts import send_get_accounts, send_invalid_get_accounts, \
-    send_malformed_get_accounts
+from tests.customer_management_api.api_requests.accounts import (
+    send_get_accounts,
+    send_invalid_get_accounts,
+    send_malformed_get_accounts,
+)
 from tests.customer_management_api.api_requests.base import get_headers
 from tests.customer_management_api.db_actions.account_holder import get_account_holder
 from tests.customer_management_api.db_actions.retailer import get_retailer
 from tests.customer_management_api.response_fixtures.accounts import AccountsResponses
 from tests.customer_management_api.response_fixtures.shared import account_holder_details_response_body
-from tests.customer_management_api.step_definitions.shared import enrol_account_holder, check_response_status_code, \
-    non_existent_account_holder
+from tests.customer_management_api.step_definitions.shared import (
+    check_response_status_code,
+    enrol_account_holder,
+    non_existent_account_holder,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -94,26 +101,22 @@ def get_invalid_token_request(retailer_slug: str, request_context: dict) -> None
 
 @when(
     parsers.parse(
-        "I send a get /accounts request for a {retailer_slug} account holder by UUID "
-        "without a channel header"
+        "I send a get /accounts request for a {retailer_slug} account holder by UUID without a channel header"
     )
 )
 def get_missing_channel_header_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     headers = get_headers()
-    del headers['bpl-user-channel']
+    del headers["bpl-user-channel"]
     resp = send_get_accounts(retailer_slug, str(uuid.uuid4()), headers=headers)
     request_context["response"] = resp
     logging.info(f"{resp.json()}, status code: {resp.status_code}")
 
 
 @when(
-    parsers.parse(
-        "I send a get /accounts request for a {retailer_slug} account holder by UUID "
-        "with a malformed UUID"
-    )
+    parsers.parse("I send a get /accounts request for a {retailer_slug} account holder by UUID with a malformed UUID")
 )
-def get_missing_channel_header_request(retailer_slug: str, request_context: dict) -> None:
+def get_malformed_uuid_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     resp = send_malformed_get_accounts(retailer_slug)
     request_context["response"] = resp
