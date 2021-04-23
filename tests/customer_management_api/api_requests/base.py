@@ -1,5 +1,6 @@
 import json
 import logging
+
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
 class Endpoints(str, Enum):
     ENROL = "/accounts/enrolment"
     GETBYCREDENTIALS = "/accounts/getbycredentials"
+    ACCOUNTS = "/accounts/"
 
     @property
     def endpoint(self) -> str:
@@ -24,7 +26,7 @@ def get_headers() -> dict:
         "Accept": "application/json",
         "Content-Type": "application/json",
         "Authorization": f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}",
-        "Bpl-User-Channel": "user-channel",
+        "bpl-user-channel": "user-channel",
     }
     logging.info(f"Header is : {json.dumps(headers, indent=4)}")
     return headers
@@ -66,3 +68,27 @@ def send_malformed_post_request(retailer_slug: str, request_body: str, endpoint:
 def send_invalid_post_request(retailer_slug: str, request_body: dict, endpoint: Endpoints) -> "Response":
     headers = get_invalid_headers()
     return _send_post_request(retailer_slug, endpoint, headers, json.dumps(request_body))
+
+
+def _send_get_request(retailer_slug: str, endpoint: Endpoints, param: str, headers: dict) -> "Response":
+    url = get_url(retailer_slug, endpoint) + param
+    session = retry_session()
+    logging.info(f"GET {endpoint.endpoint} URL is :{url}")
+    return session.get(url, headers=headers)
+
+
+def send_get_request(retailer_slug: str, endpoint: Endpoints, param: str, headers: dict = None) -> "Response":
+    if headers is None:
+        headers = get_headers()
+
+    return _send_get_request(retailer_slug, endpoint, param, headers)
+
+
+def send_malformed_get_request(retailer_slug: str, endpoint: Endpoints, param: str) -> "Response":
+    headers = get_headers()
+    return _send_get_request(retailer_slug, endpoint, param, headers)
+
+
+def send_invalid_get_request(retailer_slug: str, endpoint: Endpoints, param: str) -> "Response":
+    headers = get_invalid_headers()
+    return _send_get_request(retailer_slug, endpoint, param, headers)

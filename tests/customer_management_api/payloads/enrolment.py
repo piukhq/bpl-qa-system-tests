@@ -11,46 +11,36 @@ from settings import MOCK_SERVICE_BASE_URL
 fake = Faker(locale="en_GB")
 
 
+def _get_credentials() -> dict:
+    phone_prefix = "0" if random.randint(0, 1) else "+44"
+    address = fake.street_address().split("\n")
+    address_1 = address[0]
+    if len(address) > 1:
+        address_2 = address[1]
+    else:
+        address_2 = ""
+
+    return {
+        "email": f"pytest{uuid4()}@bink.com",
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
+        "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
+        "phone": phone_prefix + fake.msisdn(),
+        "address_line1": address_1,
+        "address_line2": address_2,
+        "postcode": fake.postcode(),
+        "city": fake.city(),
+    }
+
+
 def all_required_and_all_optional_credentials() -> dict:
     payload = {
-        "credentials": {
-            "email": f"pytest{uuid4()}@bink.com",
-            "first_name": fake.first_name(),
-            "last_name": fake.last_name(),
-            "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
-            "phone": str(random.randint(10000000000, 99999999999)),
-            "address_line1": fake.secondary_address(),
-            "address_line2": fake.street_address(),
-            "postcode": fake.postcode(),
-            "city": fake.city(),
-        },
+        "credentials": _get_credentials(),
         "marketing_preferences": [],
         # change to a mocked service once one is deployed
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
     }
     logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
-    return payload
-
-
-def invalid_retailer() -> dict:
-    payload = {
-        "credentials": {
-            "email": f"pytest{uuid4()}@bink.com",
-            "first_name": fake.first_name(),
-            "last_name": fake.last_name(),
-            "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
-            "phone": str(random.randint(10000000000, 99999999999)),
-            "address_line1": fake.secondary_address(),
-            "address_line2": fake.street_address(),
-            "postcode": fake.postcode(),
-            "city": fake.city(),
-        },
-        "marketing_preferences": [],
-        # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer1",
-    }
-
-    logging.info("`Request body for POST Enrol with invalid retailer" + json.dumps(payload, indent=4))
     return payload
 
 
@@ -61,7 +51,7 @@ def static_request_info() -> dict:
             "first_name": "Robo",
             "last_name": "Bink",
             "date_of_birth": "01/01/1991",
-            "phone": 00000000000,
+            "phone": +4400000000000,
             "address_line1": "1 Fake road",
             "address_line2": "Fake street",
             "postcode": "1FA 1KE",
@@ -80,17 +70,11 @@ def malformed_request_body() -> str:
 
 
 def missing_credentials_request_body() -> dict:
+    credentials = _get_credentials()
+    del credentials["first_name"]
+
     payload = {
-        "credentials": {
-            "email": f"pytest{uuid4()}@bink.com",
-            "last_name": fake.last_name(),
-            "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
-            "phone": str(random.randint(10000000000, 99999999999)),
-            "address_line1": fake.secondary_address(),
-            "address_line2": fake.street_address(),
-            "postcode": fake.postcode(),
-            "city": fake.city(),
-        },
+        "credentials": credentials,
         "marketing_preferences": [],
         # change to a mocked service once one is deployed
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
@@ -101,18 +85,11 @@ def missing_credentials_request_body() -> dict:
 
 
 def missing_validation_request_body() -> dict:
+    credentials = _get_credentials()
+    credentials["email"] = f"pytest{uuid4()}bink.com"
+
     payload = {
-        "credentials": {
-            "email": f"pytest{uuid4()}bink.com",
-            "last_name": fake.last_name(),
-            "first_name": fake.first_name(),
-            "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
-            "phone": str(random.randint(10000000000, 99999999999)),
-            "address_line1": fake.secondary_address(),
-            "address_line2": fake.street_address(),
-            "postcode": fake.postcode(),
-            "city": fake.city(),
-        },
+        "credentials": credentials,
         "marketing_preferences": [],
         # change to a mocked service once one is deployed
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",

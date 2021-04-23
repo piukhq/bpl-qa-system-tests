@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 from azure.storage.blob import BlobClient, ContentSettings
+
 from settings import BLOB_STORAGE_DSN, REPORT_CONTAINER, REPORT_DIRECTORY
 
 logger = logging.getLogger(__name__)
