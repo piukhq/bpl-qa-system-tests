@@ -18,13 +18,13 @@ def _get_credentials() -> dict:
     if len(address) > 1:
         address_2 = address[1]
     else:
-        address_2 = ""
+        address_2 = fake.street_name()
 
     return {
         "email": f"pytest{uuid4()}@bink.com",
         "first_name": fake.first_name(),
         "last_name": fake.last_name(),
-        "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
+        "date_of_birth": fake.date_of_birth().strftime("%Y-%m-%d"),
         "phone": phone_prefix + fake.msisdn(),
         "address_line1": address_1,
         "address_line2": address_2,
@@ -50,7 +50,7 @@ def static_request_info() -> dict:
             "email": "pytest-static-account-holder@bink.com",
             "first_name": "Robo",
             "last_name": "Bink",
-            "date_of_birth": "01/01/1991",
+            "date_of_birth": "1991-01-01",
             "phone": +4400000000000,
             "address_line1": "1 Fake road",
             "address_line2": "Fake street",

@@ -1,3 +1,4 @@
+from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Union
 
@@ -56,7 +57,7 @@ def assert_enrol_request_body_with_account_holder_profile_table(
     account_holder_profile_request_info = {
         "first_name": request_body["credentials"]["first_name"],
         "last_name": request_body["credentials"]["last_name"],
-        "date_of_birth": request_body["credentials"]["date_of_birth"],
+        "date_of_birth": datetime.strptime(request_body["credentials"]["date_of_birth"], '%Y-%m-%d').date(),
         "phone": request_body["credentials"]["phone"],
         "address_line1": request_body["credentials"]["address_line1"],
         "address_line2": request_body["credentials"]["address_line2"],
