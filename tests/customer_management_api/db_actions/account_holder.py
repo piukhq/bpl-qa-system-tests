@@ -51,10 +51,10 @@ def assert_enrol_request_body_with_account_holder_profile_table(
     account_holder_profile_request_info = {
         "first_name": request_body["credentials"]["first_name"],
         "last_name": request_body["credentials"]["last_name"],
-        # "birth_date": request_body["credentials"]["date_of_birth"],
+        "date_of_birth": request_body["credentials"]["date_of_birth"],
         "phone": request_body["credentials"]["phone"],
-        # "address_1": request_body["credentials"]["address_1"],
-        # "address_2": request_body["credentials"]["address_2"],
+        "address_line1": request_body["credentials"]["address_line1"],
+        "address_line2": request_body["credentials"]["address_line2"],
         "postcode": request_body["credentials"]["postcode"],
         "city": request_body["credentials"]["city"],
         # "country": request_body["credentials"]["country"],

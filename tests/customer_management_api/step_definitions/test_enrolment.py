@@ -72,7 +72,7 @@ def post_missing_credential_request(retailer_slug: str, request_context: dict) -
     logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
 
 
-@given(parsers.parse("I Enrol a {retailer_slug} account  holder and passing in fields will fail validation request"))
+@given(parsers.parse("I Enrol a {retailer_slug} account holder and passing in fields will fail validation request"))
 def post_missing_validation_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     request_body = missing_validation_request_body()
