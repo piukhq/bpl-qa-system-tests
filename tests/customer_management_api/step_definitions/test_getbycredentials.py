@@ -1,6 +1,8 @@
 import json
 import logging
 
+from typing import TYPE_CHECKING
+
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.customer_management_api.api_requests.getbycredentials import (
@@ -10,7 +12,6 @@ from tests.customer_management_api.api_requests.getbycredentials import (
 )
 from tests.customer_management_api.db_actions.account_holder import get_account_holder, get_active_account_holder
 from tests.customer_management_api.db_actions.retailer import get_retailer
-from tests.customer_management_api.payloads.enrolment import all_required_and_all_optional_credentials
 from tests.customer_management_api.payloads.getbycrdentials import (
     all_required_credentials,
     malformed_request_body,
@@ -19,7 +20,15 @@ from tests.customer_management_api.payloads.getbycrdentials import (
     wrong_validation_request_body,
 )
 from tests.customer_management_api.response_fixtures.getbycredentials import GetByCredentialsResponses
-from tests.customer_management_api.step_definitions.shared import check_response_status_code, enrol_account_holder
+from tests.customer_management_api.response_fixtures.shared import account_holder_details_response_body
+from tests.customer_management_api.step_definitions.shared import (
+    check_response_status_code,
+    enrol_account_holder,
+    non_existent_account_holder,
+)
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 scenarios("customer_management_api/getbycredentials/")
 
@@ -49,17 +58,8 @@ def check_enrolment_response(response_fixture: str, request_context: dict) -> No
 
 
 @then("I get a success getbycredentials response body")
-def check_successful_getbycredentials_response(request_context: dict) -> None:
-    expected_response_body = {
-        "UUID": str(request_context["account_holder"].id),
-        "email": request_context["account_holder"].email,
-        "created_date": int(request_context["account_holder"].created_at.timestamp()),
-        "status": "active",
-        "account_number": request_context["account_holder"].account_number,
-        "current_balances": [],
-        "transaction_history": [],
-        "vouchers": [],
-    }
+def check_successful_getbycredentials_response(db_session: "Session", request_context: dict) -> None:
+    expected_response_body = account_holder_details_response_body(db_session, request_context["account_holder"].id)
     resp = request_context["response"]
     logging.info(
         "POST getbycredentials expected response: {} \n actual response: {}".format(
@@ -70,14 +70,14 @@ def check_successful_getbycredentials_response(request_context: dict) -> None:
 
 
 @when(parsers.parse("I post getbycredentials a {retailer_slug} account holder passing in all required credentials"))
-def post_getbycredentials(retailer_slug: str, request_context: dict) -> None:
+def post_getbycredentials(db_session: "Session", retailer_slug: str, request_context: dict) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
-    retailer = get_retailer(retailer_slug)
+    retailer = get_retailer(db_session, retailer_slug)
 
     if request_context.get("account_holder_exists", True):
-        account_holder = get_account_holder(email, retailer)
+        account_holder = get_account_holder(db_session, email, retailer)
         request_context["account_holder"] = account_holder
         request_body = all_required_credentials(account_holder)
     else:
@@ -135,12 +135,12 @@ def post_invalid_token_request(retailer_slug: str, request_context: dict) -> Non
 
 
 @given(parsers.parse("the enrolled account holder has been activated"))
-def check_account_holder_is_active(request_context: dict) -> None:
+def check_account_holder_is_active(db_session: "Session", request_context: dict) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
 
-    account_holder = get_active_account_holder(email, retailer_slug)
+    account_holder = get_active_account_holder(db_session, email, retailer_slug)
 
     assert account_holder.status == "ACTIVE"
     assert account_holder.account_number is not None
@@ -152,18 +152,8 @@ def check_getbycredentials_response_status_code(status_code: int, request_contex
 
 
 @given(parsers.parse("The {retailer_slug}'s account holder I want to retrieve does not exists"))
-def non_existent_account_holder(retailer_slug: str, request_context: dict) -> None:
-    request_context["retailer_slug"] = retailer_slug
-    request_context["account_holder_exists"] = False
-
-    class UnsentRequest:
-        body = json.dumps(all_required_and_all_optional_credentials())
-
-    class FakeResponse:
-        status = 202
-        request = UnsentRequest
-
-    request_context["response"] = FakeResponse
+def non_existent_getbycredentials_account_holder(retailer_slug: str, request_context: dict) -> None:
+    non_existent_account_holder(retailer_slug, request_context)
 
 
 @then(parsers.parse("I get a {response_fixture} getbycredentials response body"))

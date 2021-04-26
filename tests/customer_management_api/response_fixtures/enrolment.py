@@ -1,35 +1,19 @@
+from .shared import INVALID_RETAILER, INVALID_TOKEN, MALFORMED_REQUEST, MISSING_CHANNEL_HEADER, VALIDATION_FAILED
+
 SUCCESS: dict = {}
 
-INVALID_RETAILER = {"display_message": "Requested retailer is invalid.", "error": "INVALID_RETAILER"}
-
-INVALID_TOKEN = {"display_message": "Supplied token is invalid.", "error": "INVALID_TOKEN"}
+MISSING_FIELDS = [
+    {
+        "display_message": "Missing credentials from request.",
+        "error": "MISSING_FIELDS",
+        "fields": ["first_name"],
+    }
+]
 
 ACCOUNT_HOLDER_ALREADY_EXISTS = {
     "display_message": "It appears this account already exists.",
     "error": "ACCOUNT_EXISTS",
     "fields": ["email"],
-}
-
-MISSING_FIELDS = [
-    {"display_message": "Missing credentials from request.", "error": "MISSING_FIELDS", "fields": ["first_name"]}
-]
-
-MALFORMED_REQUEST = {"display_message": "Malformed request.", "error": "MALFORMED_REQUEST"}
-
-VALIDATION_FAILED_REQUEST = [
-    {
-        "display_message": "Submitted credentials did not pass validation.",
-        "error": "VALIDATION_FAILED",
-        "fields": ["email"],
-    }
-]
-
-MISSING_CHANNEL_HEADER = {
-    "display_message": "Missing header",
-    "error": "MISSING_HTTP_HEADER",
-    "fields": [
-        "bpl-user-channel",
-    ],
 }
 
 
@@ -41,7 +25,7 @@ class EnrolResponses:
         self.malformed_request = MALFORMED_REQUEST
         self.missing_fields = MISSING_FIELDS
         self.invalid_token = INVALID_TOKEN
-        self.validation_failed = VALIDATION_FAILED_REQUEST
+        self.validation_failed = VALIDATION_FAILED
         self.missing_channel_header = MISSING_CHANNEL_HEADER
 
     def get_json(self, key: str) -> dict:
