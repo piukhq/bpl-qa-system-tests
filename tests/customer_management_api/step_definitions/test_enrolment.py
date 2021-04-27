@@ -55,6 +55,11 @@ def post_enrolment(retailer_slug: str, request_context: dict) -> None:
     enrol_account_holder(retailer_slug, request_context)
 
 
+@when(parsers.parse("I Enrol a {retailer_slug} account holder passing in only required fields"))
+def post_enrolment_only_required_fields(retailer_slug: str, request_context: dict) -> None:
+    enrol_account_holder(retailer_slug, request_context, incl_optional_fields=False)
+
+
 @when(parsers.parse("I Enrol a {retailer_slug} account holder with an malformed request"))
 def post_malformed_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
@@ -137,6 +142,7 @@ def check_enrolment_response(response_fixture: str, request_context: dict) -> No
 
 @then(parsers.parse("all fields I sent in the enrol request are saved in the database"))
 def check_all_fields_saved_in_db(db_session: "Session", request_context: dict) -> None:
+    db_session.expire_all()
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
@@ -145,7 +151,6 @@ def check_all_fields_saved_in_db(db_session: "Session", request_context: dict) -
     account_holder = get_account_holder(db_session, email, retailer)
     account_holder_id = account_holder.id
     account_holder_profile = get_account_holder_profile(db_session, account_holder_id)
-
     assert_enrol_request_body_with_account_holder_table(account_holder, request_body, retailer.id)
     assert_enrol_request_body_with_account_holder_profile_table(account_holder_profile, request_body)
 

@@ -37,8 +37,23 @@ def get_active_account_holder(db_session: "Session", email: str, retailer: Union
     return account_holder
 
 
-def get_account_holder_profile(db_session: "Session", account_holder_id: str) -> AccountHolderProfile:
-    return db_session.query(AccountHolderProfile).filter_by(account_holder_id=account_holder_id).first()
+def get_account_holder_profile(db_session: "Session", account_holder_id: str) -> Union[AccountHolderProfile, None]:
+    account_holder_profile = None
+
+    # Give Polaris a chance to commit the record
+    for i in range(1, 3):
+        account_holder_profile = (
+            db_session.query(AccountHolderProfile).filter_by(account_holder_id=account_holder_id).first()
+        )
+        if account_holder_profile:
+            break
+        else:
+            sleep(i)
+
+    # This will raise an exception if account_holder_profile is still None
+    db_session.refresh(account_holder_profile)
+
+    return account_holder_profile
 
 
 def assert_enrol_request_body_with_account_holder_table(
@@ -57,13 +72,13 @@ def assert_enrol_request_body_with_account_holder_profile_table(
     account_holder_profile_request_info = {
         "first_name": request_body["credentials"]["first_name"],
         "last_name": request_body["credentials"]["last_name"],
-        "date_of_birth": datetime.strptime(request_body["credentials"]["date_of_birth"], '%Y-%m-%d').date(),
-        "phone": request_body["credentials"]["phone"],
-        "address_line1": request_body["credentials"]["address_line1"],
-        "address_line2": request_body["credentials"]["address_line2"],
-        "postcode": request_body["credentials"]["postcode"],
-        "city": request_body["credentials"]["city"],
-        # "country": request_body["credentials"]["country"],
+        "date_of_birth": datetime.strptime(request_body["credentials"]["date_of_birth"], "%Y-%m-%d").date(),
+        "phone": request_body["credentials"].get("phone"),
+        "address_line1": request_body["credentials"].get("address_line1"),
+        "address_line2": request_body["credentials"].get("address_line2"),
+        "postcode": request_body["credentials"].get("postcode"),
+        "city": request_body["credentials"].get("city"),
+        # "country": request_body["credentials"].get("country"),
     }
 
     for field, request_value in account_holder_profile_request_info.items():
