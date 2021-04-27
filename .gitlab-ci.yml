@@ -1,5 +1,6 @@
 stages:
   - tests
+  - master
 
 default:
   image: binkhq/python:3.9
@@ -21,3 +22,18 @@ type-check:
   script:
     - pip install mypy sqlalchemy-stubs
     - mypy --config-file .mypy.ini .
+
+master:
+  stage: master
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - export CTAG="master-$(date +%F-%H%M%S)"
+    - docker build --pull -t "$CI_REGISTRY/pyqa-bpl:$CTAG" .
+    - docker push "$CI_REGISTRY/pyqa-bpl:$CTAG"
+  only:
+    - master
+
