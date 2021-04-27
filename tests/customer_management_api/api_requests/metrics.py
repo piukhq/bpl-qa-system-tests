@@ -4,6 +4,7 @@ import re
 from typing import List
 
 import settings
+from tests.customer_management_api.response_fixtures.metrics import GenericMetrics
 
 from tests.retry_requests import retry_session
 
@@ -52,13 +53,13 @@ def _counter_metrics_formatter(matched_metrics: List[tuple]) -> dict:
 def get_formatted_metrics() -> dict:
     raw_metrics = get_metrics()
     parsed_metrics: dict = {
-        "inbound_http_request_total": _counter_metrics_formatter(
+        GenericMetrics.REQUESTS_COUNTER.value: _counter_metrics_formatter(
             inbound_http_request_total_match.findall(raw_metrics),
         ),
-        "request_latency_seconds_sum": _counter_metrics_formatter(
+        GenericMetrics.REQUESTS_LATENCY_TOT.value: _counter_metrics_formatter(
             request_latency_seconds_sum_match.findall(raw_metrics)
         ),
-        "request_latency_seconds_bucket": _counter_metrics_formatter(
+        GenericMetrics.REQUESTS_LATENCY_BUCKET.value: _counter_metrics_formatter(
             request_latency_seconds_bucket_match.findall(raw_metrics)
         ),
     }
