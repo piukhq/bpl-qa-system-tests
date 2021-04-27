@@ -42,7 +42,7 @@ NO_ACCOUNT_FOUND = {
     "error": "NO_ACCOUNT_FOUND",
 }
 
-VALIDATION_FAILED = [
+CREDENTIALS_VALIDATION_FAILED = [
     {
         "display_message": "Submitted credentials did not pass validation.",
         "error": "VALIDATION_FAILED",
