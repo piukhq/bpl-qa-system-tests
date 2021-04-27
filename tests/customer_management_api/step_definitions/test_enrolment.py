@@ -1,12 +1,10 @@
 import json
 import logging
-
 from json import JSONDecodeError
 from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, scenarios, then, when
 
-from tests.customer_management_api.api_requests.base import get_headers
 from tests.customer_management_api.api_requests.enrolment import (
     send_invalid_post_enrolment,
     send_malformed_post_enrolment,
