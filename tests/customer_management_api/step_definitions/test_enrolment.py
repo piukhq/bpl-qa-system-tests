@@ -26,7 +26,8 @@ from tests.customer_management_api.payloads.enrolment import (
     missing_validation_request_body,
 )
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
-from tests.customer_management_api.step_definitions.shared import check_response_status_code, enrol_account_holder
+from tests.customer_management_api.step_definitions.shared import check_response_status_code, enrol_account_holder, \
+    enrol_missing_channel_header
 
 if TYPE_CHECKING:
     from requests import Response
@@ -94,14 +95,7 @@ def post_enrolment_invalid_token(retailer_slug: str, request_context: dict) -> N
 
 @given(parsers.parse("I POST a {retailer_slug} account holder enrol request without a channel HTTP header"))
 def post_no_channel_header(retailer_slug: str, request_context: dict) -> None:
-    request_context["retailer_slug"] = retailer_slug
-    request_body = all_required_and_all_optional_credentials()
-    headers = get_headers()
-    headers.pop("bpl-user-channel")
-    resp = send_post_enrolment(retailer_slug, request_body, headers=headers)
-    request_context["response"] = resp
-    logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
-    assert resp.status_code == 400
+    enrol_missing_channel_header(retailer_slug, request_context)
 
 
 @when(
