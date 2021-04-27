@@ -1,5 +1,6 @@
 import json
 import logging
+
 from json import JSONDecodeError
 from typing import TYPE_CHECKING
 
@@ -24,8 +25,11 @@ from tests.customer_management_api.payloads.enrolment import (
     missing_validation_request_body,
 )
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
-from tests.customer_management_api.step_definitions.shared import check_response_status_code, enrol_account_holder, \
-    enrol_missing_channel_header
+from tests.customer_management_api.step_definitions.shared import (
+    check_response_status_code,
+    enrol_account_holder,
+    enrol_missing_channel_header,
+)
 
 if TYPE_CHECKING:
     from requests import Response

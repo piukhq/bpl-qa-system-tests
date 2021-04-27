@@ -4,8 +4,8 @@ import re
 from typing import List
 
 import settings
-from tests.customer_management_api.response_fixtures.metrics import GenericMetrics
 
+from tests.customer_management_api.response_fixtures.metrics import GenericMetrics
 from tests.retry_requests import retry_session
 
 inbound_http_request_total_match = re.compile(
