@@ -4,7 +4,7 @@ from .shared import (
     MALFORMED_REQUEST,
     MISSING_CHANNEL_HEADER,
     NO_ACCOUNT_FOUND,
-    VALIDATION_FAILED,
+    CREDENTIALS_VALIDATION_FAILED,
 )
 
 MISSING_FIELDS = [
@@ -23,7 +23,7 @@ class GetByCredentialsResponses:
         self.malformed_request = MALFORMED_REQUEST
         self.missing_fields = MISSING_FIELDS
         self.invalid_token = INVALID_TOKEN
-        self.validation_failed = VALIDATION_FAILED
+        self.validation_failed = CREDENTIALS_VALIDATION_FAILED
         self.missing_channel_header = MISSING_CHANNEL_HEADER
 
     def get_json(self, key: str) -> dict:

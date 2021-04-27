@@ -18,13 +18,13 @@ def _get_credentials() -> dict:
     if len(address) > 1:
         address_2 = address[1]
     else:
-        address_2 = ""
+        address_2 = fake.street_name()
 
     return {
         "email": f"pytest{uuid4()}@bink.com",
         "first_name": fake.first_name(),
         "last_name": fake.last_name(),
-        "date_of_birth": fake.date_of_birth().strftime("%d/%m/%Y"),
+        "date_of_birth": fake.date_of_birth().strftime("%Y-%m-%d"),
         "phone": phone_prefix + fake.msisdn(),
         "address_line1": address_1,
         "address_line2": address_2,
@@ -44,13 +44,28 @@ def all_required_and_all_optional_credentials() -> dict:
     return payload
 
 
+def only_required_credentials() -> dict:
+    credentials = _get_credentials()
+    del credentials["address_line2"]
+    del credentials["postcode"]
+    del credentials["city"]
+    payload = {
+        "credentials": credentials,
+        "marketing_preferences": [],
+        # change to a mocked service once one is deployed
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
+    }
+    logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
+    return payload
+
+
 def static_request_info() -> dict:
     payload = {
         "credentials": {
             "email": "pytest-static-account-holder@bink.com",
             "first_name": "Robo",
             "last_name": "Bink",
-            "date_of_birth": "01/01/1991",
+            "date_of_birth": "1991-01-01",
             "phone": +4400000000000,
             "address_line1": "1 Fake road",
             "address_line2": "Fake street",
@@ -72,6 +87,9 @@ def malformed_request_body() -> str:
 def missing_credentials_request_body() -> dict:
     credentials = _get_credentials()
     del credentials["first_name"]
+    del credentials["date_of_birth"]
+    del credentials["phone"]
+    del credentials["address_line1"]
 
     payload = {
         "credentials": credentials,
@@ -87,6 +105,8 @@ def missing_credentials_request_body() -> dict:
 def missing_validation_request_body() -> dict:
     credentials = _get_credentials()
     credentials["email"] = f"pytest{uuid4()}bink.com"
+    credentials["date_of_birth"] = "31/12/1990"
+    credentials["phone"] = "999"
 
     payload = {
         "credentials": credentials,

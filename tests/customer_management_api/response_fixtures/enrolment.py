@@ -1,4 +1,4 @@
-from .shared import INVALID_RETAILER, INVALID_TOKEN, MALFORMED_REQUEST, MISSING_CHANNEL_HEADER, VALIDATION_FAILED
+from .shared import ENROL_VALIDATION_FAILED, INVALID_RETAILER, INVALID_TOKEN, MALFORMED_REQUEST, MISSING_CHANNEL_HEADER
 
 SUCCESS: dict = {}
 
@@ -6,7 +6,7 @@ MISSING_FIELDS = [
     {
         "display_message": "Missing credentials from request.",
         "error": "MISSING_FIELDS",
-        "fields": ["first_name"],
+        "fields": ["first_name", "date_of_birth", "phone", "address_line1"],
     }
 ]
 
@@ -25,7 +25,7 @@ class EnrolResponses:
         self.malformed_request = MALFORMED_REQUEST
         self.missing_fields = MISSING_FIELDS
         self.invalid_token = INVALID_TOKEN
-        self.validation_failed = VALIDATION_FAILED
+        self.validation_failed = ENROL_VALIDATION_FAILED
         self.missing_channel_header = MISSING_CHANNEL_HEADER
 
     def get_json(self, key: str) -> dict:

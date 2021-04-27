@@ -61,6 +61,8 @@ def missing_credentials_request_body() -> dict:
 def wrong_validation_request_body() -> dict:
     payload = {
         "email": "not a valid email",
+        "date_of_birth": "01/12/1990",
+        "phone": 999,
         "account_number": _get_random_account_number("TEST"),
     }
     logging.info("`Request body for missing validation " + json.dumps(payload, indent=4))
