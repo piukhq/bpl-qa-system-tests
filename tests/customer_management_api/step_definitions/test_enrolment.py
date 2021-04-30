@@ -1,10 +1,15 @@
+from db.models import AccountHolder, EnrolmentCallback
 import json
 import logging
 
+from time import sleep
+
 from json import JSONDecodeError
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 from pytest_bdd import given, parsers, scenarios, then, when
+
+import settings
 
 from tests.customer_management_api.api_requests.enrolment import (
     send_invalid_post_enrolment,
@@ -17,6 +22,7 @@ from tests.customer_management_api.db_actions.account_holder import (
     get_account_holder,
     get_account_holder_profile,
 )
+from tests.customer_management_api.db_actions.enrolment_callback import get_enrolment_callback
 from tests.customer_management_api.db_actions.retailer import get_retailer
 from tests.customer_management_api.payloads.enrolment import (
     all_required_and_all_optional_credentials,
@@ -145,19 +151,140 @@ def check_all_fields_saved_in_db(db_session: "Session", request_context: dict) -
     retailer = get_retailer(db_session, retailer_slug)
 
     account_holder = get_account_holder(db_session, email, retailer)
-    account_holder_id = account_holder.id
-    account_holder_profile = get_account_holder_profile(db_session, account_holder_id)
+    assert account_holder is not None
+    account_holder_profile = get_account_holder_profile(db_session, account_holder.id)
     assert_enrol_request_body_with_account_holder_table(account_holder, request_body, retailer.id)
     assert_enrol_request_body_with_account_holder_profile_table(account_holder_profile, request_body)
 
 
-@then(parsers.parse("the account holder is not saved in the database"))
-def check_account_holder_is_not_saved_in_db(db_session: "Session", request_context: dict) -> None:
+def get_account_holder_from_request_data(db_session: "Session", request_context: dict) -> Optional[AccountHolder]:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
-    account_holder = get_account_holder(db_session, email, retailer_slug)
-    assert account_holder is None
+    return get_account_holder(db_session, email, retailer_slug)
+
+
+@then(parsers.parse("the account holder is not saved in the database"))
+def check_account_holder_is_not_saved_in_db(db_session: "Session", request_context: dict) -> None:
+    assert get_account_holder_from_request_data(db_session, request_context) is None
+
+
+@then(parsers.parse("the account holder is saved in the database"))
+def check_account_holder_is_saved_in_db(db_session: "Session", request_context: dict) -> None:
+    assert get_account_holder_from_request_data(db_session, request_context) is not None
+
+
+@then(parsers.parse("an enrolment callback is saved in the database"))
+def check_enrolment_callback_is_saved_in_db(db_session: "Session", request_context: dict) -> None:
+    account_holder = get_account_holder_from_request_data(db_session, request_context)
+    assert account_holder is not None
+    assert get_enrolment_callback(db_session, account_holder.id) is not None
+
+
+@then(parsers.parse("the enrolment callback is tried"))
+def check_enrolment_callback_is_tried(db_session: "Session", request_context: dict) -> None:
+    account_holder = get_account_holder_from_request_data(db_session, request_context)
+    assert account_holder is not None
+    callback = get_enrolment_callback(db_session, account_holder.id)
+    for i in range(1, 18):  # 3 minute wait
+        logging.info(f"Sleeping for 10 seconds while waiting for callback attempt ({callback.account_holder_id})...")
+        sleep(10)
+        db_session.refresh(callback)
+        if callback.attempts > 0:
+            break
+    assert callback.attempts > 0
+
+
+@then(parsers.parse("the enrolment callback is in {status} state"))
+def check_enrolment_callback_status(db_session: "Session", status: str, request_context: dict) -> None:
+    account_holder = get_account_holder_from_request_data(db_session, request_context)
+    assert account_holder is not None
+    callback = get_enrolment_callback(db_session, account_holder.id)
+    assert callback.status == status.upper()
+
+
+def assert_callback_status_transition(
+    db_session: "Session",
+    callback: EnrolmentCallback,
+    *,
+    new_status: str,
+    # Note: This corresponds to up to 3 minutes wait time.
+    # This may need adjusting if the interval of the scheduler is changed or
+    # the number of retries is adjusted as the retry backs off.
+    wait_times: int = 18,
+    wait_duration_secs: int = 10,
+) -> EnrolmentCallback:
+    for _ in range(wait_times):
+        # wait for callback process to handle the callback
+        logging.info(f"Sleeping for {wait_duration_secs} seconds...")
+        sleep(wait_duration_secs)
+        db_session.refresh(callback)
+        if callback.status == new_status:
+            break
+        else:
+            logging.info(
+                f"Still waiting for callback status transition to {new_status} "
+                f"({callback.account_holder_id} status: {callback.status})"
+            )
+    assert callback.status == new_status
+
+
+@then(parsers.parse("the enrolment callback completes successfully"))
+def check_enrolment_callback_completes_successfully(db_session: "Session", request_context: dict) -> None:
+    account_holder = get_account_holder_from_request_data(db_session, request_context)
+    assert account_holder is not None
+    callback = get_enrolment_callback(db_session, account_holder.id)
+    assert_callback_status_transition(db_session, callback, new_status="SUCCESS")
+
+
+@then(parsers.parse("the enrolment callback is marked as failed and is not retried"))
+def check_enrolment_callback_is_failed(db_session: "Session", request_context: dict) -> None:
+    account_holder = get_account_holder_from_request_data(db_session, request_context)
+    assert account_holder is not None
+    callback = get_enrolment_callback(db_session, account_holder.id)
+    assert_callback_status_transition(db_session, callback, new_status="FAILED")
+    assert callback.retry_at is None
+
+
+def alter_call_back_url(
+    db_session: "Session",
+    request_context: dict,
+    *,
+    status_code: Optional[int] = None,
+    num_failures: Optional[int] = None,
+    timeout_seconds: Optional[int] = None,
+) -> None:
+    account_holder = get_account_holder_from_request_data(db_session, request_context)
+    assert account_holder is not None
+    callback = get_enrolment_callback(db_session, account_holder.id)
+    if status_code is None:
+        location = f"/callback/timeout-{timeout_seconds or 60}"
+    elif status_code == 200:
+        location = "/callback/ok"
+    elif status_code == 500 and num_failures is not None:
+        location = f"/callback/retry-{num_failures}"
+    else:
+        location = f"/callback/error-{status_code}"
+
+    callback.url = f"{settings.MOCK_SERVICE_BASE_URL}{location}"
+    db_session.add(callback)
+    db_session.commit()
+
+
+@when(parsers.parse("the callback URL is known to produce an HTTP {status_code:d} response"))
+@then(parsers.parse("the callback URL is known to produce an HTTP {status_code:d} response"))
+def alter_callback_url_to_produce_xxx_response(db_session: "Session", status_code: int, request_context: dict) -> None:
+    alter_call_back_url(db_session, request_context, status_code=status_code)
+
+
+@when(parsers.parse("the callback URL is known to produce {num_failures:d} consecutive HTTP 500 error responses"))
+def alter_callback_url_to_produce_error(db_session: "Session", num_failures: int, request_context: dict) -> None:
+    alter_call_back_url(db_session, request_context, status_code=500, num_failures=num_failures)
+
+
+@when(parsers.parse("the callback URL is known to timeout after {timeout_seconds:d} seconds"))
+def alter_callback_url_to_produce_timeout(db_session: "Session", timeout_seconds: int, request_context: dict) -> None:
+    alter_call_back_url(db_session, request_context, status_code=None, timeout_seconds=timeout_seconds)
 
 
 def response_to_json(response: "Response") -> dict:

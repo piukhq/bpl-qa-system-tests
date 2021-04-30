@@ -48,6 +48,7 @@ def get_account(db_session: "Session", retailer_slug: str, request_context: dict
 
     if request_context.get("account_holder_exists", True):
         account_holder = get_account_holder(db_session, email, retailer)
+        assert account_holder is not None
         request_context["account_holder"] = account_holder
         account_holder_id = account_holder.id
     else:
