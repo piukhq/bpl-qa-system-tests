@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-
+from datetime import timezone
 from tests.customer_management_api.db_actions.account_holder import get_account_holder_by_id
 
 if TYPE_CHECKING:
@@ -10,10 +10,11 @@ if TYPE_CHECKING:
 
 def account_holder_details_response_body(db_session: "Session", account_holder_id: "UUID") -> dict:
     account_holder = get_account_holder_by_id(db_session, account_holder_id)
+    utc_created_date = account_holder.created_at.replace(tzinfo=timezone.utc)
     return {
         "UUID": str(account_holder.id),
         "email": account_holder.email,
-        "created_date": int(account_holder.created_at.timestamp()),
+        "created_date": int(utc_created_date.timestamp()),
         "status": account_holder.status.lower(),
         "account_number": account_holder.account_number,
         "current_balances": [balance for balance in account_holder.current_balances.values()],
