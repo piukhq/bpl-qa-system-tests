@@ -1,6 +1,6 @@
 from datetime import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union
 
 from db.models import AccountHolder, AccountHolderProfile, Retailer
 
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-def get_account_holder(db_session: "Session", email: str, retailer: Union[str, Retailer]) -> AccountHolder:
+def get_account_holder(db_session: "Session", email: str, retailer: Union[str, Retailer]) -> Optional[AccountHolder]:
     if isinstance(retailer, str):
         retailer = db_session.query(Retailer).filter_by(slug=retailer).first()
 
