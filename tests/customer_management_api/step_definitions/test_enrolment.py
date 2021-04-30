@@ -28,7 +28,7 @@ from tests.customer_management_api.payloads.enrolment import (
     all_required_and_all_optional_credentials,
     malformed_request_body,
     missing_credentials_request_body,
-    missing_validation_request_body,
+    bad_field_validation_request_body,
 )
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
 from tests.customer_management_api.step_definitions.shared import (
@@ -88,9 +88,9 @@ def post_missing_credential_request(retailer_slug: str, request_context: dict) -
 
 
 @given(parsers.parse("I Enrol a {retailer_slug} account holder and passing in fields will fail validation request"))
-def post_missing_validation_request(retailer_slug: str, request_context: dict) -> None:
+def post_enrolment_with_wrongly_formatted_values(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
-    request_body = missing_validation_request_body()
+    request_body = bad_field_validation_request_body()
     resp = send_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
     logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
