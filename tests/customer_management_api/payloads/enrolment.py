@@ -102,11 +102,13 @@ def missing_credentials_request_body() -> dict:
     return payload
 
 
-def missing_validation_request_body() -> dict:
+def bad_field_validation_request_body() -> dict:
     credentials = _get_credentials()
     credentials["email"] = f"pytest{uuid4()}bink.com"
     credentials["date_of_birth"] = "31/12/1990"
     credentials["phone"] = "999"
+    credentials["address_line2"] = "road*road"
+    credentials["city"] = "city!"
 
     payload = {
         "credentials": credentials,

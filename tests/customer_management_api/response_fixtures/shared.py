@@ -54,7 +54,7 @@ ENROL_VALIDATION_FAILED = [
     {
         "display_message": "Submitted credentials did not pass validation.",
         "error": "VALIDATION_FAILED",
-        "fields": ["email", "date_of_birth", "phone"],
+        "fields": ["email", "date_of_birth", "phone", "address_line2", "city"],
     }
 ]
 
