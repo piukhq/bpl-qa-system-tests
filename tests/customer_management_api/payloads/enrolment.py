@@ -37,8 +37,7 @@ def all_required_and_all_optional_credentials() -> dict:
     payload = {
         "credentials": _get_credentials(),
         "marketing_preferences": [],
-        # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
     }
     logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
     return payload
@@ -52,8 +51,7 @@ def only_required_credentials() -> dict:
     payload = {
         "credentials": credentials,
         "marketing_preferences": [],
-        # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
     }
     logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
     return payload
@@ -73,8 +71,7 @@ def static_request_info() -> dict:
             "city": "Fake city",
         },
         "marketing_preferences": [],
-        # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
     }
     logging.info("`Request body for POST Enrol " + json.dumps(payload, indent=4))
     return payload
@@ -94,8 +91,7 @@ def missing_credentials_request_body() -> dict:
     payload = {
         "credentials": credentials,
         "marketing_preferences": [],
-        # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
     }
 
     logging.info("`Request body for missing credentials  " + json.dumps(payload, indent=4))
@@ -113,8 +109,7 @@ def bad_field_validation_request_body() -> dict:
     payload = {
         "credentials": credentials,
         "marketing_preferences": [],
-        # change to a mocked service once one is deployed
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/callback/test-retailer",
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
     }
     logging.info("`Request body for missing validation " + json.dumps(payload, indent=4))
     return payload
