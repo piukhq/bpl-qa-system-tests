@@ -258,13 +258,13 @@ def alter_call_back_url(
     assert account_holder is not None
     callback = get_enrolment_callback(db_session, account_holder.id)
     if status_code is None:
-        location = f"/callback/timeout-{timeout_seconds or 60}"
+        location = f"/enrol/callback/timeout-{timeout_seconds or 60}"
     elif status_code == 200:
-        location = "/callback/ok"
+        location = "/enrol/callback/success"
     elif status_code == 500 and num_failures is not None:
-        location = f"/callback/retry-{num_failures}"
+        location = f"/enrol/callback/retry-{num_failures}"
     else:
-        location = f"/callback/error-{status_code}"
+        location = f"/enrol/callback/error-{status_code}"
 
     callback.url = f"{settings.MOCK_SERVICE_BASE_URL}{location}"
     db_session.add(callback)
