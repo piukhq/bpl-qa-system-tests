@@ -48,3 +48,13 @@ def enrol_missing_channel_header(retailer_slug: str, request_context: dict) -> N
     request_context["response"] = resp
     logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
     assert resp.status_code == 400
+
+
+def enrol_missing_third_party_identifier(retailer_slug: str, request_context: dict) -> None:
+    request_context["retailer_slug"] = retailer_slug
+    request_body = all_required_and_all_optional_credentials()
+    request_body.pop("third_party_identifier")
+    resp = send_post_enrolment(retailer_slug, request_body)
+    request_context["response"] = resp
+    logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
+    assert resp.status_code == 422

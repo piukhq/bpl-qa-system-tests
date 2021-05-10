@@ -35,6 +35,7 @@ from tests.customer_management_api.step_definitions.shared import (
     check_response_status_code,
     enrol_account_holder,
     enrol_missing_channel_header,
+    enrol_missing_third_party_identifier,
 )
 
 if TYPE_CHECKING:
@@ -111,6 +112,15 @@ def post_no_channel_header(retailer_slug: str, request_context: dict) -> None:
     enrol_missing_channel_header(retailer_slug, request_context)
 
 
+@given(
+    parsers.parse(
+        "I POST a {retailer_slug} account holder enrol request omitting third_party_identifier from the request body"
+    )
+)
+def post_no_third_party_identifier(retailer_slug: str, request_context: dict) -> None:
+    enrol_missing_third_party_identifier(retailer_slug, request_context)
+
+
 @when(
     parsers.parse("I Enrol a {retailer_slug} account holder " "passing in the same email as an existing account holder")
 )
@@ -178,7 +188,10 @@ def check_account_holder_is_saved_in_db(db_session: "Session", request_context: 
 def check_enrolment_callback_is_saved_in_db(db_session: "Session", request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(db_session, request_context)
     assert account_holder is not None
-    assert get_enrolment_callback(db_session, account_holder.id) is not None
+    enrolment_callback = get_enrolment_callback(db_session, account_holder.id)
+    assert enrolment_callback is not None
+    assert settings.MOCK_SERVICE_BASE_URL in enrolment_callback.url
+    assert enrolment_callback.third_party_identifier == "identifier"
 
 
 @then(parsers.parse("the enrolment callback is tried"))

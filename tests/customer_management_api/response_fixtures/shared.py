@@ -51,6 +51,13 @@ CREDENTIALS_VALIDATION_FAILED = [
     }
 ]
 
+THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED = [
+    {
+        "display_message": "Missing credentials from request.",
+        "error": "MISSING_FIELDS",
+        "fields": ["third_party_identifier"],
+    }
+]
 ENROL_VALIDATION_FAILED = [
     {
         "display_message": "Submitted credentials did not pass validation.",
