@@ -1,4 +1,11 @@
-from .shared import ENROL_VALIDATION_FAILED, INVALID_RETAILER, INVALID_TOKEN, MALFORMED_REQUEST, MISSING_CHANNEL_HEADER
+from .shared import (
+    ENROL_VALIDATION_FAILED,
+    INVALID_RETAILER,
+    INVALID_TOKEN,
+    MALFORMED_REQUEST,
+    MISSING_CHANNEL_HEADER,
+    THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED,
+)
 
 SUCCESS: dict = {}
 
@@ -27,6 +34,7 @@ class EnrolResponses:
         self.invalid_token = INVALID_TOKEN
         self.validation_failed = ENROL_VALIDATION_FAILED
         self.missing_channel_header = MISSING_CHANNEL_HEADER
+        self.missing_third_party_identifier = THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED
 
     def get_json(self, key: str) -> dict:
         key = key.lower()

@@ -22,7 +22,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
 
 
   @bpl
-  Scenario: POST Enrol request to create an account holder with a with an missing fields in request
+  Scenario: POST Enrol request to create an account holder with missing fields in request
 
     Given I Enrol a test-retailer account holder with an missing fields in request
     Then I receive a HTTP 422 status code in the response
@@ -55,4 +55,10 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
     And I get a missing_channel_header enrol response body
     And the account holder is not saved in the database
 
+  @bpl
+  Scenario: POST request without third_party_identifier in the request body
 
+    Given I POST a test-retailer account holder enrol request omitting third_party_identifier from the request body
+    Then I receive a HTTP 422 status code in the response
+    And I get a missing_third_party_identifier enrol response body
+    And the account holder is not saved in the database

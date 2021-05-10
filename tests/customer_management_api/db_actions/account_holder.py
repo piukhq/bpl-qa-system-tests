@@ -82,4 +82,6 @@ def assert_enrol_request_body_with_account_holder_profile_table(
     }
 
     for field, request_value in account_holder_profile_request_info.items():
-        assert getattr(account_holder_profile, field) == request_value
+        assert (
+            getattr(account_holder_profile, field) == request_value
+        ), f"Failed to match field {field} to {request_value}"
