@@ -9,4 +9,4 @@ Base.prepare(engine, reflect=True)
 AccountHolder = Base.classes.account_holder
 AccountHolderProfile = Base.classes.account_holder_profile
 EnrolmentCallback = Base.classes.enrolment_callback
-Retailer = Base.classes.retailer
+RetailerConfig = Base.classes.retailer_config
