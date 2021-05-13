@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from datetime import timezone
+
 from tests.customer_management_api.db_actions.account_holder import get_account_holder_by_id
 
 if TYPE_CHECKING:
