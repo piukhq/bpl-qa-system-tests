@@ -4,6 +4,7 @@ import uuid
 
 from typing import TYPE_CHECKING
 
+from deepdiff import DeepDiff
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.customer_management_api.api_requests.accounts import (
@@ -73,7 +74,8 @@ def check_successful_accounts_response(db_session: "Session", request_context: d
             json.dumps(expected_response_body), resp.json()
         )
     )
-    assert resp.json() == expected_response_body
+    diff = DeepDiff(resp.json(), expected_response_body, significant_digits=2, ignore_numeric_type_changes=True)
+    assert not diff
 
 
 @then(parsers.parse("I get a {response_fixture} accounts response body"))
