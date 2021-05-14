@@ -1,8 +1,8 @@
 from datetime import datetime
 from time import sleep
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional, Union
 
-from db.models import AccountHolder, AccountHolderProfile, Retailer
+from db.models import AccountHolder, AccountHolderProfile, RetailerConfig
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -10,22 +10,24 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-def get_account_holder(db_session: "Session", email: str, retailer: Union[str, Retailer]) -> Optional[AccountHolder]:
+def get_account_holder(
+    db_session: "Session", email: str, retailer: Union[str, RetailerConfig]
+) -> Optional[AccountHolder]:
     if isinstance(retailer, str):
-        retailer = db_session.query(Retailer).filter_by(slug=retailer).first()
+        retailer = db_session.query(RetailerConfig).filter_by(slug=retailer).first()
 
-    return db_session.query(AccountHolder).filter_by(email=email, retailer=retailer).first()
+    return db_session.query(AccountHolder).filter_by(email=email, retailer_config=retailer).first()
 
 
 def get_account_holder_by_id(db_session: "Session", account_holder_id: "UUID") -> AccountHolder:
     return db_session.query(AccountHolder).get(account_holder_id)
 
 
-def get_active_account_holder(db_session: "Session", email: str, retailer: Union[str, Retailer]) -> AccountHolder:
+def get_active_account_holder(db_session: "Session", email: str, retailer: Union[str, RetailerConfig]) -> AccountHolder:
     if isinstance(retailer, str):
-        retailer = db_session.query(Retailer).filter_by(slug=retailer).first()
+        retailer = db_session.query(RetailerConfig).filter_by(slug=retailer).first()
 
-    account_holder = db_session.query(AccountHolder).filter_by(email=email, retailer=retailer).first()
+    account_holder = db_session.query(AccountHolder).filter_by(email=email, retailer_config=retailer).first()
 
     for i in range(1, 3):
         if account_holder and account_holder.account_number is not None:

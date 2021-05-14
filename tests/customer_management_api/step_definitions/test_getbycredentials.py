@@ -3,6 +3,7 @@ import logging
 
 from typing import TYPE_CHECKING
 
+from deepdiff import DeepDiff
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.customer_management_api.api_requests.getbycredentials import (
@@ -66,7 +67,8 @@ def check_successful_getbycredentials_response(db_session: "Session", request_co
             json.dumps(expected_response_body), resp.json()
         )
     )
-    assert resp.json() == expected_response_body
+    diff = DeepDiff(resp.json(), expected_response_body, significant_digits=2, ignore_numeric_type_changes=True)
+    assert not diff
 
 
 @when(parsers.parse("I post getbycredentials a {retailer_slug} account holder passing in all required credentials"))
