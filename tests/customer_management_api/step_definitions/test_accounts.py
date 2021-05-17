@@ -57,7 +57,8 @@ def get_account(db_session: "Session", retailer_slug: str, request_context: dict
 
     resp = send_get_accounts(retailer_slug, str(account_holder_id))
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @then(parsers.parse("I receive a HTTP {status_code:d} status code in the accounts response"))
@@ -70,11 +71,10 @@ def check_successful_accounts_response(db_session: "Session", request_context: d
     expected_response_body = account_holder_details_response_body(db_session, request_context["account_holder"].id)
     resp = request_context["response"]
     logging.info(
-        "GET accounts expected response: {} \n actual response: {}".format(
-            json.dumps(expected_response_body), resp.json()
-        )
+        f"GET accounts expected response: {json.dumps(expected_response_body, indent=4)}\n"
+        f"GET accounts actual response: {json.dumps(resp.json(), indent=4)}"
     )
-    diff = DeepDiff(resp.json(), expected_response_body, significant_digits=2, ignore_numeric_type_changes=True)
+    diff = DeepDiff(resp.json(), expected_response_body, significant_digits=2)
     assert not diff
 
 
@@ -83,8 +83,8 @@ def check_accounts_response(response_fixture: str, request_context: dict) -> Non
     expected_response_body = accounts_responses.get_json(response_fixture)
     resp = request_context["response"]
     logging.info(
-        "POST getbycredentials expected response: %s \n actual response: %s"
-        % (json.dumps(expected_response_body), resp.json())
+        f"POST getbycredentials expected response: {json.dumps(expected_response_body, indent=4)}\n"
+        f"POST getbycredentials actual response: {json.dumps(resp.json(), indent=4)}"
     )
     assert resp.json() == expected_response_body
 
@@ -99,7 +99,8 @@ def get_invalid_token_request(retailer_slug: str, request_context: dict) -> None
     request_context["retailer_slug"] = retailer_slug
     resp = send_invalid_get_accounts(retailer_slug, str(uuid.uuid4()))
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when(
@@ -113,7 +114,8 @@ def get_missing_channel_header_request(retailer_slug: str, request_context: dict
     del headers["bpl-user-channel"]
     resp = send_get_accounts(retailer_slug, str(uuid.uuid4()), headers=headers)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when(
@@ -123,7 +125,8 @@ def get_malformed_uuid_request(retailer_slug: str, request_context: dict) -> Non
     request_context["retailer_slug"] = retailer_slug
     resp = send_malformed_get_accounts(retailer_slug)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when("I send a get /accounts request for an invalid-retailer account holder by UUID")
@@ -131,7 +134,8 @@ def get_account_invalid_retailer(request_context: dict) -> None:
     request_context["retailer_slug"] = "invalid-retailer"
     resp = send_get_accounts("invalid-retailer", str(uuid.uuid4()))
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @given(parsers.parse("The {retailer_slug}'s account holder I want to retrieve does not exists"))

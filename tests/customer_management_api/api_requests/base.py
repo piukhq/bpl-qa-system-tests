@@ -28,7 +28,7 @@ def get_headers() -> dict:
         "Authorization": f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}",
         "bpl-user-channel": "user-channel",
     }
-    logging.info(f"Header is : {json.dumps(headers, indent=4)}")
+    logging.info(f"Headers: {json.dumps(headers, indent=4)}")
     return headers
 
 
@@ -49,7 +49,7 @@ def get_url(retailer_slug: str, endpoint: Endpoints) -> str:
 def _send_post_request(retailer_slug: str, endpoint: Endpoints, headers: dict, request_body: str) -> "Response":
     url = get_url(retailer_slug, endpoint)
     session = retry_session()
-    logging.info(f"POST {endpoint.endpoint} URL is :{url}")
+    logging.info(f"POST {endpoint.endpoint} URL is: {url}")
     return session.post(url, headers=headers, data=request_body)
 
 
@@ -73,7 +73,7 @@ def send_invalid_post_request(retailer_slug: str, request_body: dict, endpoint: 
 def _send_get_request(retailer_slug: str, endpoint: Endpoints, param: str, headers: dict) -> "Response":
     url = get_url(retailer_slug, endpoint) + param
     session = retry_session()
-    logging.info(f"GET {endpoint.endpoint} URL is :{url}")
+    logging.info(f"GET {endpoint.endpoint} URL is: {url}")
     return session.get(url, headers=headers)
 
 

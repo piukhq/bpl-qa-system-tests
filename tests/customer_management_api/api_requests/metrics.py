@@ -25,7 +25,7 @@ request_latency_seconds_bucket_match = re.compile(
 def get_metrics() -> str:
     url = f"{settings.POLARIS_URL}:9100/metrics"
     session = retry_session()
-    logging.info(f"GET metrics URL is :{url}")
+    logging.info(f"GET metrics URL is: {url}")
     resp = session.get(url)
     resp.raise_for_status()
     return resp.text

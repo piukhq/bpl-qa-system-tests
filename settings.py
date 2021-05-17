@@ -30,7 +30,6 @@ def boolconv(s: str) -> bool:
 
 load_dotenv()
 
-logging.basicConfig(format="%(process)s %(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("bpl_automation_tests_logger")
 logger.setLevel(logging.DEBUG)
 
@@ -49,9 +48,9 @@ REPORT_DIRECTORY = getenv("REPORT_DIRECTORY", default="bpl/isolated/")
 TEAMS_WEBHOOK = getenv("TEAMS_WEBHOOK") if not LOCAL else None
 FRIENDLY_NAME = getenv("FRIENDLY_NAME", default="BPL")
 SCHEDULE = getenv("SCHEDULE")
-COMMAND = getenv("COMMAND", default="pytest --html report.html --self-contained-html -s -m bpl")
-ALERT_ON_SUCCESS = getenv("ALERT_ON_SUCCESS", default="True")
-ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True")
+COMMAND = getenv("COMMAND", default="pytest -m bpl")
+ALERT_ON_SUCCESS = getenv("ALERT_ON_SUCCESS", default="True", conv=boolconv)
+ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True", conv=boolconv)
 
 ENV_BASE_URL = getenv("ENV_BASE_URL")
 MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")

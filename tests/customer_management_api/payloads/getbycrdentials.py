@@ -31,7 +31,7 @@ def all_required_credentials(account_holder: "AccountHolder" = None) -> dict:
             "account_number": _get_random_account_number("TEST"),
         }
 
-    logging.info("`Request body for POST getbycredentials " + json.dumps(payload, indent=4))
+    logging.info("`Request body for POST getbycredentials: " + json.dumps(payload, indent=4))
     return payload
 
 
@@ -40,7 +40,7 @@ def non_existent_user_credentials(email: str, prefix: str) -> dict:
         "email": email,
         "account_number": _get_random_account_number(prefix),
     }
-    logging.info("`Request body for POST getbycredentials " + json.dumps(payload, indent=4))
+    logging.info("`Request body for POST getbycredentials: " + json.dumps(payload, indent=4))
     return payload
 
 
@@ -54,7 +54,7 @@ def missing_credentials_request_body() -> dict:
         # missing account_number
     }
 
-    logging.info("`Request body for missing credentials  " + json.dumps(payload, indent=4))
+    logging.info("`Request body for missing credentials:  " + json.dumps(payload, indent=4))
     return payload
 
 
@@ -65,5 +65,5 @@ def wrong_validation_request_body() -> dict:
         "phone": 999,
         "account_number": _get_random_account_number("TEST"),
     }
-    logging.info("`Request body for missing validation " + json.dumps(payload, indent=4))
+    logging.info("`Request body for missing validation: " + json.dumps(payload, indent=4))
     return payload
