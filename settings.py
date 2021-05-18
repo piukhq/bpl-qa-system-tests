@@ -54,6 +54,3 @@ ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True", conv=boolconv)
 
 ENV_BASE_URL = getenv("ENV_BASE_URL")
 MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")
-
-# n.b. this has to be the kubernetes internal url.
-POLARIS_URL = getenv("POLARIS_URL", "http://polaris-api")
