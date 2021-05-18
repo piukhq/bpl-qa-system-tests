@@ -1,16 +1,15 @@
-from db.models import AccountHolder, EnrolmentCallback
 import json
 import logging
 
-from time import sleep
-
 from json import JSONDecodeError
-from typing import Optional, TYPE_CHECKING
+from time import sleep
+from typing import TYPE_CHECKING, Optional
 
 from pytest_bdd import given, parsers, scenarios, then, when
 
 import settings
 
+from db.models import AccountHolder, EnrolmentCallback
 from tests.customer_management_api.api_requests.enrolment import (
     send_invalid_post_enrolment,
     send_malformed_post_enrolment,
@@ -26,9 +25,9 @@ from tests.customer_management_api.db_actions.enrolment_callback import get_enro
 from tests.customer_management_api.db_actions.retailer import get_retailer
 from tests.customer_management_api.payloads.enrolment import (
     all_required_and_all_optional_credentials,
+    bad_field_validation_request_body,
     malformed_request_body,
     missing_credentials_request_body,
-    bad_field_validation_request_body,
 )
 from tests.customer_management_api.response_fixtures.enrolment import EnrolResponses
 from tests.customer_management_api.step_definitions.shared import (
