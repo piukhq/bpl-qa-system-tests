@@ -1,10 +1,6 @@
-import logging
-
 from azure.core.exceptions import HttpResponseError, ResourceNotFoundError, ServiceRequestError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-
-logger = logging.getLogger(__name__)
 
 
 class KeyVaultError(Exception):

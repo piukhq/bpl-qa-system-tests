@@ -11,13 +11,16 @@ if TYPE_CHECKING:
 def account_holder_details_response_body(db_session: "Session", account_holder_id: "UUID") -> dict:
     account_holder = get_account_holder_by_id(db_session, account_holder_id)
     created_date_timestamp = int(account_holder.created_at.timestamp())
+    account_holder_balances = [balance for balance in account_holder.current_balances.values()]
+    for balance in account_holder_balances:
+        balance["value"] = balance["value"] / 100
     return {
         "UUID": str(account_holder.id),
         "email": account_holder.email,
         "created_date": created_date_timestamp,
         "status": account_holder.status.lower(),
         "account_number": account_holder.account_number,
-        "current_balances": [balance for balance in account_holder.current_balances.values()],
+        "current_balances": account_holder_balances,
         "transaction_history": [],
         "vouchers": [],
     }
