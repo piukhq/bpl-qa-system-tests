@@ -1,13 +1,10 @@
-import logging
 import os
 
 from datetime import datetime
 
 from azure.storage.blob import BlobClient, ContentSettings
 
-from settings import BLOB_STORAGE_DSN, REPORT_CONTAINER, REPORT_DIRECTORY
-
-logger = logging.getLogger(__name__)
+from settings import BLOB_STORAGE_DSN, REPORT_CONTAINER, REPORT_DIRECTORY, logger
 
 
 def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> str:

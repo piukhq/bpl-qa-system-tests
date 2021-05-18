@@ -51,9 +51,8 @@ def check_enrolment_response(response_fixture: str, request_context: dict) -> No
     expected_response_body = getbycredentials_responses.get_json(response_fixture)
     resp = request_context["response"]
     logging.info(
-        "POST enrol expected response: {} \n actual response: {}".format(
-            json.dumps(expected_response_body), resp.json()
-        )
+        f"POST enrol expected response: {json.dumps(expected_response_body, indent=4)}\n"
+        f"POST enrol actual response: {json.dumps(resp.json(), indent=4)}"
     )
     assert resp.json() == expected_response_body
 
@@ -63,11 +62,10 @@ def check_successful_getbycredentials_response(db_session: "Session", request_co
     expected_response_body = account_holder_details_response_body(db_session, request_context["account_holder"].id)
     resp = request_context["response"]
     logging.info(
-        "POST getbycredentials expected response: {} \n actual response: {}".format(
-            json.dumps(expected_response_body), resp.json()
-        )
+        f"POST getbycredentials expected response: {json.dumps(expected_response_body, indent=4)}\n"
+        f"POST getbycredentials actual response: {json.dumps(resp.json(), indent=4)}"
     )
-    diff = DeepDiff(resp.json(), expected_response_body, significant_digits=2, ignore_numeric_type_changes=True)
+    diff = DeepDiff(resp.json(), expected_response_body, significant_digits=2)
     assert not diff
 
 
@@ -88,7 +86,8 @@ def post_getbycredentials(db_session: "Session", retailer_slug: str, request_con
     request_context["retailer_slug"] = retailer_slug
     resp = send_post_getbycredentials(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when("I post getbycredentials an invalid-retailer's account holder passing in all required credentials")
@@ -97,7 +96,8 @@ def post_getbycredentials_invalid_retailer(request_context: dict) -> None:
     request_context["retailer_slug"] = "invalid-retailer"
     resp = send_post_getbycredentials("invalid-retailer", request_body)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when(parsers.parse("I getbycredentials a {retailer_slug} account holder with an malformed request"))
@@ -106,7 +106,8 @@ def post_malformed_request(retailer_slug: str, request_context: dict) -> None:
     request_body = malformed_request_body()
     resp = send_malformed_post_getbycredentials(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when(parsers.parse("I getbycredentials a {retailer_slug} account holder with a missing field in the request"))
@@ -115,7 +116,8 @@ def post_missing_field_request(retailer_slug: str, request_context: dict) -> Non
     request_body = missing_credentials_request_body()
     resp = send_post_getbycredentials(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when(parsers.parse("I getbycredentials a {retailer_slug} account holder passing in fields that will fail validation"))
@@ -124,7 +126,8 @@ def post_wrong_validation_request(retailer_slug: str, request_context: dict) -> 
     request_body = wrong_validation_request_body()
     resp = send_post_getbycredentials(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when(parsers.parse("I getbycredentials a {retailer_slug} account holder with an invalid authorisation token"))
@@ -133,7 +136,8 @@ def post_invalid_token_request(retailer_slug: str, request_context: dict) -> Non
     request_body = all_required_credentials()
     resp = send_invalid_post_getbycredentials(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @given(parsers.parse("the enrolled account holder has been activated"))
@@ -163,7 +167,7 @@ def check_getbycredentials_response(response_fixture: str, request_context: dict
     expected_response_body = getbycredentials_responses.get_json(response_fixture)
     resp = request_context["response"]
     logging.info(
-        "POST getbycredentials expected response: %s \n actual response: %s"
-        % (json.dumps(expected_response_body), resp.json())
+        f"POST getbycredentials expected response: {json.dumps(expected_response_body, indent=4)}\n"
+        f"POST getbycredentials actual response: {json.dumps(resp.json(), indent=4)}"
     )
     assert resp.json() == expected_response_body

@@ -32,13 +32,8 @@ az login
 
 ##### Run test suite (pointing at dev):
 ```
-pytest --html report.html --self-contained-html -s -m bpl
+pytest -m bpl
 ```
-
-
-## Current Test Support:
-#### Customer Management API 
-* Enrolment (In progress)
 
 ## Environment Variables
 * `SQLALCHEMY_DATABASE_URI`: URI to the Polaris database  
@@ -48,7 +43,7 @@ Defaults to `False`
 * `TEAMS_WEBHOOK`: Webhook to send alerts to the "Alerts - QA" channel when the test suite runs  
 * `BLOB_STORAGE_DSN`: DSN to connect to blob storage  
 * `REPORT_CONTAINER`: Blob storage container to save reports to. Defaults to `qareports`  
-* `REPORT_DIRECTORY`: Blob storage directory to save repots to. Defaults to `bpl/isolated/`  
+* `REPORT_DIRECTORY`: Blob storage directory to save reports to. Defaults to `bpl/isolated/`  
 * `FRIENDLY_NAME`: Name used on report headers and teams alerts. Defaults to `BPL`  
 * `SCHEDULE`: Cron schedule for running the scheduled reports  
 * `COMMAND`: Command that the the scheduled task runs, Defaults to: 
@@ -59,3 +54,4 @@ Defaults to `True`
 Defaults to `True`  
 * `ENV_BASE_URL`: Base URL for the automated tests e.g. `https://api.dev.gb.bink.com`  
 * `MOCK_SERVICE_BASE_URL`: URL to send for the `callback_url` during enrolment requests  
+* `POLARIS_URL`: URL to point to the Polaris internal API for metrics testing

@@ -46,7 +46,8 @@ def enrol_missing_channel_header(retailer_slug: str, request_context: dict) -> N
     headers.pop("bpl-user-channel")
     resp = send_post_enrolment(retailer_slug, request_body, headers=headers)
     request_context["response"] = resp
-    logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
     assert resp.status_code == 400
 
 
@@ -56,5 +57,6 @@ def enrol_missing_third_party_identifier(retailer_slug: str, request_context: di
     request_body.pop("third_party_identifier")
     resp = send_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"Response: {resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
     assert resp.status_code == 422

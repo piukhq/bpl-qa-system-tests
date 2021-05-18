@@ -76,7 +76,8 @@ def post_malformed_request(retailer_slug: str, request_context: dict) -> None:
     request_body = malformed_request_body()
     resp = send_malformed_post_enrolment(retailer_slug, request_body)
     request_context["response"] = resp
-    logging.info(f"{resp.json()}, status code: {resp.status_code}")
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @given(parsers.parse("I Enrol a {retailer_slug} account holder with an missing fields in request"))
@@ -147,7 +148,8 @@ def check_enrolment_response(response_fixture: str, request_context: dict) -> No
     expected_response_body = enrol_responses.get_json(response_fixture)
     resp = request_context["response"]
     logging.info(
-        f"POST Enrol Expected Response: {json.dumps(expected_response_body)} \n Actual Response: {resp.json()}"
+        f"POST enrol expected response: {json.dumps(expected_response_body, indent=4)}\n"
+        f"POST enrol actual response: {json.dumps(resp.json(), indent=4)}"
     )
     assert resp.json() == expected_response_body
 
