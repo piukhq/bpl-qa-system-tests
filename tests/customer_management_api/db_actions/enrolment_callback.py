@@ -1,5 +1,7 @@
 import time
+
 from typing import TYPE_CHECKING
+
 from db.models import EnrolmentCallback
 
 if TYPE_CHECKING:

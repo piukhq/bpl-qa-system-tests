@@ -54,4 +54,3 @@ Defaults to `True`
 Defaults to `True`  
 * `ENV_BASE_URL`: Base URL for the automated tests e.g. `https://api.dev.gb.bink.com`  
 * `MOCK_SERVICE_BASE_URL`: URL to send for the `callback_url` during enrolment requests  
-* `POLARIS_URL`: URL to point to the Polaris internal API for metrics testing

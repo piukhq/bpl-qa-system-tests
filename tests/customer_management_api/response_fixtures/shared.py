@@ -15,7 +15,6 @@ def account_holder_details_response_body(db_session: "Session", account_holder_i
     account_holder_balances = [balance for balance in account_holder.current_balances.values()]
     for balance in account_holder_balances:
         balance["value"] = balance["value"] / 100
-
     return {
         "UUID": str(account_holder.id),
         "email": account_holder.email,
