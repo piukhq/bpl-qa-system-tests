@@ -194,6 +194,15 @@ def get_account_invalid_retailer(request_context: dict) -> None:
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
+@when("I send a get /accounts request for an invalid-retailer account holder status by UUID")
+def get_accounts_status_invalid_retailer(request_context: dict) -> None:
+    request_context["retailer_slug"] = "invalid-retailer"
+    resp = send_get_accounts_status("invalid-retailer", str(uuid.uuid4()))
+    request_context["response"] = resp
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
+
+
 @given(parsers.parse("The {retailer_slug}'s account holder I want to retrieve does not exists"))
 def non_existent_accounts_account_holder(retailer_slug: str, request_context: dict) -> None:
     non_existent_account_holder(retailer_slug, request_context)
