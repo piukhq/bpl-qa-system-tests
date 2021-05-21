@@ -7,7 +7,12 @@ if TYPE_CHECKING:
 
 
 def send_get_accounts(retailer_slug: str, uuid: str, *, headers: dict = None) -> "Response":
-    return send_get_request(retailer_slug, Endpoints.ACCOUNTS, param=uuid, headers=headers)
+    return send_get_request(retailer_slug, Endpoints.ACCOUNTS, params=uuid, headers=headers)
+
+
+def send_get_accounts_status(retailer_slug: str, uuid: str, *, headers: dict = None) -> "Response":
+    params = f"{uuid}/status"
+    return send_get_request(retailer_slug, endpoint=Endpoints.ACCOUNTS, params=params, headers=headers)
 
 
 def send_malformed_get_accounts(retailer_slug: str) -> "Response":
