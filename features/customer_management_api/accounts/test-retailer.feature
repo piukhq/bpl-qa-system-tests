@@ -25,7 +25,6 @@ Feature: Bink BPL - Ensure that as a channel user I can retrieve a test-retailer
     Then I receive a HTTP 404 status code in the accounts response
     And I get a no_account_found accounts response body
 
-  @undertest
   Scenario: Get an account holder status for test-retailer by UUID
 
     Given I previously successfully enrolled a test-retailer account holder

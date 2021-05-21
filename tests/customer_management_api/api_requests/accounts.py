@@ -20,4 +20,9 @@ def send_malformed_get_accounts(retailer_slug: str) -> "Response":
 
 
 def send_invalid_get_accounts(retailer_slug: str, uuid: str) -> "Response":
-    return send_invalid_get_request(retailer_slug, Endpoints.ACCOUNTS, param=uuid)
+    return send_invalid_get_request(retailer_slug, Endpoints.ACCOUNTS, params=uuid)
+
+
+def send_invalid_get_accounts_status(retailer_slug: str, uuid: str) -> "Response":
+    params = f"{uuid}/status"
+    return send_invalid_get_request(retailer_slug, Endpoints.ACCOUNTS, params=params)

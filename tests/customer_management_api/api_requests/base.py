@@ -90,6 +90,6 @@ def send_malformed_get_request(retailer_slug: str, endpoint: Endpoints, param: s
     return _send_get_request(retailer_slug, endpoint, param, headers)
 
 
-def send_invalid_get_request(retailer_slug: str, endpoint: Endpoints, param: str) -> "Response":
+def send_invalid_get_request(retailer_slug: str, endpoint: Endpoints, params: str) -> "Response":
     headers = get_invalid_headers()
-    return _send_get_request(retailer_slug, endpoint, param, headers)
+    return _send_get_request(retailer_slug, endpoint, params, headers)

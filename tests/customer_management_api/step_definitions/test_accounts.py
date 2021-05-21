@@ -8,15 +8,25 @@ from deepdiff import DeepDiff
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from tests.customer_management_api.api_requests.accounts import (
-    send_get_accounts, send_get_accounts_status, send_invalid_get_accounts, send_malformed_get_accounts,)
+    send_get_accounts,
+    send_get_accounts_status,
+    send_invalid_get_accounts,
+    send_invalid_get_accounts_status,
+    send_malformed_get_accounts,
+)
 from tests.customer_management_api.api_requests.base import get_headers
 from tests.customer_management_api.db_actions.account_holder import get_account_holder
 from tests.customer_management_api.db_actions.retailer import get_retailer
 from tests.customer_management_api.response_fixtures.accounts import AccountsResponses
 from tests.customer_management_api.response_fixtures.shared import (
-    account_holder_details_response_body, account_holder_status_response_body,)
+    account_holder_details_response_body,
+    account_holder_status_response_body,
+)
 from tests.customer_management_api.step_definitions.shared import (
-    check_response_status_code, enrol_account_holder, non_existent_account_holder,)
+    check_response_status_code,
+    enrol_account_holder,
+    non_existent_account_holder,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -130,6 +140,20 @@ def check_accounts_response(response_fixture: str, request_context: dict) -> Non
 def get_invalid_token_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     resp = send_invalid_get_accounts(retailer_slug, str(uuid.uuid4()))
+    request_context["response"] = resp
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
+
+
+@when(
+    parsers.parse(
+        "I send a get /accounts request for a {retailer_slug} account holder status by UUID "
+        "with an invalid authorisation token"
+    )
+)
+def get_accounts_status_invalid_token_request(retailer_slug: str, request_context: dict) -> None:
+    request_context["retailer_slug"] = retailer_slug
+    resp = send_invalid_get_accounts_status(retailer_slug, str(uuid.uuid4()))
     request_context["response"] = resp
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
