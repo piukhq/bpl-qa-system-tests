@@ -115,10 +115,6 @@ def check_successful_accounts_status_response(db_session: "Session", request_con
     diff = DeepDiff(resp.json(), expected_response_body, significant_digits=2)
     assert not diff
 
-    # THEN
-    # assert len(resp.json().keys()) == 1
-    # assert resp.json()["status"] == account_holder.status.value
-
 
 @then(parsers.parse("I get a {response_fixture} accounts response body"))
 def check_accounts_response(response_fixture: str, request_context: dict) -> None:

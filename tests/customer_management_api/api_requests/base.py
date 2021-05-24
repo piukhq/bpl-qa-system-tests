@@ -22,24 +22,21 @@ class Endpoints(str, Enum):
         return self.split("/")[-1]
 
 
-def get_headers() -> dict:
+def get_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
+    if valid_token:
+        auth_token = CUSTOMER_MANAGEMENT_API_TOKEN
+    else:
+        auth_token = "incorrect-token"
+
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "Authorization": f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}",
-        "bpl-user-channel": "user-channel",
+        "Authorization": f"Token {auth_token}",
     }
+    if channel_header:
+        headers["bpl-user-channel"] = "user-channel"
+
     logging.info(f"Headers: {json.dumps(headers, indent=4)}")
-    return headers
-
-
-def get_invalid_headers() -> dict:
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": "Token token",
-        "Bpl-User-Channel": "user-channel",
-    }
     return headers
 
 
@@ -67,7 +64,7 @@ def send_malformed_post_request(retailer_slug: str, request_body: str, endpoint:
 
 
 def send_invalid_post_request(retailer_slug: str, request_body: dict, endpoint: Endpoints) -> "Response":
-    headers = get_invalid_headers()
+    headers = get_headers(valid_token=False)
     return _send_post_request(retailer_slug, endpoint, headers, json.dumps(request_body))
 
 
@@ -90,6 +87,8 @@ def send_malformed_get_request(retailer_slug: str, endpoint: Endpoints, param: s
     return _send_get_request(retailer_slug, endpoint, param, headers)
 
 
-def send_invalid_get_request(retailer_slug: str, endpoint: Endpoints, params: str) -> "Response":
-    headers = get_invalid_headers()
+def send_invalid_get_request(retailer_slug: str, endpoint: Endpoints, params: str, headers: dict = None) -> "Response":
+    if headers is None:
+        headers = get_headers(valid_token=False)
+
     return _send_get_request(retailer_slug, endpoint, params, headers)
