@@ -21,3 +21,16 @@ Feature: Bink BPL - Ensure that as a channel user I can not retrieve an account 
     When I send a get /accounts request for a invalid-retailer account holder by UUID without a channel header
     Then I receive a HTTP 400 status code in the accounts response
     And I get a missing_channel_header accounts response body
+
+  Scenario: GET accounts request to retrieve an account holder status with an invalid authorisation token
+
+    When I send a get /accounts request for a invalid-retailer account holder status by UUID with an invalid authorisation token
+    Then I receive a HTTP 401 status code in the accounts response
+    And I get a invalid_token accounts response body
+
+  Scenario: GET accounts request to retrieve an account holder status for an invalid retailer
+
+    When I send a get /accounts request for an invalid-retailer account holder status by UUID
+    Then I receive a HTTP 403 status code in the accounts response
+    And I get a invalid_retailer accounts response body
+
