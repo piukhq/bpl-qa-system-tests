@@ -46,14 +46,14 @@ def setup_check_enrolment_response_status_code(status_code: int, request_context
 
 
 @when(parsers.parse("I send a get /accounts request for a {retailer_slug} account holder by UUID"))
-def get_account(db_session: "Session", retailer_slug: str, request_context: dict) -> None:
+def get_account(polaris_db_session: "Session", retailer_slug: str, request_context: dict) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
-    retailer = get_retailer(db_session, retailer_slug)
+    retailer = get_retailer(polaris_db_session, retailer_slug)
 
     if request_context.get("account_holder_exists", True):
-        account_holder = get_account_holder(db_session, email, retailer)
+        account_holder = get_account_holder(polaris_db_session, email, retailer)
         assert account_holder is not None
         request_context["account_holder"] = account_holder
         account_holder_id = account_holder.id
@@ -93,8 +93,8 @@ def check_getbycredentials_response_status_code(status_code: int, request_contex
 
 
 @then("I get a success accounts response body")
-def check_successful_accounts_response(db_session: "Session", request_context: dict) -> None:
-    expected_response_body = account_holder_details_response_body(db_session, request_context["account_holder"].id)
+def check_successful_accounts_response(polaris_db_session: "Session", request_context: dict) -> None:
+    expected_response_body = account_holder_details_response_body(polaris_db_session, request_context["account_holder"].id)
     resp = request_context["response"]
     logging.info(
         f"GET accounts expected response: {json.dumps(expected_response_body, indent=4)}\n"

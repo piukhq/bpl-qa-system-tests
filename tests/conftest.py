@@ -4,7 +4,8 @@ from typing import Any, Generator
 
 import pytest
 
-from db.session import SessionMaker
+from db.polaris.session import PolarisSessionMaker
+from db.vela.session import VelaSessionMaker
 
 
 # Hooks
@@ -31,7 +32,13 @@ def request_context() -> dict:
     return {}
 
 
-@pytest.fixture(scope="session")
-def db_session() -> Generator:
-    with SessionMaker() as db_session:
+@pytest.fixture(scope="function")
+def polaris_db_session() -> Generator:
+    with PolarisSessionMaker() as db_session:
+        yield db_session
+
+
+@pytest.fixture(scope="function")
+def vela_db_session() -> Generator:
+    with VelaSessionMaker() as db_session:
         yield db_session

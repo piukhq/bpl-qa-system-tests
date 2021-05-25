@@ -1,11 +1,4 @@
-from .shared import (
-    ENROL_VALIDATION_FAILED,
-    INVALID_RETAILER,
-    INVALID_TOKEN,
-    MALFORMED_REQUEST,
-    MISSING_CHANNEL_HEADER,
-    THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED,
-)
+from tests.shared.response_fixtures.base import BaseResponses
 
 SUCCESS: dict = {}
 
@@ -23,22 +16,28 @@ ACCOUNT_HOLDER_ALREADY_EXISTS = {
     "fields": ["email"],
 }
 
+VALIDATION_FAILED = [
+    {
+        "display_message": "Submitted credentials did not pass validation.",
+        "error": "VALIDATION_FAILED",
+        "fields": ["email", "date_of_birth", "phone", "address_line2", "city"],
+    }
+]
 
-class EnrolResponses:
+THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED = [
+    {
+        "display_message": "Missing credentials from request.",
+        "error": "MISSING_FIELDS",
+        "fields": ["third_party_identifier"],
+    }
+]
+
+
+class EnrolResponses(BaseResponses):
     def __init__(self) -> None:
+        super().__init__()
         self.success = SUCCESS
-        self.invalid_retailer = INVALID_RETAILER
         self.account_holder_already_exists = ACCOUNT_HOLDER_ALREADY_EXISTS
-        self.malformed_request = MALFORMED_REQUEST
         self.missing_fields = MISSING_FIELDS
-        self.invalid_token = INVALID_TOKEN
-        self.validation_failed = ENROL_VALIDATION_FAILED
-        self.missing_channel_header = MISSING_CHANNEL_HEADER
+        self.validation_failed = VALIDATION_FAILED
         self.missing_third_party_identifier = THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED
-
-    def get_json(self, key: str) -> dict:
-        key = key.lower()
-        try:
-            return getattr(self, key)
-        except AttributeError as e:
-            raise AttributeError(f"Missing response fixture: {key}, please add it to: {__name__}") from e

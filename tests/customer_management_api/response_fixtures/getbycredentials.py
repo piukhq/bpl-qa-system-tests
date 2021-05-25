@@ -1,11 +1,4 @@
-from .shared import (
-    CREDENTIALS_VALIDATION_FAILED,
-    INVALID_RETAILER,
-    INVALID_TOKEN,
-    MALFORMED_REQUEST,
-    MISSING_CHANNEL_HEADER,
-    NO_ACCOUNT_FOUND,
-)
+from tests.shared.response_fixtures.base import BaseResponses
 
 MISSING_FIELDS = [
     {
@@ -15,21 +8,17 @@ MISSING_FIELDS = [
     }
 ]
 
+VALIDATION_FAILED = [
+    {
+        "display_message": "Submitted credentials did not pass validation.",
+        "error": "VALIDATION_FAILED",
+        "fields": ["email"],
+    }
+]
 
-class GetByCredentialsResponses:
+
+class GetByCredentialsResponses(BaseResponses):
     def __init__(self) -> None:
-        self.invalid_retailer = INVALID_RETAILER
-        self.no_account_found = NO_ACCOUNT_FOUND
-        self.malformed_request = MALFORMED_REQUEST
+        super().__init__()
         self.missing_fields = MISSING_FIELDS
-        self.invalid_token = INVALID_TOKEN
-        self.validation_failed = CREDENTIALS_VALIDATION_FAILED
-        self.missing_channel_header = MISSING_CHANNEL_HEADER
-
-    def get_json(self, key: str) -> dict:
-        key = key.lower()
-
-        try:
-            return getattr(self, key)
-        except AttributeError as e:
-            raise AttributeError(f"Missing response fixture: {key}, please add it to: {__name__}") from e
+        self.validation_failed = VALIDATION_FAILED

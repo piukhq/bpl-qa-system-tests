@@ -36,7 +36,8 @@ pytest -m bpl
 ```
 
 ## Environment Variables
-* `SQLALCHEMY_DATABASE_URI`: URI to the Polaris database  
+* `POLARIS_DATABASE_URI`: URI to the Polaris database  
+* `VELA_DATABASE_URI`: URI to the Vela database  
 * `VAULT_URL`: URL for Azure Key Vault  
 * `LOCAL`: Set to True for local testing, disables teams webhook and saving reports to blob storage. 
 Defaults to `False`  
@@ -52,5 +53,8 @@ Defaults to `False`
 Defaults to `True`  
 * `ALERT_ON_FAILURE`: Set to True to send teams alerts when the test suite fails to run. 
 Defaults to `True`  
-* `ENV_BASE_URL`: Base URL for the automated tests e.g. `https://api.dev.gb.bink.com`  
+* `POLARIS_BASE_URL`: Base URL for the customer management api 
+  e.g. `https://api.dev.gb.bink.com/bpl/loyalty`  
+* `VELA_BASE_URL`: Base URL for the rewards rule management api 
+  e.g. `https://api.dev.gb.bink.com/bpl/rewards`  
 * `MOCK_SERVICE_BASE_URL`: URL to send for the `callback_url` during enrolment requests  

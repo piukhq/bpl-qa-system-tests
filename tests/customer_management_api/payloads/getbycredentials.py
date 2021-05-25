@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 if TYPE_CHECKING:
-    from db.models import AccountHolder
+    from db.polaris.models import AccountHolder
 
 
 def _get_random_account_number(prefix: str) -> str:
