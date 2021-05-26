@@ -27,8 +27,7 @@ def send_get_rrm_request(path: str, headers: dict = None) -> "Response":
 
     session = retry_session()
     url = f"{VELA_BASE_URL}{path}"
-    logging.info(f"sending GET request to: {url}\n"
-                 f"using headers: {json.dumps(headers, indent=4)}")
+    logging.info(f"sending GET request to: {url}\n" f"using headers: {json.dumps(headers, indent=4)}")
 
     resp = session.get(url, headers=headers)
     logging.info(f"Response HTTP status code: {resp.status_code}")

@@ -59,7 +59,9 @@ def check_enrolment_response(response_fixture: str, request_context: dict) -> No
 
 @then("I get a success getbycredentials response body")
 def check_successful_getbycredentials_response(polaris_db_session: "Session", request_context: dict) -> None:
-    expected_response_body = account_holder_details_response_body(polaris_db_session, request_context["account_holder"].id)
+    expected_response_body = account_holder_details_response_body(
+        polaris_db_session, request_context["account_holder"].id
+    )
     resp = request_context["response"]
     logging.info(
         f"POST getbycredentials expected response: {json.dumps(expected_response_body, indent=4)}\n"

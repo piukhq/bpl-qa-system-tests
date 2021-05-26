@@ -1,5 +1,10 @@
-from tests.shared.response_fixtures.errors import INVALID_RETAILER, NO_ACCOUNT_FOUND, MALFORMED_REQUEST, INVALID_TOKEN, \
-    MISSING_CHANNEL_HEADER
+from tests.shared.response_fixtures.errors import (
+    INVALID_RETAILER,
+    NO_ACCOUNT_FOUND,
+    MALFORMED_REQUEST,
+    INVALID_TOKEN,
+    MISSING_CHANNEL_HEADER,
+)
 
 
 class BaseResponses:
@@ -16,5 +21,6 @@ class BaseResponses:
         try:
             return getattr(self, key)
         except AttributeError as e:
-            raise AttributeError(f"Missing response fixture: {key}, "
-                                 f"please add it to: {self.__class__.__name__}") from e
+            raise AttributeError(
+                f"Missing response fixture: {key}, " f"please add it to: {self.__class__.__name__}"
+            ) from e

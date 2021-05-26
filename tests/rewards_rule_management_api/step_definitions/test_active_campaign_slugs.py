@@ -20,25 +20,36 @@ active_campaign_slug_responses = ActiveCampaignSlugsResponses()
 def check_no_active_campaigns(vela_db_session: "Session", retailer_slug: str) -> None:
     active_campaigns = len(get_active_campaigns(vela_db_session, retailer_slug))
     non_active_campaigns = len(get_non_active_campaigns(vela_db_session, retailer_slug))
-    logging.info(f"checking retailer: {retailer_slug} has no campaigns, "
-                 f"found: {active_campaigns + non_active_campaigns} campaigns")
+    logging.info(
+        f"checking retailer: {retailer_slug} has no campaigns, "
+        f"found: {active_campaigns + non_active_campaigns} campaigns"
+    )
 
     assert not active_campaigns
     assert not non_active_campaigns
 
 
-@given(parsers.parse("{retailer_slug} has at least {active_campaigns_total:d} active campaign(s) "
-                     "and at least {non_active_campaigns_total:d} non-active campaign(s)"))
-def check_campaigns(vela_db_session: "Session", retailer_slug: str, active_campaigns_total: int,
-                    non_active_campaigns_total: int) -> None:
+@given(
+    parsers.parse(
+        "{retailer_slug} has at least {active_campaigns_total:d} active campaign(s) "
+        "and at least {non_active_campaigns_total:d} non-active campaign(s)"
+    )
+)
+def check_campaigns(
+    vela_db_session: "Session", retailer_slug: str, active_campaigns_total: int, non_active_campaigns_total: int
+) -> None:
     actual_active_campaigns_total = len(get_active_campaigns(vela_db_session, retailer_slug))
     actual_non_active_campaigns_total = len(get_non_active_campaigns(vela_db_session, retailer_slug))
 
-    logging.info(f"checking retailer: {retailer_slug} has at least {active_campaigns_total} active campaigns, "
-                 f"found: {actual_active_campaigns_total}")
+    logging.info(
+        f"checking retailer: {retailer_slug} has at least {active_campaigns_total} active campaigns, "
+        f"found: {actual_active_campaigns_total}"
+    )
     assert actual_active_campaigns_total >= active_campaigns_total
-    logging.info(f"checking retailer: {retailer_slug} has at least {non_active_campaigns_total} non-active campaigns, "
-                 f"found: {actual_non_active_campaigns_total}")
+    logging.info(
+        f"checking retailer: {retailer_slug} has at least {non_active_campaigns_total} non-active campaigns, "
+        f"found: {actual_non_active_campaigns_total}"
+    )
     assert actual_non_active_campaigns_total >= non_active_campaigns_total
 
 
@@ -60,8 +71,11 @@ def check_response_status_code(status_code: int, request_context: dict) -> None:
     assert resp.status_code == status_code
 
 
-@then(parsers.parse("I get all the active campaign slugs for {retailer_slug} "
-                    "in my GET active_campaign_slugs response body"))
+@then(
+    parsers.parse(
+        "I get all the active campaign slugs for {retailer_slug} " "in my GET active_campaign_slugs response body"
+    )
+)
 def check_active_campaign_slugs_response(vela_db_session: "Session", request_context: dict, retailer_slug: str) -> None:
     active_campaigns = get_active_campaigns(vela_db_session, retailer_slug)
     expected_response_body = [campaign.slug for campaign in active_campaigns]
@@ -75,7 +89,9 @@ def check_active_campaign_slugs_response(vela_db_session: "Session", request_con
 
 
 @then(parsers.parse("I get a {response_fixture} GET active-campaign-slugs response body"))
-def check_active_campaign_slugs_error_response(vela_db_session, response_fixture: str, request_context: dict) -> None:
+def check_active_campaign_slugs_error_response(
+    vela_db_session: "Session", response_fixture: str, request_context: dict
+) -> None:
     expected_response_body = active_campaign_slug_responses.get_json(response_fixture)
     resp = request_context["response"]
     logging.info(

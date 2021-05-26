@@ -27,8 +27,8 @@ def account_holder_details_response_body(polaris_db_session: "Session", account_
     }
 
 
-def account_holder_status_response_body(db_session: "Session", account_holder_id: "UUID") -> dict:
-    account_holder = get_account_holder_by_id(db_session, account_holder_id)
+def account_holder_status_response_body(polaris_db_session: "Session", account_holder_id: "UUID") -> dict:
+    account_holder = get_account_holder_by_id(polaris_db_session, account_holder_id)
     return {
         "status": account_holder.status.lower(),
     }

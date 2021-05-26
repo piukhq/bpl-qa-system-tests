@@ -168,7 +168,9 @@ def check_all_fields_saved_in_db(polaris_db_session: "Session", request_context:
     assert_enrol_request_body_with_account_holder_profile_table(account_holder_profile, request_body)
 
 
-def get_account_holder_from_request_data(polaris_db_session: "Session", request_context: dict) -> Optional[AccountHolder]:
+def get_account_holder_from_request_data(
+    polaris_db_session: "Session", request_context: dict
+) -> Optional[AccountHolder]:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
@@ -287,17 +289,23 @@ def alter_call_back_url(
 
 @when(parsers.parse("the callback URL is known to produce an HTTP {status_code:d} response"))
 @then(parsers.parse("the callback URL is known to produce an HTTP {status_code:d} response"))
-def alter_callback_url_to_produce_xxx_response(polaris_db_session: "Session", status_code: int, request_context: dict) -> None:
+def alter_callback_url_to_produce_xxx_response(
+    polaris_db_session: "Session", status_code: int, request_context: dict
+) -> None:
     alter_call_back_url(polaris_db_session, request_context, status_code=status_code)
 
 
 @when(parsers.parse("the callback URL is known to produce {num_failures:d} consecutive HTTP 500 error responses"))
-def alter_callback_url_to_produce_error(polaris_db_session: "Session", num_failures: int, request_context: dict) -> None:
+def alter_callback_url_to_produce_error(
+    polaris_db_session: "Session", num_failures: int, request_context: dict
+) -> None:
     alter_call_back_url(polaris_db_session, request_context, status_code=500, num_failures=num_failures)
 
 
 @when(parsers.parse("the callback URL is known to timeout after {timeout_seconds:d} seconds"))
-def alter_callback_url_to_produce_timeout(polaris_db_session: "Session", timeout_seconds: int, request_context: dict) -> None:
+def alter_callback_url_to_produce_timeout(
+    polaris_db_session: "Session", timeout_seconds: int, request_context: dict
+) -> None:
     alter_call_back_url(polaris_db_session, request_context, status_code=None, timeout_seconds=timeout_seconds)
 
 
