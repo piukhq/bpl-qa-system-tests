@@ -3,9 +3,8 @@ import logging
 
 from enum import Enum
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin
 
-from settings import CUSTOMER_MANAGEMENT_API_TOKEN, ENV_BASE_URL
+from settings import CUSTOMER_MANAGEMENT_API_TOKEN, POLARIS_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
@@ -41,7 +40,7 @@ def get_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
 
 
 def get_url(retailer_slug: str, endpoint: Endpoints) -> str:
-    return urljoin(ENV_BASE_URL, f"/bpl/loyalty/{retailer_slug}" + endpoint)
+    return f"{POLARIS_BASE_URL}/{retailer_slug}" + endpoint
 
 
 def _send_post_request(retailer_slug: str, endpoint: Endpoints, headers: dict, request_body: str) -> "Response":

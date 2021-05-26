@@ -1,4 +1,4 @@
-@bpl @accounts
+@bpl @cm @accounts
 Feature: Bink BPL - Ensure that as a channel user I can not retrieve an account holder details by UUID via an invalid retailer
   As a Channel User
   Using the GET /test-retailer/accounts/[AccountHolder.id] endpoint

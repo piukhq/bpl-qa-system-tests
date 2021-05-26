@@ -13,7 +13,7 @@ from tests.customer_management_api.api_requests.getbycredentials import (
 )
 from tests.customer_management_api.db_actions.account_holder import get_account_holder, get_active_account_holder
 from tests.customer_management_api.db_actions.retailer import get_retailer
-from tests.customer_management_api.payloads.getbycrdentials import (
+from tests.customer_management_api.payloads.getbycredentials import (
     all_required_credentials,
     malformed_request_body,
     missing_credentials_request_body,
@@ -58,8 +58,10 @@ def check_enrolment_response(response_fixture: str, request_context: dict) -> No
 
 
 @then("I get a success getbycredentials response body")
-def check_successful_getbycredentials_response(db_session: "Session", request_context: dict) -> None:
-    expected_response_body = account_holder_details_response_body(db_session, request_context["account_holder"].id)
+def check_successful_getbycredentials_response(polaris_db_session: "Session", request_context: dict) -> None:
+    expected_response_body = account_holder_details_response_body(
+        polaris_db_session, request_context["account_holder"].id
+    )
     resp = request_context["response"]
     logging.info(
         f"POST getbycredentials expected response: {json.dumps(expected_response_body, indent=4)}\n"
@@ -70,14 +72,14 @@ def check_successful_getbycredentials_response(db_session: "Session", request_co
 
 
 @when(parsers.parse("I post getbycredentials a {retailer_slug} account holder passing in all required credentials"))
-def post_getbycredentials(db_session: "Session", retailer_slug: str, request_context: dict) -> None:
+def post_getbycredentials(polaris_db_session: "Session", retailer_slug: str, request_context: dict) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
-    retailer = get_retailer(db_session, retailer_slug)
+    retailer = get_retailer(polaris_db_session, retailer_slug)
 
     if request_context.get("account_holder_exists", True):
-        account_holder = get_account_holder(db_session, email, retailer)
+        account_holder = get_account_holder(polaris_db_session, email, retailer)
         request_context["account_holder"] = account_holder
         request_body = all_required_credentials(account_holder)
     else:
@@ -141,12 +143,12 @@ def post_invalid_token_request(retailer_slug: str, request_context: dict) -> Non
 
 
 @given(parsers.parse("the enrolled account holder has been activated"))
-def check_account_holder_is_active(db_session: "Session", request_context: dict) -> None:
+def check_account_holder_is_active(polaris_db_session: "Session", request_context: dict) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
     retailer_slug = request_context["retailer_slug"]
 
-    account_holder = get_active_account_holder(db_session, email, retailer_slug)
+    account_holder = get_active_account_holder(polaris_db_session, email, retailer_slug)
 
     assert account_holder.status == "ACTIVE"
     assert account_holder.account_number is not None

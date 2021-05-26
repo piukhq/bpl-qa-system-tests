@@ -1,4 +1,4 @@
-@bpl @getbycredentials
+@bpl @cm @getbycredentials
 Feature: Bink BPL - Ensure that as a channel user I can retrieve a test-retailer account holder details by credentials
   As a Channel User
   Using the POST /test-retailer/accounts/getbycredentials endpoint

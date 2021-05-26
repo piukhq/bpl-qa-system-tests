@@ -1,6 +1,6 @@
 from sqlalchemy.ext.automap import automap_base
 
-from db.session import engine
+from db.polaris.session import engine
 
 Base = automap_base()
 Base.prepare(engine, reflect=True)

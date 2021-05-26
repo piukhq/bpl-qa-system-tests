@@ -1,4 +1,4 @@
-@bpl @enrol @callbacks
+@bpl @cm @enrol @callbacks
 Feature: Bink BPL - Ensure a customer can enrol and that a callback is completed
   As a customer
   I want to utilise POST enrol endpoint

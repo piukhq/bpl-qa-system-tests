@@ -1,4 +1,4 @@
-@bpl @getbycredentials
+@bpl @cm @getbycredentials
 Feature: Bink BPL - Ensure that as a channel user I can not retrieve an account holder details by credentials via an invalid retailer
   As a Channel User
   Using the POST /test-retailer/accounts/getbycredentials endpoint
