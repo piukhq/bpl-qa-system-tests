@@ -78,7 +78,11 @@ def assert_enrol_request_body_with_account_holder_table(
     account_holder_request_info = {"email": request_body["credentials"]["email"], "retailer_id": retailer_id}
 
     for field, request_value in account_holder_request_info.items():
-        assert getattr(account_holder, field) == request_value
+        value = getattr(account_holder, field)
+        if field == "id":
+            value = str(value)
+
+        assert value == request_value
 
 
 def assert_enrol_request_body_with_account_holder_profile_table(
