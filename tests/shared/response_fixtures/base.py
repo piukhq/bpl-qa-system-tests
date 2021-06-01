@@ -1,9 +1,9 @@
 from tests.shared.response_fixtures.errors import (
     INVALID_RETAILER,
-    NO_ACCOUNT_FOUND,
-    MALFORMED_REQUEST,
     INVALID_TOKEN,
+    MALFORMED_REQUEST,
     MISSING_CHANNEL_HEADER,
+    NO_ACCOUNT_FOUND,
 )
 
 

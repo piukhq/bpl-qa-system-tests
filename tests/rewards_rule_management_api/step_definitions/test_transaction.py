@@ -1,12 +1,15 @@
 import uuid
+
 from datetime import datetime
 
 import requests
-from pytest_bdd import scenarios, when, then, given
+
+from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
 
 import settings
+
 from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Transaction
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers
@@ -19,10 +22,12 @@ scenarios("rewards_rule_management_api/transaction/")
 def setup_account_holder(status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session) -> None:
     email = "automated_test@transaction.test"
     retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
+    if retailer is None:
+        raise ValueError(f"a retailer with slug '{retailer_slug}' was not found in the db.")
     account_status = {"active": "ACTIVE"}.get(status, "PENDING")
 
     account_holder = polaris_db_session.query(AccountHolder).filter_by(email=email, retailer_id=retailer.id).first()
-    if not account_holder:
+    if account_holder is None:
         account_holder = AccountHolder(
             email=email,
             retailer_id=retailer.id,
@@ -43,9 +48,9 @@ def setup_non_existent_account_holder(retailer_slug: str, request_context: dict,
         account_holder_uuid = uuid.uuid4()
         account_holder = (
             polaris_db_session.query(AccountHolder)
-                .join(RetailerConfig)
-                .filter(AccountHolder.id == account_holder_uuid, RetailerConfig.slug == retailer_slug)
-                .first()
+            .join(RetailerConfig)
+            .filter(AccountHolder.id == account_holder_uuid, RetailerConfig.slug == retailer_slug)
+            .first()
         )
         if account_holder is None:
             request_context["account_holder_uuid"] = str(account_holder_uuid)

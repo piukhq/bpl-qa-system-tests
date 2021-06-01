@@ -20,16 +20,26 @@ def get_account_holder(
 
 
 def get_account_holder_by_id(polaris_db_session: "Session", account_holder_id: "UUID") -> AccountHolder:
-    return polaris_db_session.query(AccountHolder).get(account_holder_id)
+    account_holder = polaris_db_session.query(AccountHolder).filter_by(id=account_holder_id).first()
+    if account_holder is None:
+        raise ValueError(f"No account holder found for id {account_holder_id}.")
+
+    return account_holder
 
 
 def get_active_account_holder(
-    polaris_db_session: "Session", email: str, retailer: Union[str, RetailerConfig]
+    polaris_db_session: "Session", email: str, retailer_slug: Union[str, RetailerConfig]
 ) -> AccountHolder:
-    if isinstance(retailer, str):
-        retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer).first()
+    if isinstance(retailer_slug, str):
+        retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
+        if retailer is None:
+            raise ValueError(f"No retailer found for slug {retailer}.")
+    else:
+        retailer = retailer_slug
 
     account_holder = polaris_db_session.query(AccountHolder).filter_by(email=email, retailer_config=retailer).first()
+    if account_holder is None:
+        raise ValueError(f"No account holder found for email {email} and retailer {retailer.slug}.")
 
     for i in range(1, 3):
         if account_holder and account_holder.account_number is not None:

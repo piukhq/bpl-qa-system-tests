@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, Boolean, text
+from sqlalchemy import Boolean, Column, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.automap import automap_base
 
@@ -10,7 +10,7 @@ Base = automap_base()
 utc_timestamp_sql = text("TIMEZONE('utc', CURRENT_TIMESTAMP)")
 
 
-class AccountHolder(Base):
+class AccountHolder(Base):  # type: ignore
     __tablename__ = "account_holder"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)

@@ -1,10 +1,11 @@
 import json
 import logging
+
 from typing import TYPE_CHECKING
 
-from pytest_bdd import given, when, parsers, then, scenarios
+from pytest_bdd import given, parsers, scenarios, then, when
 
-from tests.rewards_rule_management_api.api_requests.base import send_get_rrm_request, get_rrm_headers
+from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers, send_get_rrm_request
 from tests.rewards_rule_management_api.db_actions.campaigns import get_active_campaigns, get_non_active_campaigns
 from tests.rewards_rule_management_api.response_fixtures.active_campaign_slugs import ActiveCampaignSlugsResponses
 
