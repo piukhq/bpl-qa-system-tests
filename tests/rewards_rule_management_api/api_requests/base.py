@@ -1,5 +1,6 @@
 import json
 import logging
+
 from typing import TYPE_CHECKING
 
 from settings import REWARDS_RULE_MANAGEMENT_API_TOKEN, VELA_BASE_URL

@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from .base import Endpoints, send_get_request, send_invalid_get_request, send_malformed_get_request, get_headers
+from .base import Endpoints, get_headers, send_get_request, send_invalid_get_request, send_malformed_get_request
 
 if TYPE_CHECKING:
     from requests import Response

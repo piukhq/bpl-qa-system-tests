@@ -11,6 +11,7 @@ Base.prepare(engine, reflect=True)
 RetailerRewards = Base.classes.retailer_rewards
 Campaign = Base.classes.campaign
 EarnRule = Base.classes.earn_rule
+Transaction = Base.classes.transaction
 
 
 class CampaignStatuses(str, Enum):

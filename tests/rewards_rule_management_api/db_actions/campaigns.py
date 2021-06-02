@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from db.vela.models import Campaign, CampaignStatuses, RetailerRewards
 

@@ -163,7 +163,7 @@ def check_all_fields_saved_in_db(polaris_db_session: "Session", request_context:
 
     account_holder = get_account_holder(polaris_db_session, email, retailer)
     assert account_holder is not None
-    account_holder_profile = get_account_holder_profile(polaris_db_session, account_holder.id)
+    account_holder_profile = get_account_holder_profile(polaris_db_session, str(account_holder.id))
     assert_enrol_request_body_with_account_holder_table(account_holder, request_body, retailer.id)
     assert_enrol_request_body_with_account_holder_profile_table(account_holder_profile, request_body)
 
