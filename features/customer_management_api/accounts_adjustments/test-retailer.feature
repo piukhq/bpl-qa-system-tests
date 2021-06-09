@@ -9,7 +9,7 @@ Feature: Post a balance adjustment for a test-retailer
     Given I previously successfully enrolled a test-retailer account holder
     And I received a HTTP 202 status code response
     And the enrolled account holder has been activated and i know its current balances
-    When I post the balance adjustment for a test-retailer account holder passing in all required credentials
+    When I post the balance adjustment for a test-retailer account holder with a valid auth token
     Then I receive a HTTP 200 status code in the adjustments response
     And The account holder's balance is updated in the database
 

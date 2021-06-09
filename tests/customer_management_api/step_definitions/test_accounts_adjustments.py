@@ -1,5 +1,4 @@
 import uuid
-
 from random import randint
 from typing import TYPE_CHECKING, Tuple
 
@@ -32,7 +31,7 @@ def _get_adjustment_account_holder_and_payload(request_context: dict) -> Tuple["
     request_context["request_details"] = payload
     request_context["request_details"]["old_balance"] = balance["value"]
 
-    return account_holder, payload
+    return account_holder.id, payload
 
 
 @given(parsers.parse("I previously successfully enrolled a {retailer_slug} account holder"))
@@ -53,12 +52,27 @@ def check_adjustments_account_holder_is_active(polaris_db_session: "Session", re
 
 @when(
     parsers.parse(
-        "I post the balance adjustment for a {retailer_slug} account holder passing in all required credentials"
+        "I post the balance adjustment for a {retailer_slug} account holder with a {token} auth token"
     )
 )
-def send_adjustment_request(retailer_slug: str, request_context: dict) -> None:
-    account_holder, payload = _get_adjustment_account_holder_and_payload(request_context)
-    resp = send_post_accounts_adjustments(retailer_slug, account_holder.id, payload)
+def send_adjustment_request(retailer_slug: str, token: str, request_context: dict) -> None:
+    if "account_holder" in request_context:
+        account_holder_id, payload = _get_adjustment_account_holder_and_payload(request_context)
+    else:
+        account_holder_id = str(uuid.uuid4())
+        payload = {
+            "balance_change": 100,
+            "campaign_slug": "campaign-slug",
+        }
+
+    if token == "valid":
+        auth = True
+    elif token == "invalid":
+        auth = False
+    else:
+        raise ValueError(f"{token} is an invalid value for token")
+
+    resp = send_post_accounts_adjustments(retailer_slug, account_holder_id, payload, auth=auth)
 
     request_context["response"] = resp
 
@@ -91,10 +105,10 @@ def check_updated_balance(action: str, request_context: dict, polaris_db_session
     )
 )
 def send_adjustment_request_twice(retailer_slug: str, request_context: dict) -> None:
-    account_holder, payload = _get_adjustment_account_holder_and_payload(request_context)
+    account_holder_id, payload = _get_adjustment_account_holder_and_payload(request_context)
     idempotency_token = str(uuid.uuid4())
-    resp_1 = send_post_accounts_adjustments(retailer_slug, account_holder.id, payload, idempotency_token)
-    resp_2 = send_post_accounts_adjustments(retailer_slug, account_holder.id, payload, idempotency_token)
+    resp_1 = send_post_accounts_adjustments(retailer_slug, account_holder_id, payload, idempotency_token)
+    resp_2 = send_post_accounts_adjustments(retailer_slug, account_holder_id, payload, idempotency_token)
 
     request_context["response"] = resp_1
     request_context["response_2"] = resp_2
@@ -106,9 +120,9 @@ def send_adjustment_request_twice(retailer_slug: str, request_context: dict) -> 
     )
 )
 def send_adjustment_request_wrong_token(retailer_slug: str, request_context: dict) -> None:
-    account_holder, payload = _get_adjustment_account_holder_and_payload(request_context)
+    account_holder_id, payload = _get_adjustment_account_holder_and_payload(request_context)
     idempotency_token = "not a uuid"
-    resp = send_post_accounts_adjustments(retailer_slug, account_holder.id, payload, idempotency_token)
+    resp = send_post_accounts_adjustments(retailer_slug, account_holder_id, payload, idempotency_token)
 
     request_context["response"] = resp
 

@@ -24,10 +24,12 @@ def _send_post_accounts_adjustments(
 
 
 def send_post_accounts_adjustments(
-    retailer_slug: str, account_holder_id: str, request_body: dict, idempotency_token: str = None
+    retailer_slug: str, account_holder_id: str, request_body: dict, idempotency_token: str = None, auth: bool = True
 ) -> "Response":
     headers = default_headers.copy()
     if idempotency_token:
         headers["idempotency-token"] = idempotency_token
+    if auth is False:
+        headers["Authorization"] = "wrong token"
 
     return _send_post_accounts_adjustments(retailer_slug, account_holder_id, request_body, headers)
