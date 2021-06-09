@@ -34,10 +34,8 @@ THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED = [
 
 
 class EnrolResponses(BaseResponses):
-    def __init__(self) -> None:
-        super().__init__()
-        self.success = SUCCESS
-        self.account_holder_already_exists = ACCOUNT_HOLDER_ALREADY_EXISTS
-        self.missing_fields = MISSING_FIELDS
-        self.validation_failed = VALIDATION_FAILED
-        self.missing_third_party_identifier = THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED
+    success = SUCCESS
+    account_holder_already_exists = ACCOUNT_HOLDER_ALREADY_EXISTS
+    missing_fields = MISSING_FIELDS
+    validation_failed = VALIDATION_FAILED
+    missing_third_party_identifier = THIRD_PARTY_IDENTIFIER_VALIDATION_FAILED

@@ -19,8 +19,8 @@ NO_ACCOUNT_FOUND = {
 }
 
 MISSING_CHANNEL_HEADER = {
-    "display_message": "Missing header",
-    "error": "MISSING_HTTP_HEADER",
+    "display_message": "Submitted headers are missing or invalid.",
+    "error": "HEADER_VALIDATION_ERROR",
     "fields": [
         "bpl-user-channel",
     ],

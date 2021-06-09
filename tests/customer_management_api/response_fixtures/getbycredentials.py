@@ -18,7 +18,5 @@ VALIDATION_FAILED = [
 
 
 class GetByCredentialsResponses(BaseResponses):
-    def __init__(self) -> None:
-        super().__init__()
-        self.missing_fields = MISSING_FIELDS
-        self.validation_failed = VALIDATION_FAILED
+    missing_fields = MISSING_FIELDS
+    validation_failed = VALIDATION_FAILED
