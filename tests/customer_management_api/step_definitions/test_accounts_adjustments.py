@@ -1,4 +1,5 @@
 import uuid
+
 from random import randint
 from typing import TYPE_CHECKING, Tuple
 
@@ -15,12 +16,11 @@ from tests.customer_management_api.step_definitions.shared import (
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-    from db.polaris.models import AccountHolder
 
 scenarios("customer_management_api/accounts_adjustments/")
 
 
-def _get_adjustment_account_holder_and_payload(request_context: dict) -> Tuple["AccountHolder", dict]:
+def _get_adjustment_account_holder_and_payload(request_context: dict) -> Tuple[str, dict]:
     account_holder = request_context["account_holder"]
     campaign_slug, balance = next(iter(account_holder.current_balances.items()))
     balance_change = randint(5, 5000)
@@ -50,11 +50,7 @@ def check_adjustments_account_holder_is_active(polaris_db_session: "Session", re
     request_context["account_holder"] = account_holder
 
 
-@when(
-    parsers.parse(
-        "I post the balance adjustment for a {retailer_slug} account holder with a {token} auth token"
-    )
-)
+@when(parsers.parse("I post the balance adjustment for a {retailer_slug} account holder with a {token} auth token"))
 def send_adjustment_request(retailer_slug: str, token: str, request_context: dict) -> None:
     if "account_holder" in request_context:
         account_holder_id, payload = _get_adjustment_account_holder_and_payload(request_context)
