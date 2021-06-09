@@ -89,7 +89,7 @@ def send_transaction_request(payload_type: str, retailer_slug: str, token: str, 
         }
 
     if payload_type == "correct":
-        payload["transaction_total"] = 13.25
+        payload["transaction_total"] = 1325
 
     elif payload_type == "incorrect":
         payload["transaction_total"] = "not a float"
