@@ -20,7 +20,7 @@ style:
 type-check:
   stage: tests
   script:
-    - pip install mypy sqlalchemy-stubs
+    - pip install mypy sqlalchemy-stubs types-requests
     - mypy --config-file .mypy.ini .
 
 master:
