@@ -4,6 +4,4 @@ NO_ACTIVE_CAMPAIGNS = {"display_message": "No active campaigns found for retaile
 
 
 class ActiveCampaignSlugsResponses(BaseResponses):
-    def __init__(self) -> None:
-        super().__init__()
-        self.no_active_campaigns = NO_ACTIVE_CAMPAIGNS
+    no_active_campaigns = NO_ACTIVE_CAMPAIGNS
