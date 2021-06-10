@@ -11,7 +11,7 @@ from tests.customer_management_api.api_requests.getbycredentials import (
     send_malformed_post_getbycredentials,
     send_post_getbycredentials,
 )
-from tests.customer_management_api.db_actions.account_holder import get_account_holder, get_active_account_holder
+from tests.customer_management_api.db_actions.account_holder import get_account_holder
 from tests.customer_management_api.db_actions.retailer import get_retailer
 from tests.customer_management_api.payloads.getbycredentials import (
     all_required_credentials,
@@ -23,6 +23,7 @@ from tests.customer_management_api.payloads.getbycredentials import (
 from tests.customer_management_api.response_fixtures.getbycredentials import GetByCredentialsResponses
 from tests.customer_management_api.response_fixtures.shared import account_holder_details_response_body
 from tests.customer_management_api.step_definitions.shared import (
+    check_account_holder_is_active,
     check_response_status_code,
     enrol_account_holder,
     non_existent_account_holder,
@@ -143,15 +144,8 @@ def post_invalid_token_request(retailer_slug: str, request_context: dict) -> Non
 
 
 @given(parsers.parse("the enrolled account holder has been activated"))
-def check_account_holder_is_active(polaris_db_session: "Session", request_context: dict) -> None:
-    request_body = json.loads(request_context["response"].request.body)
-    email = request_body["credentials"]["email"]
-    retailer_slug = request_context["retailer_slug"]
-
-    account_holder = get_active_account_holder(polaris_db_session, email, retailer_slug)
-
-    assert account_holder.status == "ACTIVE"
-    assert account_holder.account_number is not None
+def check_getbycredentials_account_holder_is_active(polaris_db_session: "Session", request_context: dict) -> None:
+    check_account_holder_is_active(polaris_db_session, request_context)
 
 
 @then(parsers.parse("I receive a HTTP {status_code:d} status code in the getbycredentials response"))

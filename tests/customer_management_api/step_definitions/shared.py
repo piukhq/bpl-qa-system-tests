@@ -1,12 +1,20 @@
 import json
 import logging
 
+from typing import TYPE_CHECKING
+
 from tests.customer_management_api.api_requests.base import get_headers
 from tests.customer_management_api.api_requests.enrolment import send_post_enrolment
+from tests.customer_management_api.db_actions.account_holder import get_active_account_holder
 from tests.customer_management_api.payloads.enrolment import (
     all_required_and_all_optional_credentials,
     only_required_credentials,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+    from db.polaris.models import AccountHolder
 
 
 def check_response_status_code(status_code: int, request_context: dict, endpoint: str) -> None:
@@ -60,3 +68,16 @@ def enrol_missing_third_party_identifier(retailer_slug: str, request_context: di
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
     assert resp.status_code == 422
+
+
+def check_account_holder_is_active(polaris_db_session: "Session", request_context: dict) -> "AccountHolder":
+    request_body = json.loads(request_context["response"].request.body)
+    email = request_body["credentials"]["email"]
+    retailer_slug = request_context["retailer_slug"]
+
+    account_holder = get_active_account_holder(polaris_db_session, email, retailer_slug)
+
+    assert account_holder.status == "ACTIVE"
+    assert account_holder.account_number is not None
+
+    return account_holder
