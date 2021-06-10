@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 scenarios("rewards_rule_management_api/active_campaign_slugs/")
 
-active_campaign_slug_responses = ActiveCampaignSlugsResponses()
+active_campaign_slug_responses = ActiveCampaignSlugsResponses
 
 
 @given(parsers.parse("{retailer_slug} has no campaigns"))

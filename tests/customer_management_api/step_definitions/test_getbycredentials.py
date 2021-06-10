@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 scenarios("customer_management_api/getbycredentials/")
 
-getbycredentials_responses = GetByCredentialsResponses()
+getbycredentials_responses = GetByCredentialsResponses
 
 
 @given(parsers.parse("I previously successfully enrolled a {retailer_slug} account holder"))

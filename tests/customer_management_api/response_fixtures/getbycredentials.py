@@ -1,20 +1,16 @@
 from tests.shared.response_fixtures.base import BaseResponses
 
-MISSING_FIELDS = [
-    {
-        "display_message": "Missing credentials from request.",
-        "error": "MISSING_FIELDS",
-        "fields": ["account_number"],
-    }
-]
+MISSING_FIELDS = {
+    "display_message": "Submitted fields are missing or invalid.",
+    "error": "FIELD_VALIDATION_ERROR",
+    "fields": ["account_number"],
+}
 
-VALIDATION_FAILED = [
-    {
-        "display_message": "Submitted credentials did not pass validation.",
-        "error": "VALIDATION_FAILED",
-        "fields": ["email"],
-    }
-]
+VALIDATION_FAILED = {
+    "display_message": "Submitted fields are missing or invalid.",
+    "error": "FIELD_VALIDATION_ERROR",
+    "fields": ["email"],
+}
 
 
 class GetByCredentialsResponses(BaseResponses):
