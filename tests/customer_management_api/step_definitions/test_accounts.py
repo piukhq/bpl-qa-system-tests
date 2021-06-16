@@ -23,10 +23,10 @@ from tests.customer_management_api.response_fixtures.shared import (
     account_holder_status_response_body,
 )
 from tests.customer_management_api.step_definitions.shared import (
+    check_account_holder_is_active,
     check_response_status_code,
     enrol_account_holder,
     non_existent_account_holder,
-    check_account_holder_is_active,
 )
 
 if TYPE_CHECKING:

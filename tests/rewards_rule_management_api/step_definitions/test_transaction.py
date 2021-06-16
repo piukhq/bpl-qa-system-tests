@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 import settings
 
 from db.polaris.models import AccountHolder, RetailerConfig
-from db.vela.models import Transaction
+from db.vela.models import ProcessedTransaction, Transaction
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 
@@ -88,9 +88,10 @@ def send_transaction_request(payload_type: str, retailer_slug: str, token: str, 
             "loyalty_id": str(account_holder_uuid),
         }
 
-    if payload_type == "correct":
-        payload["transaction_total"] = 1325
-
+    if payload_type == "over the threshold":
+        payload["transaction_total"] = 1000
+    elif payload_type == "under the threshold":
+        payload["transaction_total"] = 1
     elif payload_type == "incorrect":
         payload["transaction_total"] = "not a float"
 
@@ -115,10 +116,20 @@ def check_transaction_response_status(status_code: int, payload_type: str, reque
         assert request_context["resp"].json() == payload
 
 
-@then(parse("The transaction {expectation} saved in the database"))
-def check_transaction_in_db(expectation: str, vela_db_session: Session, request_context: dict) -> None:
+@then(parse("The transaction {expectation} saved in the {transaction_table} database table"))
+def check_transaction_in_db(
+    expectation: str, transaction_table: str, vela_db_session: Session, request_context: dict
+) -> None:
+
+    if transaction_table == "transaction":
+        model = Transaction
+    elif transaction_table == "processed_transaction":
+        model = ProcessedTransaction
+    else:
+        raise ValueError(f"{transaction_table} is an invalid transaction_table")
+
     transaction = (
-        vela_db_session.query(Transaction).filter_by(transaction_id=request_context["request_payload"]["id"]).first()
+        vela_db_session.query(model).filter_by(transaction_id=request_context["request_payload"]["id"]).first()
     )
 
     if expectation == "is":
