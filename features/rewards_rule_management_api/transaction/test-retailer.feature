@@ -4,36 +4,45 @@ Feature: Post a transaction for a test-retailer
   Using the POST /test-retailer/transaction endpoint
   I can store a transaction in the RRM database
 
-  Scenario: Successfully POST a transaction
+  Scenario: Successfully POST an awardable transaction
 
     Given A active account holder exists for test-retailer
-    When I send a POST transaction request with the correct payload for a test-retailer with the correct token
-    Then I get a HTTP 200 rrm success response
-    And The transaction is saved in the database
+    When I send a POST transaction request with the over the threshold payload for a test-retailer with the correct token
+    Then I get a HTTP 200 rrm awarded response
+    And The transaction is not saved in the transaction database table
+    And The transaction is saved in the processed_transaction database table
+
+  Scenario: Successfully POST a non awardable transaction
+
+    Given A active account holder exists for test-retailer
+    When I send a POST transaction request with the under the threshold payload for a test-retailer with the correct token
+    Then I get a HTTP 200 rrm threshold_not_met response
+    And The transaction is not saved in the transaction database table
+    And The transaction is saved in the processed_transaction database table
 
   Scenario: Send a POST transaction request for an existing transaction
 
     Given A active account holder exists for test-retailer
-    And A POST transaction with the correct payload for a test-retailer with the correct token was already sent
-    When I send a POST transaction request with the correct payload for a test-retailer with the correct token
+    And A POST transaction with the over the threshold payload for a test-retailer with the correct token was already sent
+    When I send a POST transaction request with the over the threshold payload for a test-retailer with the correct token
     Then I get a HTTP 409 rrm duplicate_transaction response
 
   Scenario: Send a POST transaction request with the wrong payload
 
     When I send a POST transaction request with the incorrect payload for a test-retailer with the correct token
     Then I get a HTTP 422 rrm invalid_content response
-    And The transaction is not saved in the database
+    And The transaction is not saved in the transaction database table
 
   Scenario: Send a POST transaction request for a inactive account holder
 
     Given A inactive account holder exists for test-retailer
-    When I send a POST transaction request with the correct payload for a test-retailer with the correct token
+    When I send a POST transaction request with the over the threshold payload for a test-retailer with the correct token
     Then I get a HTTP 409 rrm user_not_active response
-    And The transaction is not saved in the database
+    And The transaction is not saved in the transaction database table
 
   Scenario: Send a POST transaction request for a non existent account holder
 
     Given An account holder does not exists for test-retailer
-    When I send a POST transaction request with the correct payload for a test-retailer with the correct token
+    When I send a POST transaction request with the over the threshold payload for a test-retailer with the correct token
     Then I get a HTTP 404 rrm user_not_found response
-    And The transaction is not saved in the database
+    And The transaction is not saved in the transaction database table

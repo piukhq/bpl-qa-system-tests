@@ -21,6 +21,12 @@ INVALID_CONTENT = {
 }
 
 
+NO_ACTIVE_CAMPAIGNS = {
+    "display_message": "No active campaigns found for retailer.",
+    "error": "NO_ACTIVE_CAMPAIGNS",
+}
+
+
 class TransactionResponses:
     invalid_retailer = INVALID_RETAILER
     user_not_active = USER_NOT_ACTIVE
@@ -29,8 +35,10 @@ class TransactionResponses:
     duplicate_transaction = DUPLICATE_TRANSACTION
     user_not_found = USER_NOT_FOUND
     invalid_content = INVALID_CONTENT
+    no_active_campaigns = NO_ACTIVE_CAMPAIGNS
     # TODO: adapt success response when the correct one is implemented in vela
-    success = None
+    awarded = "Awarded"
+    threshold_not_met = "Threshold not met"
 
     @classmethod
     def get_json(cls, key: str) -> dict:
