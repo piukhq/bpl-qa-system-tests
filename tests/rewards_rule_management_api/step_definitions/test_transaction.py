@@ -1,3 +1,5 @@
+import json
+import logging
 import uuid
 
 from datetime import datetime
@@ -102,6 +104,12 @@ def send_transaction_request(payload_type: str, retailer_slug: str, token: str, 
         f"{settings.VELA_BASE_URL}/{retailer_slug}/transaction",
         json=payload,
         headers=headers,
+    )
+    logging.info(
+        f"Post transaction headers: {headers}\n"
+        f"Post transaction URL:{settings.VELA_BASE_URL}/{retailer_slug}/transaction\n"
+        f"Post transaction request body: {json.dumps(payload, indent=4)}\n"
+        f"POST Transactions response: {json.dumps(resp.json(), indent=4)}"
     )
     request_context["resp"] = resp
     request_context["request_payload"] = payload
