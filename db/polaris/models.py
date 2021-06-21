@@ -24,5 +24,5 @@ Base.prepare(engine, reflect=True)
 
 # get models from Base mapping
 AccountHolderProfile = Base.classes.account_holder_profile
-EnrolmentCallback = Base.classes.enrolment_callback
+AccountHolderActivation = Base.classes.account_holder_activation
 RetailerConfig = Base.classes.retailer_config
