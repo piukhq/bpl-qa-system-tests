@@ -46,3 +46,11 @@ Feature: Post a transaction for a test-retailer
     When I send a POST transaction request with the over the threshold payload for a test-retailer with the correct token
     Then I get a HTTP 404 rrm user_not_found response
     And The transaction is not saved in the transaction database table
+
+  Scenario: Send a POST transaction request for a test-retailer dated too early to match any active campaigns
+
+    Given A active account holder exists for test-retailer
+    When I send a POST transaction request with the too early for active campaign payload for a test-retailer with the correct token
+    Then I get a HTTP 404 rrm no_active_campaigns response
+    And The transaction is saved in the transaction database table
+    And The transaction is not saved in the processed_transaction database table

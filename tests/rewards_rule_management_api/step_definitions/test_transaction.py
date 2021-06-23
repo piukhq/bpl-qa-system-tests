@@ -96,6 +96,9 @@ def send_transaction_request(payload_type: str, retailer_slug: str, token: str, 
         payload["transaction_total"] = 1
     elif payload_type == "incorrect":
         payload["transaction_total"] = "not a float"
+    elif payload_type == "too early for active campaign":
+        payload["transaction_total"] = 1000
+        payload["datetime"] = int(datetime.fromisoformat("2021-05-10T09:00:00.000000").timestamp())
 
     else:
         raise ValueError(f"{payload_type} is not a supported payload type.")
