@@ -1,7 +1,7 @@
 import json
 import logging
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from tests.customer_management_api.api_requests.base import get_headers
 from tests.customer_management_api.api_requests.enrolment import send_post_enrolment
@@ -23,10 +23,15 @@ def check_response_status_code(status_code: int, request_context: dict, endpoint
     assert resp.status_code == status_code
 
 
-def enrol_account_holder(retailer_slug: str, request_context: dict, incl_optional_fields: bool = True) -> None:
+def enrol_account_holder(
+    retailer_slug: str,
+    request_context: dict,
+    incl_optional_fields: bool = True,
+    callback_url: Optional[str] = None,
+) -> None:
     request_context["retailer_slug"] = retailer_slug
     if incl_optional_fields:
-        request_body = all_required_and_all_optional_credentials()
+        request_body = all_required_and_all_optional_credentials(callback_url=callback_url)
     else:
         request_body = only_required_credentials()
     resp = send_post_enrolment(retailer_slug, request_body)

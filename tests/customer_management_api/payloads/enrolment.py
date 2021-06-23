@@ -2,6 +2,7 @@ import json
 import logging
 import random
 
+from typing import Optional
 from uuid import uuid4
 
 from faker import Faker
@@ -33,11 +34,11 @@ def _get_credentials() -> dict:
     }
 
 
-def all_required_and_all_optional_credentials() -> dict:
+def all_required_and_all_optional_credentials(callback_url: Optional[str] = None) -> dict:
     payload = {
         "credentials": _get_credentials(),
         "marketing_preferences": [],
-        "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
+        "callback_url": callback_url or f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
         "third_party_identifier": "identifier",
     }
     logging.info("`Request body for POST Enrol: " + json.dumps(payload, indent=4))
