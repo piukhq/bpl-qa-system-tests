@@ -9,7 +9,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 
 import settings
 
-from db.polaris.models import AccountHolder, EnrolmentCallback
+from db.polaris.models import AccountHolder, AccountHolderActivation
 from tests.customer_management_api.api_requests.enrolment import (
     send_invalid_post_enrolment,
     send_malformed_post_enrolment,
@@ -21,7 +21,7 @@ from tests.customer_management_api.db_actions.account_holder import (
     get_account_holder,
     get_account_holder_profile,
 )
-from tests.customer_management_api.db_actions.enrolment_callback import get_enrolment_callback
+from tests.customer_management_api.db_actions.account_holder_activation import get_account_holder_activation
 from tests.customer_management_api.db_actions.retailer import get_retailer
 from tests.customer_management_api.payloads.enrolment import (
     all_required_and_all_optional_credentials,
@@ -62,6 +62,42 @@ def post_enrolment_existing_account_holder(retailer: str, request_context: dict)
 @when(parsers.parse("I Enrol a {retailer_slug} account holder passing in all required and all optional fields"))
 def post_enrolment(retailer_slug: str, request_context: dict) -> None:
     enrol_account_holder(retailer_slug, request_context)
+
+
+@when(
+    parsers.parse(
+        "I Enrol a {retailer_slug} account holder passing in all required and all optional fields with a "
+        "callback URL known to produce an HTTP {status_code:d} response"
+    )
+)
+def post_enrolment_with_known_callback_side_effect(retailer_slug: str, status_code: int, request_context: dict) -> None:
+    enrol_account_holder(retailer_slug, request_context, callback_url=get_callback_url(status_code=status_code))
+
+
+@when(
+    parsers.parse(
+        "I Enrol a {retailer_slug} account holder passing in all required and all optional fields with a "
+        "callback URL known to produce {num_failures:d} consecutive HTTP {status_code:d} responses"
+    )
+)
+def post_enrolment_with_known_repeated_callback_side_effect(
+    retailer_slug: str, num_failures: int, status_code: int, request_context: dict
+) -> None:
+    enrol_account_holder(
+        retailer_slug,
+        request_context,
+        callback_url=get_callback_url(status_code=status_code, num_failures=num_failures),
+    )
+
+
+@when(
+    parsers.parse(
+        "I Enrol a {retailer_slug} account holder passing in all required and all optional fields with a "
+        "callback URL known to timeout after {timeout_secs:d} seconds"
+    )
+)
+def post_enrolment_with_known_callback_timeout(retailer_slug: str, timeout_secs: int, request_context: dict) -> None:
+    enrol_account_holder(retailer_slug, request_context, callback_url=get_callback_url(timeout_seconds=timeout_secs))
 
 
 @when(parsers.parse("I Enrol a {retailer_slug} account holder passing in only required fields"))
@@ -187,41 +223,41 @@ def check_account_holder_is_saved_in_db(polaris_db_session: "Session", request_c
     assert get_account_holder_from_request_data(polaris_db_session, request_context) is not None
 
 
-@then(parsers.parse("an enrolment callback is saved in the database"))
-def check_enrolment_callback_is_saved_in_db(polaris_db_session: "Session", request_context: dict) -> None:
+@then(parsers.parse("an account holder activation is saved in the database"))
+def check_account_holder_activation_is_saved_in_db(polaris_db_session: "Session", request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    enrolment_callback = get_enrolment_callback(polaris_db_session, account_holder.id)
-    assert enrolment_callback is not None
-    assert settings.MOCK_SERVICE_BASE_URL in enrolment_callback.url
-    assert enrolment_callback.third_party_identifier == "identifier"
+    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
+    assert activation is not None
+    assert settings.MOCK_SERVICE_BASE_URL in activation.callback_url
+    assert activation.third_party_identifier == "identifier"
 
 
 @then(parsers.parse("the enrolment callback is tried"))
 def check_enrolment_callback_is_tried(polaris_db_session: "Session", request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback = get_enrolment_callback(polaris_db_session, account_holder.id)
+    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
     for i in range(1, 18):  # 3 minute wait
-        logging.info(f"Sleeping for 10 seconds while waiting for callback attempt ({callback.account_holder_id})...")
+        logging.info(f"Sleeping for 10 seconds while waiting for callback attempt ({activation.account_holder_id})...")
         sleep(10)
-        polaris_db_session.refresh(callback)
-        if callback.attempts > 0:
+        polaris_db_session.refresh(activation)
+        if activation.callback_attempts > 0:
             break
-    assert callback.attempts > 0
+    assert activation.callback_attempts > 0
 
 
-@then(parsers.parse("the enrolment callback is in {status} state"))
+@then(parsers.parse("the account holder activation is in {status} state"))
 def check_enrolment_callback_status(polaris_db_session: "Session", status: str, request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback = get_enrolment_callback(polaris_db_session, account_holder.id)
-    assert callback.status == status.upper()
+    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
+    assert activation.status == status.upper()
 
 
-def assert_callback_status_transition(
+def assert_account_holder_activation_status_transition(
     polaris_db_session: "Session",
-    callback: EnrolmentCallback,
+    activation: AccountHolderActivation,
     *,
     new_status: str,
     # Note: This corresponds to up to 3 minutes wait time.
@@ -229,40 +265,61 @@ def assert_callback_status_transition(
     # the number of retries is adjusted as the retry backs off.
     wait_times: int = 18,
     wait_duration_secs: int = 10,
-) -> EnrolmentCallback:
+) -> AccountHolderActivation:
     for _ in range(wait_times):
         # wait for callback process to handle the callback
         logging.info(f"Sleeping for {wait_duration_secs} seconds...")
         sleep(wait_duration_secs)
-        polaris_db_session.refresh(callback)
-        if callback.status == new_status:
+        polaris_db_session.refresh(activation)
+        if activation.status == new_status:
             break
         else:
             logging.info(
                 f"Still waiting for callback status transition to {new_status} "
-                f"({callback.account_holder_id} status: {callback.status})"
+                f"({activation.account_holder_id} status: {activation.status})"
             )
-    assert callback.status == new_status
+    assert activation.status == new_status
 
 
-@then(parsers.parse("the enrolment callback completes successfully"))
-def check_enrolment_callback_completes_successfully(polaris_db_session: "Session", request_context: dict) -> None:
+@then(parsers.parse("the account holder activation completes successfully"))
+def check_account_holder_activation_completes_successfully(
+    polaris_db_session: "Session", request_context: dict
+) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback = get_enrolment_callback(polaris_db_session, account_holder.id)
-    assert_callback_status_transition(polaris_db_session, callback, new_status="SUCCESS")
+    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
+    assert_account_holder_activation_status_transition(polaris_db_session, activation, new_status="SUCCESS")
 
 
-@then(parsers.parse("the enrolment callback is marked as failed and is not retried"))
-def check_enrolment_callback_is_failed(polaris_db_session: "Session", request_context: dict) -> None:
+@then(parsers.parse("the account holder activation is marked as {status} and is not retried"))
+def check_account_holder_activation_is_failed(
+    polaris_db_session: "Session", status: str, request_context: dict
+) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback = get_enrolment_callback(polaris_db_session, account_holder.id)
-    assert_callback_status_transition(polaris_db_session, callback, new_status="FAILED")
-    assert callback.retry_at is None
+    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
+    assert_account_holder_activation_status_transition(polaris_db_session, activation, new_status=status)
+    assert activation.callback_next_attempt_time is None
 
 
-def alter_call_back_url(
+def get_callback_url(
+    *,
+    status_code: Optional[int] = None,
+    num_failures: Optional[int] = None,
+    timeout_seconds: Optional[int] = None,
+) -> str:
+    if status_code is None:
+        location = f"/enrol/callback/timeout-{timeout_seconds or 60}"
+    elif status_code == 200:
+        location = "/enrol/callback/success"
+    elif status_code == 500 and num_failures is not None:
+        location = f"/enrol/callback/retry-{num_failures}"
+    else:
+        location = f"/enrol/callback/error-{status_code}"
+    return f"{settings.MOCK_SERVICE_BASE_URL}{location}"
+
+
+def alter_callback_url(
     polaris_db_session: "Session",
     request_context: dict,
     *,
@@ -272,18 +329,11 @@ def alter_call_back_url(
 ) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback = get_enrolment_callback(polaris_db_session, account_holder.id)
-    if status_code is None:
-        location = f"/enrol/callback/timeout-{timeout_seconds or 60}"
-    elif status_code == 200:
-        location = "/enrol/callback/success"
-    elif status_code == 500 and num_failures is not None:
-        location = f"/enrol/callback/retry-{num_failures}"
-    else:
-        location = f"/enrol/callback/error-{status_code}"
-
-    callback.url = f"{settings.MOCK_SERVICE_BASE_URL}{location}"
-    polaris_db_session.add(callback)
+    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
+    activation.callback_url = get_callback_url(
+        status_code=status_code, num_failures=num_failures, timeout_seconds=timeout_seconds
+    )
+    polaris_db_session.add(activation)
     polaris_db_session.commit()
 
 
@@ -292,21 +342,21 @@ def alter_call_back_url(
 def alter_callback_url_to_produce_xxx_response(
     polaris_db_session: "Session", status_code: int, request_context: dict
 ) -> None:
-    alter_call_back_url(polaris_db_session, request_context, status_code=status_code)
+    alter_callback_url(polaris_db_session, request_context, status_code=status_code)
 
 
 @when(parsers.parse("the callback URL is known to produce {num_failures:d} consecutive HTTP 500 error responses"))
 def alter_callback_url_to_produce_error(
     polaris_db_session: "Session", num_failures: int, request_context: dict
 ) -> None:
-    alter_call_back_url(polaris_db_session, request_context, status_code=500, num_failures=num_failures)
+    alter_callback_url(polaris_db_session, request_context, status_code=500, num_failures=num_failures)
 
 
 @when(parsers.parse("the callback URL is known to timeout after {timeout_seconds:d} seconds"))
 def alter_callback_url_to_produce_timeout(
     polaris_db_session: "Session", timeout_seconds: int, request_context: dict
 ) -> None:
-    alter_call_back_url(polaris_db_session, request_context, status_code=None, timeout_seconds=timeout_seconds)
+    alter_callback_url(polaris_db_session, request_context, status_code=None, timeout_seconds=timeout_seconds)
 
 
 def response_to_json(response: "Response") -> dict:
