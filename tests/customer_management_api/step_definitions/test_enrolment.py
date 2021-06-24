@@ -242,9 +242,9 @@ def check_enrolment_callback_is_tried(polaris_db_session: "Session", request_con
         logging.info(f"Sleeping for 10 seconds while waiting for callback attempt ({activation.account_holder_id})...")
         sleep(10)
         polaris_db_session.refresh(activation)
-        if activation.callback_attempts > 0:
+        if activation.attempts > 0:
             break
-    assert activation.callback_attempts > 0
+    assert activation.attempts > 0
 
 
 @then(parsers.parse("the account holder activation is in {status} state"))
@@ -299,7 +299,7 @@ def check_account_holder_activation_is_failed(
     assert account_holder is not None
     activation = get_account_holder_activation(polaris_db_session, account_holder.id)
     assert_account_holder_activation_status_transition(polaris_db_session, activation, new_status=status)
-    assert activation.callback_next_attempt_time is None
+    assert activation.next_attempt_time is None
 
 
 def get_callback_url(
