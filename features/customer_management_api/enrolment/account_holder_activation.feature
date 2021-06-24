@@ -19,7 +19,7 @@ Feature: Bink BPL - Ensure a customer can enrol and that a callback is completed
     When I Enrol a test-retailer account holder passing in all required and all optional fields with a callback URL known to produce an HTTP 400 response
     Then I receive a HTTP 202 status code in the response
     And an account holder activation is saved in the database
-    And the account holder activation is marked as CALLBACK_FAILED and is not retried
+    And the account holder activation is marked as FAILED and is not retried
 
   @bpl
   Scenario: Enrol with successful callback with retries
