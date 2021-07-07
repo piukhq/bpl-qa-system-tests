@@ -11,6 +11,7 @@ Feature: Post a transaction for a test-retailer
     Then I get a HTTP 200 rrm awarded response
     And The transaction is not saved in the transaction database table
     And The transaction is saved in the processed_transaction database table
+    And The account holder's balance is updated
 
   Scenario: Successfully POST a non awardable transaction
 

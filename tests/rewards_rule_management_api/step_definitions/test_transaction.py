@@ -1,19 +1,17 @@
 import json
 import logging
 import uuid
-
 from datetime import datetime
+from time import sleep
 
 import requests
-
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
 
 import settings
-
 from db.polaris.models import AccountHolder, RetailerConfig
-from db.vela.models import ProcessedTransaction, Transaction
+from db.vela.models import Campaign, EarnRule, ProcessedTransaction, RetailerRewards, Transaction
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 
@@ -42,6 +40,7 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
     polaris_db_session.commit()
     request_context["account_holder_uuid"] = str(account_holder.id)
     request_context["retailer_id"] = retailer.id
+    request_context["start_balance"] = account_holder.current_balances["test-campaign-1"]["value"]
 
 
 @given(parse("An account holder does not exists for {retailer_slug}"))
@@ -131,7 +130,6 @@ def check_transaction_response_status(status_code: int, payload_type: str, reque
 def check_transaction_in_db(
     expectation: str, transaction_table: str, vela_db_session: Session, request_context: dict
 ) -> None:
-
     if transaction_table == "transaction":
         model = Transaction
     elif transaction_table == "processed_transaction":
@@ -149,3 +147,30 @@ def check_transaction_in_db(
         assert transaction is None
     else:
         raise ValueError(f"{expectation} is not a valid expectation")
+
+
+@then(parse("The account holder's balance is updated"))
+def check_account_holder_balance(request_context: dict, polaris_db_session: Session, vela_db_session: Session) -> None:
+    account_holder = polaris_db_session.query(AccountHolder).get(request_context["account_holder_uuid"])
+    earn_rule = (
+        vela_db_session.query(EarnRule)
+        .filter(
+            EarnRule.campaign_id == Campaign.id,
+            Campaign.retailer_id == RetailerRewards.id,
+            RetailerRewards.slug == account_holder.retailer_config.slug,  # type: ignore
+        )
+        .first()
+    )
+
+    start_balance = request_context["start_balance"]
+    current_balance = account_holder.current_balances["test-campaign-1"]["value"]  # type: ignore
+
+    for i in range(3):
+        if current_balance > start_balance:
+            break
+
+        sleep(i * 3)
+        polaris_db_session.refresh(account_holder)
+        current_balance = account_holder.current_balances["test-campaign-1"]["value"]  # type: ignore
+
+    assert current_balance == start_balance + (earn_rule.increment * earn_rule.increment_multiplier)  # type: ignore
