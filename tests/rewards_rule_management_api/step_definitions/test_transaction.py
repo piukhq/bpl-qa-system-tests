@@ -19,7 +19,9 @@ scenarios("rewards_rule_management_api/transaction/")
 
 
 @given(parse("A {status} account holder exists for {retailer_slug}"))
-def setup_account_holder(status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session) -> None:
+def setup_account_holder(
+    status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session, vela_db_session: Session
+) -> None:
     email = "automated_test@transaction.test"
     retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
     if retailer is None:
@@ -28,10 +30,18 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
 
     account_holder = polaris_db_session.query(AccountHolder).filter_by(email=email, retailer_id=retailer.id).first()
     if account_holder is None:
+
         account_holder = AccountHolder(
             email=email,
             retailer_id=retailer.id,
             status=account_status,
+            current_balances={
+                cmp.slug: {"value": 0, "campaign_slug": cmp.slug}
+                for cmp in vela_db_session.query(Campaign)
+                .join(RetailerRewards)
+                .filter(RetailerRewards.slug == retailer_slug)
+                .all()
+            },
         )
         polaris_db_session.add(account_holder)
     else:
