@@ -1,15 +1,18 @@
 import json
 import logging
 import uuid
+
 from datetime import datetime
 from time import sleep
 
 import requests
+
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
 
 import settings
+
 from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Campaign, EarnRule, ProcessedTransaction, RetailerRewards, Transaction
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers
@@ -19,9 +22,7 @@ scenarios("rewards_rule_management_api/transaction/")
 
 
 @given(parse("A {status} account holder exists for {retailer_slug}"))
-def setup_account_holder(
-    status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session
-) -> None:
+def setup_account_holder(status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session) -> None:
     email = "automated_test@transaction.test"
     retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
     if retailer is None:
