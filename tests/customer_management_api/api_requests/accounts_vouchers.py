@@ -1,4 +1,4 @@
-from typing import Literal, TYPE_CHECKING, Union, Optional
+from typing import TYPE_CHECKING, Literal, Optional, Union
 
 from settings import CUSTOMER_MANAGEMENT_API_TOKEN, POLARIS_BASE_URL
 from tests.retry_requests import retry_session

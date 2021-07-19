@@ -1,16 +1,15 @@
-import uuid
 import random
 import string
+import uuid
 
 from datetime import datetime, timedelta
-
-from db.polaris.models import AccountHolderVoucher
-from tests.customer_management_api.api_requests.accounts_vouchers import send_post_accounts_voucher
-from tests.customer_management_api.response_fixtures.vouchers import VoucherResponses
 from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from db.polaris.models import AccountHolderVoucher
+from tests.customer_management_api.api_requests.accounts_vouchers import send_post_accounts_voucher
+from tests.customer_management_api.response_fixtures.vouchers import VoucherResponses
 from tests.customer_management_api.step_definitions.shared import (
     check_account_holder_is_active,
     check_response_status_code,
