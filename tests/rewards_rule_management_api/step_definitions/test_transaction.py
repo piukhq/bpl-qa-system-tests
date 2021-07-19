@@ -20,7 +20,7 @@ scenarios("rewards_rule_management_api/transaction/")
 
 @given(parse("A {status} account holder exists for {retailer_slug}"))
 def setup_account_holder(
-    status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session, vela_db_session: Session
+    status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session
 ) -> None:
     email = "automated_test@transaction.test"
     retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
@@ -35,13 +35,7 @@ def setup_account_holder(
             email=email,
             retailer_id=retailer.id,
             status=account_status,
-            current_balances={
-                cmp.slug: {"value": 0, "campaign_slug": cmp.slug}
-                for cmp in vela_db_session.query(Campaign)
-                .join(RetailerRewards)
-                .filter(RetailerRewards.slug == retailer_slug)
-                .all()
-            },
+            current_balances={},
         )
         polaris_db_session.add(account_holder)
     else:
@@ -50,7 +44,13 @@ def setup_account_holder(
     polaris_db_session.commit()
     request_context["account_holder_uuid"] = str(account_holder.id)
     request_context["retailer_id"] = retailer.id
-    request_context["start_balance"] = account_holder.current_balances["test-campaign-1"]["value"]
+
+    try:
+        campaign_value = account_holder.current_balances["test-campaign-1"]["value"]
+    except KeyError:
+        campaign_value = 0
+
+    request_context["start_balance"] = campaign_value
 
 
 @given(parse("An account holder does not exists for {retailer_slug}"))
@@ -173,7 +173,10 @@ def check_account_holder_balance(request_context: dict, polaris_db_session: Sess
     )
 
     start_balance = request_context["start_balance"]
-    current_balance = account_holder.current_balances["test-campaign-1"]["value"]  # type: ignore
+    try:
+        current_balance = account_holder.current_balances["test-campaign-1"]["value"]  # type: ignore
+    except KeyError:
+        current_balance = 0
 
     for i in range(3):
         if current_balance > start_balance:
@@ -181,6 +184,9 @@ def check_account_holder_balance(request_context: dict, polaris_db_session: Sess
 
         sleep(i * 3)
         polaris_db_session.refresh(account_holder)
-        current_balance = account_holder.current_balances["test-campaign-1"]["value"]  # type: ignore
+        try:
+            current_balance = account_holder.current_balances["test-campaign-1"]["value"]  # type: ignore
+        except KeyError:
+            current_balance = 0
 
     assert current_balance == start_balance + (earn_rule.increment * earn_rule.increment_multiplier)  # type: ignore
