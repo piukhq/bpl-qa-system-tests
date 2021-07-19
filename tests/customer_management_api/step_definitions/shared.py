@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 
 from typing import TYPE_CHECKING, Optional
 
@@ -81,6 +82,11 @@ def check_account_holder_is_active(polaris_db_session: "Session", request_contex
     retailer_slug = request_context["retailer_slug"]
 
     account_holder = get_active_account_holder(polaris_db_session, email, retailer_slug)
+    for i in range(1, 5):
+        time.sleep(i)
+        polaris_db_session.refresh(account_holder)
+        if account_holder.status != "PENDING":
+            break
 
     assert account_holder.status == "ACTIVE"
     assert account_holder.account_number is not None
