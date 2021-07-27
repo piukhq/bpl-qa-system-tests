@@ -14,7 +14,7 @@ Feature: Allocate a specific voucher type to an account
     Then a SUCCESS 202 is returned by the Allocation API
     And a Voucher code will be allocated asynchronously
     And the expiry date is calculated using the expiry window for the voucher_type_slug from the Voucher Management Config
-#    And a POST to /vouchers will be made to update the users account with the voucher allocation
+    And a POST to /vouchers will be made to update the users account with the voucher allocation
 
 #  Scenario: Get test-retailer active campaign slugs using the wrong auth token
 #

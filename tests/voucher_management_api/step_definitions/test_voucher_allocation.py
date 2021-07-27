@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, scenarios, then, when
 from pytest_bdd.parsers import parse
-from sqlalchemy.orm import Session
 
 from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolder, RetailerConfig
@@ -13,6 +12,7 @@ from settings import POLARIS_BASE_URL
 from tests.customer_management_api.step_definitions.shared import check_response_status_code
 from tests.voucher_management_api.api_requests.voucher_allocation import send_post_voucher_allocation
 from tests.voucher_management_api.db_actions.voucher import (
+    get_allocated_voucher,
     get_count_unallocated_vouchers,
     get_count_voucher_configs,
     get_last_created_voucher_allocation,
@@ -31,7 +31,7 @@ def setup_check_allocation_response_status_code(status_code: int, request_contex
 
 
 @given(parse("A {status} account holder exists for {retailer_slug}"))
-def setup_account_holder(status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session) -> None:
+def setup_account_holder(status: str, retailer_slug: str, request_context: dict, polaris_db_session: "Session") -> None:
     email = "automated_test@transaction.test"
     retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
     if retailer is None:
@@ -88,8 +88,7 @@ def check_async_voucher_allocation(carina_db_session: "Session", request_context
     voucher_allocation = get_last_created_voucher_allocation(
         carina_db_session=carina_db_session, voucher_config_id=request_context["voucher_config"].id
     )
-    assert voucher_allocation.status == "IN_PROGRESS" or "PENDING"
-    # Check that the voucher has also been 'allocated'
+    # Check that the voucher in the Voucher table has been marked as 'allocated'
     voucher = carina_db_session.query(Voucher).filter_by(id=voucher_allocation.voucher_id).one()
     assert voucher.allocated
     assert voucher.id
@@ -113,6 +112,16 @@ def check_voucher_allocation_expiry_date(carina_db_session: "Session", request_c
         date_time_format
     )
     assert expiry_datetime == expected_expiry
+
+
+@then(parsers.parse("a POST to /vouchers will be made to update the users account with the voucher allocation"))
+def check_voucher_created(polaris_db_session: "Session", request_context: dict) -> None:
+    voucher = get_allocated_voucher(polaris_db_session, request_context["voucher_allocation"].voucher_id)
+    assert voucher.account_holder_id == request_context["account_holder_uuid"]
+    assert voucher.voucher_type_slug == request_context["voucher_config"].voucher_type_slug
+    assert voucher.issued_date is not None
+    assert voucher.expiry_date is not None
+    assert voucher.status == "ISSUED"
 
 
 def _get_voucher_allocation_payload(request_context: dict) -> dict:
