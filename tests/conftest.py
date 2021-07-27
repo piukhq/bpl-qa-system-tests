@@ -6,6 +6,7 @@ import pytest
 
 from db.polaris.session import PolarisSessionMaker
 from db.vela.session import VelaSessionMaker
+from db.carina.session import CarinaSessionMaker
 
 
 # Hooks
@@ -41,4 +42,10 @@ def polaris_db_session() -> Generator:
 @pytest.fixture(scope="function")
 def vela_db_session() -> Generator:
     with VelaSessionMaker() as db_session:
+        yield db_session
+
+
+@pytest.fixture(scope="function")
+def carina_db_session() -> Generator:
+    with CarinaSessionMaker() as db_session:
         yield db_session

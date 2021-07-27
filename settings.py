@@ -35,11 +35,13 @@ logger.setLevel(logging.DEBUG)
 
 POLARIS_DATABASE_URI = getenv("POLARIS_DATABASE_URI")
 VELA_DATABASE_URI = getenv("VELA_DATABASE_URI")
+CARINA_DATABASE_URI = getenv("CARINA_DATABASE_URI")
 
 VAULT_URL = getenv("VAULT_URL")
 vault = KeyVault(VAULT_URL)
 CUSTOMER_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-customer-mgmt-auth-token")
 REWARDS_RULE_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-reward-mgmt-auth-token")
+VOUCHER_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-voucher-mgmt-auth-token")
 
 LOCAL = getenv("LOCAL", default="False", conv=boolconv)
 
@@ -56,5 +58,6 @@ ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True", conv=boolconv)
 
 POLARIS_BASE_URL = getenv("POLARIS_ENV_BASE_URL")
 VELA_BASE_URL = getenv("VELA_ENV_BASE_URL")
+CARINA_BASE_URL = getenv("CARINA_ENV_BASE_URL")
 
 MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")
