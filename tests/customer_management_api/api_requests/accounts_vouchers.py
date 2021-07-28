@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING, Literal, Optional, Union
 
 from settings import CUSTOMER_MANAGEMENT_API_TOKEN, POLARIS_BASE_URL
@@ -19,6 +20,7 @@ def send_post_accounts_voucher(
     headers: Optional[dict] = None,
 ) -> "Response":
     headers = headers or default_headers.copy()
+    logging.info(f"Headers for POST Vouchers API : {headers}")
     if token_validity == "invalid":
         headers = headers | {"Authorization": "WRONG TOKEN"}
     return retry_session().post(
