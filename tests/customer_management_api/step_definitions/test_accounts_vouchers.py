@@ -56,7 +56,8 @@ def check_account_holder_is_activated(polaris_db_session: "Session", request_con
     )
 )
 def post_voucher(
-    polaris_db_session: "Session", past_or_future: str, retailer_slug: str, token_validity: str, request_context: dict
+        polaris_db_session: "Session", past_or_future: str, retailer_slug: str, token_validity: str,
+        request_context: dict
 ) -> None:
     if "account_holder" in request_context:
         account_holder_id = request_context["account_holder"].id
@@ -77,10 +78,10 @@ def post_voucher(
         account_holder_id,
         payload,
         "valid" if token_validity == "valid" else "invalid",  # jump through mypy hoops
-        logging.info(
-            f"POST Voucher Endpoint request body: {json.dumps(payload, indent=4)}\n"
-            f"Post Voucher URL:{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_id}/vouchers"
-        ),
+    )
+    logging.info(
+        f"POST Voucher Endpoint request body: {json.dumps(payload, indent=4)}\n"
+        f"Post Voucher URL:{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_id}/vouchers"
     )
     request_context["response"] = resp
 
