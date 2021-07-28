@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, scenarios, then, when
 
+from settings import POLARIS_BASE_URL
 from tests.customer_management_api.api_requests.accounts import send_get_accounts
 from tests.customer_management_api.api_requests.accounts_vouchers import send_post_accounts_voucher
 from tests.customer_management_api.response_fixtures.vouchers import VoucherResponses
-
 from tests.customer_management_api.step_definitions.shared import (
     check_account_holder_is_active,
     check_response_status_code,
@@ -21,7 +21,6 @@ from tests.customer_management_api.step_definitions.shared import (
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
-
 
 scenarios("customer_management_api/accounts_vouchers/")
 
@@ -77,6 +76,10 @@ def post_voucher(
         payload,
         "valid" if token_validity == "valid" else "invalid",  # jump through mypy hoops
     )
+    logging.info(
+        f"POST Voucher Endpoint request body: {json.dumps(payload, indent=4)}\n"
+        f"Post Voucher URL:{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_id}/vouchers"
+    )
     request_context["response"] = resp
 
 
@@ -90,6 +93,7 @@ def check_voucher_response(response_fixture: str, request_context: dict) -> None
     expected_response_body = VoucherResponses.get_json(response_fixture)
     resp = request_context["response"]
     assert resp.json() == expected_response_body
+    logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
 @when(parsers.parse("I send a get /accounts request for a {retailer_slug} account holder by UUID"))
