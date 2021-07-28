@@ -13,7 +13,6 @@ from settings import POLARIS_BASE_URL
 from tests.customer_management_api.api_requests.accounts import send_get_accounts
 from tests.customer_management_api.api_requests.accounts_vouchers import send_post_accounts_voucher
 from tests.customer_management_api.response_fixtures.vouchers import VoucherResponses
-
 from tests.customer_management_api.step_definitions.shared import (
     check_account_holder_is_active,
     check_response_status_code,
@@ -22,7 +21,6 @@ from tests.customer_management_api.step_definitions.shared import (
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
-
 
 scenarios("customer_management_api/accounts_vouchers/")
 
@@ -56,8 +54,7 @@ def check_account_holder_is_activated(polaris_db_session: "Session", request_con
     )
 )
 def post_voucher(
-        polaris_db_session: "Session", past_or_future: str, retailer_slug: str, token_validity: str,
-        request_context: dict
+    polaris_db_session: "Session", past_or_future: str, retailer_slug: str, token_validity: str, request_context: dict
 ) -> None:
     if "account_holder" in request_context:
         account_holder_id = request_context["account_holder"].id

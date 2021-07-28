@@ -1,4 +1,5 @@
 import logging
+
 from typing import TYPE_CHECKING, Literal, Optional, Union
 
 from settings import CUSTOMER_MANAGEMENT_API_TOKEN, POLARIS_BASE_URL
