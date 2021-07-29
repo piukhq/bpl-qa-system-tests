@@ -16,7 +16,7 @@ def get_count_voucher_configs(carina_db_session: "Session", retailer_slug: str) 
     return carina_db_session.query(VoucherConfig).filter_by(retailer_slug=retailer_slug).count()
 
 
-def get_voucher_config(carina_db_session: "Session", retailer_slug: str) -> int:
+def get_voucher_config(carina_db_session: "Session", retailer_slug: str) -> VoucherConfig:
     return carina_db_session.query(VoucherConfig).filter_by(retailer_slug=retailer_slug).first()
 
 

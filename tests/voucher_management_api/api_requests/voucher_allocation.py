@@ -30,3 +30,16 @@ def send_post_voucher_allocation(
         headers["Authorization"] = "wrong token"
 
     return _send_post_voucher_allocation(retailer_slug, voucher_type_slug, request_body, headers)
+
+
+def send_post_malformed_voucher_allocation(retailer_slug: str, voucher_type_slug: str, request_body: str) -> "Response":
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": f"Token {VOUCHER_MANAGEMENT_API_TOKEN}",
+    }
+    return retry_session().post(
+        f"{CARINA_BASE_URL}/{retailer_slug}/vouchers/{voucher_type_slug}/allocation",
+        data=request_body,
+        headers=headers,
+    )
