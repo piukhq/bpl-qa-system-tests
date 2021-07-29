@@ -6,7 +6,7 @@ from datetime import datetime
 from time import sleep
 
 import requests
-from tests.shared.account_holder import shared_setup_account_holder
+
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
@@ -17,6 +17,7 @@ from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Campaign, EarnRule, ProcessedTransaction, RetailerRewards, Transaction
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
+from tests.shared.account_holder import shared_setup_account_holder
 
 scenarios("rewards_rule_management_api/transaction/")
 

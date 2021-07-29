@@ -6,7 +6,6 @@ from sqlalchemy.ext.automap import automap_base
 
 from db.polaris.session import engine
 
-
 Base = automap_base()
 utc_timestamp_sql = text("TIMEZONE('utc', CURRENT_TIMESTAMP)")
 
@@ -21,20 +20,10 @@ class AccountHolder(Base):  # type: ignore
     updated_at = Column(DateTime, server_default=utc_timestamp_sql, onupdate=utc_timestamp_sql, nullable=False)
 
 
-class AccountHolderProfile(Base):  # type: ignore
-    __tablename__ = "account_holder_profile"
-
-
-class AccountHolderActivation(Base):  # type: ignore
-    __tablename__ = "account_holder_activation"
-
-
-class AccountHolderVoucher(Base):  # type: ignore
-    __tablename__ = "account_holder_voucher"
-
-
-class RetailerConfig(Base):  # type: ignore
-    __tablename__ = "retailer_config"
-
-
 Base.prepare(engine, reflect=True)
+
+# get models from Base mapping
+AccountHolderProfile = Base.classes.account_holder_profile
+AccountHolderActivation = Base.classes.account_holder_activation
+AccountHolderVoucher = Base.classes.account_holder_voucher
+RetailerConfig = Base.classes.retailer_config

@@ -1,6 +1,7 @@
+from typing import Tuple
+
 from sqlalchemy.orm import Session
 
-from typing import Tuple
 from db.polaris.models import AccountHolder, RetailerConfig
 
 

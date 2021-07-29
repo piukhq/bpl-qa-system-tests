@@ -1,18 +1,21 @@
+import json
+import logging
+
 from datetime import datetime, timedelta
 from uuid import uuid4
 
 import requests
+
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
-import logging
-import json
+
 import settings
+
 from db.polaris.models import AccountHolderVoucher
 from tests.customer_management_api.api_requests.accounts import send_get_accounts
-from tests.shared.account_holder import shared_setup_account_holder
 from tests.customer_management_api.response_fixtures.vouchers_status import VoucherStatusResponses
-
+from tests.shared.account_holder import shared_setup_account_holder
 
 scenarios("customer_management_api/vouchers_status/")
 
@@ -102,15 +105,15 @@ def check_account_holder_vouchers(expectation: str, request_context: dict) -> No
         (v for v in resp.json()["vouchers"] if v["voucher_code"] == request_context["voucher"].voucher_code), None
     )
     if expectation == "will":
-        assert voucher["status"] == request_context["requested_status"]
+        assert voucher["status"] == request_context["requested_status"]  # type: ignore
     elif expectation == "will not":
-        assert voucher["status"] != request_context["requested_status"]
+        assert voucher["status"] != request_context["requested_status"]  # type: ignore
     else:
         raise ValueError(f"{expectation} is not a valid expectation")
 
 
 @given("There is no voucher to update")
-def setup_non_existing_voucher(request_context: dict):
+def setup_non_existing_voucher(request_context: dict) -> None:
     class MockVoucher:
         voucher_id = uuid4()
 
@@ -118,7 +121,7 @@ def setup_non_existing_voucher(request_context: dict):
 
 
 @then(parse("I get a {response_fixture} voucher status response body"))
-def check_voucher_status_response(response_fixture: str, request_context: dict) -> None:
+def check_voucher_status_response_payload(response_fixture: str, request_context: dict) -> None:
     expected_response_body = VoucherStatusResponses.get_json(response_fixture)
     resp = request_context["resp"].json()
     logging.info(
