@@ -5,7 +5,7 @@ Feature: Allocate a specific voucher type to an account
   from other BPL internal systems so that a customer can be issued a voucher and their Account updated.
   Using the POST /{retailer_slug}/vouchers/{voucher_type_slug}/allocation endpoint
 
-  @bpl @undertest
+  @bpl
   Scenario: Allocate a specific voucher type to an account for test-retailer with a malformed request
 
     Given A active account holder exists for test-retailer
