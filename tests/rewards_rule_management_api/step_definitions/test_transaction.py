@@ -17,32 +17,20 @@ from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Campaign, EarnRule, ProcessedTransaction, RetailerRewards, Transaction
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
+from tests.shared.account_holder import shared_setup_account_holder
 
 scenarios("rewards_rule_management_api/transaction/")
 
 
 @given(parse("A {status} account holder exists for {retailer_slug}"))
 def setup_account_holder(status: str, retailer_slug: str, request_context: dict, polaris_db_session: Session) -> None:
-    email = "automated_test@transaction.test"
-    retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
-    if retailer is None:
-        raise ValueError(f"a retailer with slug '{retailer_slug}' was not found in the db.")
-    account_status = {"active": "ACTIVE"}.get(status, "PENDING")
+    retailer, account_holder = shared_setup_account_holder(
+        email="automated_test@transaction.test",
+        status=status,
+        retailer_slug=retailer_slug,
+        polaris_db_session=polaris_db_session,
+    )
 
-    account_holder = polaris_db_session.query(AccountHolder).filter_by(email=email, retailer_id=retailer.id).first()
-    if account_holder is None:
-
-        account_holder = AccountHolder(
-            email=email,
-            retailer_id=retailer.id,
-            status=account_status,
-            current_balances={},
-        )
-        polaris_db_session.add(account_holder)
-    else:
-        account_holder.status = account_status
-
-    polaris_db_session.commit()
     request_context["account_holder_uuid"] = str(account_holder.id)
     request_context["retailer_id"] = retailer.id
 
