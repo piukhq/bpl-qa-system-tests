@@ -12,6 +12,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from settings import POLARIS_BASE_URL
 from tests.customer_management_api.api_requests.accounts import send_get_accounts
 from tests.customer_management_api.api_requests.accounts_vouchers import send_post_accounts_voucher
+from tests.customer_management_api.db_actions.account_holder import get_account_holder_voucher
 from tests.customer_management_api.response_fixtures.vouchers import VoucherResponses
 from tests.customer_management_api.step_definitions.shared import (
     check_account_holder_is_active,
@@ -53,9 +54,7 @@ def check_account_holder_is_activated(polaris_db_session: "Session", request_con
         " auth token"
     )
 )
-def post_voucher(
-    polaris_db_session: "Session", past_or_future: str, retailer_slug: str, token_validity: str, request_context: dict
-) -> None:
+def post_voucher(past_or_future: str, retailer_slug: str, token_validity: str, request_context: dict) -> None:
     if "account_holder" in request_context:
         account_holder_id = request_context["account_holder"].id
     else:
@@ -105,14 +104,18 @@ def get_account(request_context: dict) -> None:
 
 
 @then(parsers.parse("the returned voucher's status is {status} and the voucher data is well formed"))
-def check_voucher_status(status: str, request_context: dict) -> None:
+def check_voucher_status(polaris_db_session: "Session", status: str, request_context: dict) -> None:
     correct_keys = ["voucher_code", "issued_date", "redeemed_date", "expiry_date", "status"]
     voucher_response = request_context["response"].json()
     voucher_list = voucher_response["vouchers"]
     assert len(voucher_list) == 1
     assert voucher_list[0]["status"] == status.lower()
     assert list(voucher_list[0].keys()) == correct_keys
-    assert voucher_list[0]["voucher_code"] is not None
-    assert voucher_list[0]["issued_date"] is not None
-    assert voucher_list[0]["expiry_date"] is not None
+    voucher_code = voucher_list[0].get("voucher_code")
+    assert bool(voucher_code) is True
+    account_holder_voucher = get_account_holder_voucher(
+        polaris_db_session, voucher_code, request_context["retailer_slug"]
+    )
+    assert voucher_list[0]["issued_date"] == account_holder_voucher.issued_date.timestamp()
+    assert voucher_list[0]["expiry_date"] == account_holder_voucher.expiry_date.timestamp()
     assert voucher_list[0]["redeemed_date"] is None

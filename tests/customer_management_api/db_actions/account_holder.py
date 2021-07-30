@@ -2,7 +2,7 @@ from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Optional, Union
 
-from db.polaris.models import AccountHolder, AccountHolderProfile, RetailerConfig
+from db.polaris.models import AccountHolder, AccountHolderProfile, AccountHolderVoucher, RetailerConfig
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -105,3 +105,18 @@ def assert_enrol_request_body_with_account_holder_profile_table(
         assert (
             getattr(account_holder_profile, field) == request_value
         ), f"Failed to match field {field} to {request_value}"
+
+
+def get_account_holder_voucher(
+    polaris_db_session: "Session", voucher_code: str, retailer_slug: str
+) -> AccountHolderVoucher:
+    voucher = (
+        polaris_db_session.query(AccountHolderVoucher)
+        .filter_by(
+            # FIXME: BPL-190 will add a unique constraint across voucher_code and retailer at which point this query
+            # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved
+            voucher_code=voucher_code
+        )
+        .first()
+    )
+    return voucher
