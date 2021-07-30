@@ -55,3 +55,10 @@ Feature: Post a transaction for a test-retailer
     Then I get a HTTP 404 rrm no_active_campaigns response
     And The transaction is saved in the transaction database table
     And The transaction is not saved in the processed_transaction database table
+
+  @undertest
+  Scenario: Send a POST transaction request with empty values in the payload
+
+    When I send a POST transaction request with the empty values payload for a test-retailer with the correct token
+    Then I get a HTTP 422 rrm invalid_content response
+    And The transaction is not saved in the transaction database table
