@@ -76,7 +76,7 @@ def setup_account_holder_voucher(voucher_status: str, request_context: dict, pol
 
     polaris_db_session.commit()
     request_context["voucher"] = voucher
-    logging.info(f"Account holder's issued voucher details:{voucher_code,voucher_status}")
+    logging.info(f"Account holder's issued voucher details:{voucher_code, voucher_status}")
 
 
 @when(parse("I PATCH a voucher's status to {new_status} for a {retailer_slug} using a {token_type} auth token"))
@@ -97,7 +97,8 @@ def send_voucher_status_change(new_status: str, retailer_slug: str, token_type: 
     )
 
     logging.info(
-        f"PATCH voucher URL:{settings.POLARIS_BASE_URL}/{retailer_slug}/vouchers/{request_context['voucher'].voucher_id}/status\n "
+        f"PATCH voucher URL:{settings.POLARIS_BASE_URL}/{retailer_slug}"
+        f"/vouchers/{request_context['voucher'].voucher_id}/status\n "
         f"PATCH Voucher request body: {json.dumps(request, indent=4)}"
     )
 
