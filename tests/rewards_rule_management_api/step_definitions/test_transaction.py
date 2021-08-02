@@ -97,6 +97,11 @@ def send_transaction_request(payload_type: str, retailer_slug: str, token: str, 
     elif payload_type == "too early for active campaign":
         payload["transaction_total"] = 1000
         payload["datetime"] = int(datetime.fromisoformat("2021-05-10T09:00:00.000000").timestamp())
+    elif payload_type == "empty values":
+        payload["id"] = ""
+        payload["datetime"] = ""
+        payload["MID"] = ""
+        payload["loyalty_id"] = ""
 
     else:
         raise ValueError(f"{payload_type} is not a supported payload type.")
