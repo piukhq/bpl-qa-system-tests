@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 import requests
+import resp
 
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
@@ -31,6 +32,7 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
     request_context["account_holder_uuid"] = str(account_holder.id)
     request_context["retailer_id"] = retailer.id
     request_context["retailer_slug"] = retailer_slug
+    logging.info(f"Active account holder uuid:{account_holder.id}\n" f"Retailer slug: {retailer_slug}")
 
 
 @given(parse("The account holder has an {voucher_status} voucher"))
@@ -74,6 +76,7 @@ def setup_account_holder_voucher(voucher_status: str, request_context: dict, pol
 
     polaris_db_session.commit()
     request_context["voucher"] = voucher
+    logging.info(f"Account holder's issued voucher details:{voucher_code, voucher_status}")
 
 
 @when(parse("I PATCH a voucher's status to {new_status} for a {retailer_slug} using a {token_type} auth token"))
@@ -86,16 +89,24 @@ def send_voucher_status_change(new_status: str, retailer_slug: str, token_type: 
         raise ValueError(f"{token_type} is an invalid token type.")
 
     request_context["requested_status"] = new_status
+    request = {"status": new_status, "date": datetime.utcnow().timestamp()}
     request_context["resp"] = requests.patch(
         f"{settings.POLARIS_BASE_URL}/{retailer_slug}/vouchers/{request_context['voucher'].voucher_id}/status",
-        json={"status": new_status, "date": datetime.utcnow().timestamp()},
+        json=request,
         headers={"Authorization": f"token {token}"},
+    )
+
+    logging.info(
+        f"PATCH voucher URL:{settings.POLARIS_BASE_URL}/{retailer_slug}"
+        f"/vouchers/{request_context['voucher'].voucher_id}/status\n "
+        f"PATCH Voucher request body: {json.dumps(request, indent=4)}"
     )
 
 
 @then(parse("I receive a HTTP {status_code:d} status code in the vouchers status response"))
 def check_voucher_status_response(status_code: int, request_context: dict) -> None:
     assert request_context["resp"].status_code == status_code
+    logging.info(resp)
 
 
 @then(parse("The account holders {expectation} have the voucher's status updated in their account"))
