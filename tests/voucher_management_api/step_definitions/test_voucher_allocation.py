@@ -183,7 +183,7 @@ def send_post_malformed_voucher_allocation_request(
 
 @when(
     parsers.parse(
-        "Allocate a specific voucher type to an account for test-retailer with a voucher_type_slug that does not "
+        "I allocate a specific voucher type to an account for test-retailer with a voucher_type_slug that does not "
         "exist in the Vouchers table"
     )
 )
