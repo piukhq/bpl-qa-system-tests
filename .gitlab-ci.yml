@@ -3,7 +3,7 @@ stages:
   - master
 
 default:
-  image: binkhq/python:3.9
+  image: ghcr.io/binkhq/python:3.9
 
 complexity:
   stage: tests
