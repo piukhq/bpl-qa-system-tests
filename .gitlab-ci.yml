@@ -36,4 +36,3 @@ master:
     - docker push "$CI_REGISTRY/pyqa-bpl:$CTAG"
   only:
     - master
-
