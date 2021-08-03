@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 import requests
-import resp
 
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
@@ -105,8 +104,8 @@ def send_voucher_status_change(new_status: str, retailer_slug: str, token_type: 
 
 @then(parse("I receive a HTTP {status_code:d} status code in the vouchers status response"))
 def check_voucher_status_response(status_code: int, request_context: dict) -> None:
+    logging.info(f"PATCH voucher response status code: {request_context['resp'].status_code}")
     assert request_context["resp"].status_code == status_code
-    logging.info(resp)
 
 
 @then(parse("The account holders {expectation} have the voucher's status updated in their account"))
