@@ -33,9 +33,9 @@ load_dotenv()
 logger = logging.getLogger("bpl_automation_tests_logger")
 logger.setLevel(logging.DEBUG)
 
+CARINA_DATABASE_URI = getenv("CARINA_DATABASE_URI")
 POLARIS_DATABASE_URI = getenv("POLARIS_DATABASE_URI")
 VELA_DATABASE_URI = getenv("VELA_DATABASE_URI")
-CARINA_DATABASE_URI = getenv("CARINA_DATABASE_URI")
 
 VAULT_URL = getenv("VAULT_URL")
 vault = KeyVault(VAULT_URL)
@@ -56,8 +56,8 @@ COMMAND = getenv("COMMAND", default="pytest -m bpl")
 ALERT_ON_SUCCESS = getenv("ALERT_ON_SUCCESS", default="True", conv=boolconv)
 ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True", conv=boolconv)
 
+CARINA_BASE_URL = getenv("CARINA_ENV_BASE_URL")
 POLARIS_BASE_URL = getenv("POLARIS_ENV_BASE_URL")
 VELA_BASE_URL = getenv("VELA_ENV_BASE_URL")
-CARINA_BASE_URL = getenv("CARINA_ENV_BASE_URL")
 
 MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")

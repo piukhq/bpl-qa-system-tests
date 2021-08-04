@@ -3,6 +3,8 @@ import logging
 
 from typing import TYPE_CHECKING
 
+import requests
+
 from settings import REWARDS_RULE_MANAGEMENT_API_TOKEN, VELA_BASE_URL
 from tests.retry_requests import retry_session
 
@@ -34,3 +36,24 @@ def send_get_rrm_request(path: str, headers: dict = None) -> "Response":
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
     return resp
+
+
+def post_transaction_request(payload: dict, retailer_slug: str, token: str, request_context: dict) -> None:
+    if token != "correct":
+        headers = get_rrm_headers(valid_token=False)
+    else:
+        headers = get_rrm_headers()
+
+    resp = requests.post(
+        f"{VELA_BASE_URL}/{retailer_slug}/transaction",
+        json=payload,
+        headers=headers,
+    )
+    logging.info(
+        f"Post transaction headers: {headers}\n"
+        f"Post transaction URL:{VELA_BASE_URL}/{retailer_slug}/transaction\n"
+        f"Post transaction request body: {json.dumps(payload, indent=4)}\n"
+        f"POST Transactions response: {json.dumps(resp.json(), indent=4)}"
+    )
+    request_context["resp"] = resp
+    request_context["request_payload"] = payload

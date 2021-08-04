@@ -4,9 +4,9 @@ from typing import Any, Generator
 
 import pytest
 
+from db.carina.session import CarinaSessionMaker
 from db.polaris.session import PolarisSessionMaker
 from db.vela.session import VelaSessionMaker
-from db.carina.session import CarinaSessionMaker
 
 
 # Hooks
@@ -34,6 +34,12 @@ def request_context() -> dict:
 
 
 @pytest.fixture(scope="function")
+def carina_db_session() -> Generator:
+    with CarinaSessionMaker() as db_session:
+        yield db_session
+
+
+@pytest.fixture(scope="function")
 def polaris_db_session() -> Generator:
     with PolarisSessionMaker() as db_session:
         yield db_session
@@ -42,10 +48,4 @@ def polaris_db_session() -> Generator:
 @pytest.fixture(scope="function")
 def vela_db_session() -> Generator:
     with VelaSessionMaker() as db_session:
-        yield db_session
-
-
-@pytest.fixture(scope="function")
-def carina_db_session() -> Generator:
-    with CarinaSessionMaker() as db_session:
         yield db_session
