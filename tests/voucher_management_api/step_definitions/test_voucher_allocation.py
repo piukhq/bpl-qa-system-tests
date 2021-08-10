@@ -2,7 +2,7 @@ import json
 import logging
 import uuid
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -119,7 +119,9 @@ def check_voucher_allocation_expiry_date(carina_db_session: "Session", request_c
     voucher_allocation = request_context["voucher_allocation"]
     date_time_format = "%Y-%m-%d %H"
     now = datetime.utcnow()
-    expiry_datetime: str = datetime.fromtimestamp(voucher_allocation.expiry_date).strftime(date_time_format)
+    expiry_datetime: str = datetime.fromtimestamp(voucher_allocation.expiry_date, tz=timezone.utc).strftime(
+        date_time_format
+    )
     expected_expiry: str = (now + timedelta(days=request_context["voucher_config"].validity_days)).strftime(
         date_time_format
     )
