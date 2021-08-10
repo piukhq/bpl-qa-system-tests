@@ -1,21 +1,17 @@
-import json
-import logging
 import uuid
 
 from datetime import datetime
 from time import sleep
 
-import requests
 
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
 
-import settings
 
 from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Campaign, EarnRule, ProcessedTransaction, RetailerRewards, Transaction
-from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers
+from tests.rewards_rule_management_api.api_requests.base import post_transaction_request
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 from tests.shared.account_holder import shared_setup_account_holder
 
@@ -69,11 +65,6 @@ def setup_non_existent_account_holder(retailer_slug: str, request_context: dict,
     )
 )
 def send_transaction_request(payload_type: str, retailer_slug: str, token: str, request_context: dict) -> None:
-    if token != "correct":
-        headers = get_rrm_headers(valid_token=False)
-    else:
-        headers = get_rrm_headers()
-
     if "account_holder_uuid" in request_context:
         account_holder_uuid = request_context["account_holder_uuid"]
     else:
@@ -106,19 +97,7 @@ def send_transaction_request(payload_type: str, retailer_slug: str, token: str, 
     else:
         raise ValueError(f"{payload_type} is not a supported payload type.")
 
-    resp = requests.post(
-        f"{settings.VELA_BASE_URL}/{retailer_slug}/transaction",
-        json=payload,
-        headers=headers,
-    )
-    logging.info(
-        f"Post transaction headers: {headers}\n"
-        f"Post transaction URL:{settings.VELA_BASE_URL}/{retailer_slug}/transaction\n"
-        f"Post transaction request body: {json.dumps(payload, indent=4)}\n"
-        f"POST Transactions response: {json.dumps(resp.json(), indent=4)}"
-    )
-    request_context["resp"] = resp
-    request_context["request_payload"] = payload
+    post_transaction_request(payload, retailer_slug, token, request_context)
 
 
 @then(parse("I get a HTTP {status_code:Number} rrm {payload_type} response", extra_types={"Number": int}))
