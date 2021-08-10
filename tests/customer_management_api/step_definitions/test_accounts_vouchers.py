@@ -4,7 +4,7 @@ import random
 import string
 import uuid
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -116,6 +116,10 @@ def check_voucher_status(polaris_db_session: "Session", status: str, request_con
     account_holder_voucher = get_account_holder_voucher(
         polaris_db_session, voucher_code, request_context["retailer_slug"]
     )
-    assert voucher_list[0]["issued_date"] == str(int(account_holder_voucher.issued_date.timestamp()))
-    assert voucher_list[0]["expiry_date"] == str(int(account_holder_voucher.expiry_date.timestamp()))
+    assert voucher_list[0]["issued_date"] == str(
+        int(account_holder_voucher.issued_date.replace(tzinfo=timezone.utc).timestamp())
+    )
+    assert voucher_list[0]["expiry_date"] == str(
+        int(account_holder_voucher.expiry_date.replace(tzinfo=timezone.utc).timestamp())
+    )
     assert voucher_list[0]["redeemed_date"] is None
