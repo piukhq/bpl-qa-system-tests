@@ -116,6 +116,6 @@ def check_voucher_status(polaris_db_session: "Session", status: str, request_con
     account_holder_voucher = get_account_holder_voucher(
         polaris_db_session, voucher_code, request_context["retailer_slug"]
     )
-    assert voucher_list[0]["issued_date"] == account_holder_voucher.issued_date.timestamp()
-    assert voucher_list[0]["expiry_date"] == account_holder_voucher.expiry_date.timestamp()
+    assert voucher_list[0]["issued_date"] == str(int(account_holder_voucher.issued_date.timestamp()))
+    assert voucher_list[0]["expiry_date"] == str(int(account_holder_voucher.expiry_date.timestamp()))
     assert voucher_list[0]["redeemed_date"] is None
