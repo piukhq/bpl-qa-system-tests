@@ -1,15 +1,16 @@
 import logging
 import time
 import uuid
-
 from datetime import datetime, timedelta
 from pprint import pformat
 from typing import List, TYPE_CHECKING
 
+import requests
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
+import settings
 from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolderVoucher
 from tests.rewards_rule_management_api.api_requests.base import post_transaction_request
@@ -19,7 +20,6 @@ from tests.shared.account_holder import shared_setup_account_holder
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
-
 
 scenarios("end_to_end/voucher_allocation/")
 
@@ -189,16 +189,14 @@ def check_voucher_allocated(polaris_db_session: "Session", request_context: dict
     for i in range(5):
         time.sleep(i)
         allocated_vouchers = (
-            polaris_db_session.execute(
-                # FIXME: BPL-190 will add a unique constraint across voucher_code and retailer at which point this query
-                # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved
-                select(AccountHolderVoucher)
-                .where(AccountHolderVoucher.voucher_code.in_(request_context["unallocated_voucher_codes"]))
-                .where(AccountHolderVoucher.account_holder_id == request_context["account_holder_uuid"])
-                .where(AccountHolderVoucher.voucher_type_slug == request_context["voucher_type_slug"])
-            )
-            .scalars()
-            .all()
+            polaris_db_session.query(AccountHolderVoucher)
+            # FIXME: BPL-190 will add a unique constraint across voucher_code and retailer at which point this query
+            # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved
+            .filter(
+                AccountHolderVoucher.voucher_code.in_(request_context["unallocated_voucher_codes"]),
+                AccountHolderVoucher.account_holder_id == request_context["account_holder_uuid"],
+                AccountHolderVoucher.voucher_type_slug == request_context["voucher_type_slug"],
+            ).all()
         )
         if len(allocated_vouchers) == 0:
             continue
@@ -213,3 +211,39 @@ def check_voucher_expiry(request_context: dict) -> None:
     voucher = request_context["allocated_voucher"]
     assert voucher.issued_date.date() == datetime.today().date()
     assert voucher.expiry_date - voucher.issued_date == timedelta(days=request_context["voucher_config_validity_days"])
+
+
+@then("The account holder's balance is updated")
+def check_account_holder_balance(request_context: dict) -> None:
+    earn_rule = request_context["campaign"].earn_rule_collection[0]
+    reward_rule = request_context["campaign"].reward_rule_collection[0]
+    retailer_slug = request_context["retailer_slug"]
+    account_holder_uuid = request_context["account_holder_uuid"]
+    url = f"{settings.POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_uuid}"
+    headers = {
+        "Authorization": f"token {settings.CUSTOMER_MANAGEMENT_API_TOKEN}",
+        "bpl-user-channel": "automated-tests",
+    }
+
+    expected_balance = 0 + (earn_rule.increment * earn_rule.increment_multiplier) - reward_rule.reward_goal
+    new_balance = 0
+
+    def _get_balance(campaign_slug: str, account_holder_data: dict) -> int:
+        return next(
+            (
+                int(balance["value"] * 100)
+                for balance in account_holder_data["current_balances"]
+                if balance["campaign_slug"] == campaign_slug
+            ),
+            None,
+        )
+
+    for i in range(5):
+        time.sleep(i)
+        resp = requests.get(url, headers=headers)
+        resp.raise_for_status()
+        new_balance = _get_balance(request_context["campaign"].slug, resp.json())
+        if new_balance == expected_balance:
+            break
+
+    assert new_balance == expected_balance

@@ -13,6 +13,7 @@ Campaign = Base.classes.campaign
 EarnRule = Base.classes.earn_rule
 Transaction = Base.classes.transaction
 ProcessedTransaction = Base.classes.processed_transaction
+RewardRule = Base.classes.reward_rule
 
 
 class CampaignStatuses(str, Enum):
