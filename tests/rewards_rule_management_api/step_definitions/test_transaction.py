@@ -158,7 +158,7 @@ def check_account_holder_balance(request_context: dict, polaris_db_session: Sess
     account_holder = request_context["account_holder"]
     reward_rule = request_context["reward_rule"]
     earn_rule = request_context["earn_rule"]
-    current_balance = 0
+    current_balance = None
     expected_balance = (
         request_context["start_balance"]
         + (earn_rule.increment * earn_rule.increment_multiplier)
@@ -166,7 +166,7 @@ def check_account_holder_balance(request_context: dict, polaris_db_session: Sess
     )
 
     for i in range(5):
-        sleep(i)
+        sleep(2 * i)
         polaris_db_session.refresh(account_holder)
         try:
             current_balance = account_holder.current_balances[request_context["campaign"].slug]["value"]  # type: ignore
