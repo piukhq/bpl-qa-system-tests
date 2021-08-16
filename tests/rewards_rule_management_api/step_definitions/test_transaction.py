@@ -3,14 +3,12 @@ import uuid
 from datetime import datetime
 from time import sleep
 
-
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
 
-
 from db.polaris.models import AccountHolder, RetailerConfig
-from db.vela.models import Campaign, EarnRule, ProcessedTransaction, RetailerRewards, Transaction, RewardRule
+from db.vela.models import Campaign, ProcessedTransaction, Transaction
 from tests.rewards_rule_management_api.api_requests.base import post_transaction_request
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 from tests.shared.account_holder import shared_setup_account_holder
@@ -143,8 +141,8 @@ def expected_new_balance_is_over_reward_goal(request_context: dict, vela_db_sess
         )
         .first()
     )
-    reward_rule = campaign.reward_rule_collection[0]
-    earn_rule = campaign.earn_rule_collection[0]
+    reward_rule = campaign.reward_rule_collection[0]  # type: ignore
+    earn_rule = campaign.earn_rule_collection[0]  # type: ignore
     request_context["campaign"] = campaign
     request_context["reward_rule"] = reward_rule
     request_context["earn_rule"] = earn_rule

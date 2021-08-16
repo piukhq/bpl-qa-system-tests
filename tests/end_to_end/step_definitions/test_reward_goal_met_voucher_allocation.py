@@ -1,16 +1,19 @@
 import logging
 import time
 import uuid
+
 from datetime import datetime, timedelta
 from pprint import pformat
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import requests
+
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
 import settings
+
 from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolderVoucher
 from tests.rewards_rule_management_api.api_requests.base import post_transaction_request
@@ -235,7 +238,7 @@ def check_account_holder_balance(request_context: dict) -> None:
                 for balance in account_holder_data["current_balances"]
                 if balance["campaign_slug"] == campaign_slug
             ),
-            None,
+            0,
         )
 
     for i in range(5):
