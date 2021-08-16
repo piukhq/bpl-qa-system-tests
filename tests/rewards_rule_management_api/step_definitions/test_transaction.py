@@ -3,14 +3,12 @@ import uuid
 from datetime import datetime
 from time import sleep
 
-
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
 
-
 from db.polaris.models import AccountHolder, RetailerConfig
-from db.vela.models import Campaign, EarnRule, ProcessedTransaction, RetailerRewards, Transaction
+from db.vela.models import Campaign, ProcessedTransaction, Transaction
 from tests.rewards_rule_management_api.api_requests.base import post_transaction_request
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 from tests.shared.account_holder import shared_setup_account_holder
@@ -28,6 +26,7 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
     )
 
     request_context["account_holder_uuid"] = str(account_holder.id)
+    request_context["account_holder"] = account_holder
     request_context["retailer_id"] = retailer.id
 
     try:
@@ -132,34 +131,49 @@ def check_transaction_in_db(
         raise ValueError(f"{expectation} is not a valid expectation")
 
 
-@then(parse("The account holder's balance is updated"))
-def check_account_holder_balance(request_context: dict, polaris_db_session: Session, vela_db_session: Session) -> None:
-    account_holder = polaris_db_session.query(AccountHolder).get(request_context["account_holder_uuid"])
-    earn_rule = (
-        vela_db_session.query(EarnRule)
+@then("The transaction's amount is enough to trigger a new voucher being issued")
+def expected_new_balance_is_over_reward_goal(request_context: dict, vela_db_session: Session) -> None:
+    campaign = (
+        vela_db_session.query(Campaign)
         .filter(
-            EarnRule.campaign_id == Campaign.id,
-            Campaign.retailer_id == RetailerRewards.id,
-            RetailerRewards.slug == account_holder.retailer_config.slug,  # type: ignore
+            Campaign.slug == "test-campaign-1",
+            Campaign.retailer_id == request_context["retailer_id"],
         )
         .first()
     )
+    reward_rule = campaign.reward_rule_collection[0]  # type: ignore
+    earn_rule = campaign.earn_rule_collection[0]  # type: ignore
+    request_context["campaign"] = campaign
+    request_context["reward_rule"] = reward_rule
+    request_context["earn_rule"] = earn_rule
 
-    start_balance = request_context["start_balance"]
-    try:
-        current_balance = account_holder.current_balances["test-campaign-1"]["value"]  # type: ignore
-    except KeyError:
-        current_balance = 0
+    assert (
+        request_context["start_balance"] + (earn_rule.increment * earn_rule.increment_multiplier)
+        >= reward_rule.reward_goal
+    )
 
-    for i in range(3):
-        if current_balance > start_balance:
-            break
 
-        sleep(i * 3)
+@then(parse("The account holder's balance is updated"))
+def check_account_holder_balance(request_context: dict, polaris_db_session: Session, vela_db_session: Session) -> None:
+    account_holder = request_context["account_holder"]
+    reward_rule = request_context["reward_rule"]
+    earn_rule = request_context["earn_rule"]
+    current_balance = 0
+    expected_balance = (
+        request_context["start_balance"]
+        + (earn_rule.increment * earn_rule.increment_multiplier)
+        - reward_rule.reward_goal
+    )
+
+    for i in range(5):
+        sleep(i)
         polaris_db_session.refresh(account_holder)
         try:
-            current_balance = account_holder.current_balances["test-campaign-1"]["value"]  # type: ignore
+            current_balance = account_holder.current_balances[request_context["campaign"].slug]["value"]  # type: ignore
         except KeyError:
-            current_balance = 0
+            pass
 
-    assert current_balance == start_balance + (earn_rule.increment * earn_rule.increment_multiplier)  # type: ignore
+        if current_balance == expected_balance:
+            break
+
+    assert current_balance == expected_balance

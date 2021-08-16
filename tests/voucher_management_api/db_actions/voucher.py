@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING
 import time
+
+from typing import TYPE_CHECKING
 
 from db.carina.models import Voucher, VoucherAllocation, VoucherConfig
 from db.polaris.models import AccountHolderVoucher

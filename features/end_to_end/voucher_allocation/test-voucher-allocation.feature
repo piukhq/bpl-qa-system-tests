@@ -11,3 +11,4 @@ Feature: Allocation of voucher once reward goal met
     Then I get a HTTP 200 rrm awarded response
     And A voucher is allocated to the account holder
     And the voucher's expiry date is the correct number of days after the issued date
+    And The account holder's balance is updated
