@@ -3,7 +3,7 @@ Feature: Post a transaction for a test-retailer
   As a transaction matching system
   Using the POST /test-retailer/transaction endpoint
   I can store a transaction in the RRM database
-  @test
+
   Scenario: Successfully POST an awardable transaction
 
     Given A active account holder exists for test-retailer
@@ -57,7 +57,6 @@ Feature: Post a transaction for a test-retailer
     And The transaction is saved in the transaction database table
     And The transaction is not saved in the processed_transaction database table
 
-  @undertest
   Scenario: Send a POST transaction request with empty values in the payload
 
     When I send a POST transaction request with the empty values payload for a test-retailer with the correct token

@@ -6,6 +6,7 @@ from time import sleep
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Campaign, ProcessedTransaction, Transaction
@@ -24,6 +25,12 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
         retailer_slug=retailer_slug,
         polaris_db_session=polaris_db_session,
     )
+    account_holder.current_balances["test-campaign-1"] = {
+        "campaign_slug": "test-campaign-1",
+        "value": 0,
+    }
+    flag_modified(account_holder, "current_balances")
+    polaris_db_session.commit()
 
     request_context["account_holder_uuid"] = str(account_holder.id)
     request_context["account_holder"] = account_holder
@@ -166,7 +173,7 @@ def check_account_holder_balance(request_context: dict, polaris_db_session: Sess
     )
 
     for i in range(5):
-        sleep(2 * i)
+        sleep(i)
         polaris_db_session.refresh(account_holder)
         try:
             current_balance = account_holder.current_balances[request_context["campaign"].slug]["value"]  # type: ignore
