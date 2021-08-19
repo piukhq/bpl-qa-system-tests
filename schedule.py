@@ -3,12 +3,21 @@ import subprocess
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from azure_actions.blob_storage import upload_report_to_blob_storage
+from azure_actions.blob_storage import upload_report_to_blob_storage, upload_voucher_update_to_blob_storage
 from azure_actions.teams import post_to_teams
 from settings import ALERT_ON_FAILURE, ALERT_ON_SUCCESS, BLOB_STORAGE_DSN, COMMAND, SCHEDULE, TEAMS_WEBHOOK, logger
 
 
 def run_test() -> None:
+    if BLOB_STORAGE_DSN:
+        # voucher updates must be present before any tests are run
+        retailer_slug = "test-retailer"
+        logger.debug(f"Uploading voucher updates to blob storage for {retailer_slug}...")
+        url = upload_voucher_update_to_blob_storage(retailer_slug)
+        logger.debug(f"Successfully uploaded voucher updates to blob storage: {url}")
+    else:
+        logger.debug("No BLOB_STORAGE_DSN set, skipping voucher updates upload")
+
     logger.debug(f"Starting automated test suite using command: {COMMAND}")
     try:
         process = subprocess.run(COMMAND.split(" "), timeout=2400, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

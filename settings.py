@@ -48,6 +48,8 @@ LOCAL = getenv("LOCAL", default="False", conv=boolconv)
 BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN") if not LOCAL else None
 REPORT_CONTAINER = getenv("REPORT_CONTAINER", default="qareports")
 REPORT_DIRECTORY = getenv("REPORT_DIRECTORY", default="bpl/isolated/")
+BLOB_IMPORT_CONTAINER = "carina-imports"
+BLOB_ARCHIVE_CONTAINER = "carina-archive"
 
 TEAMS_WEBHOOK = getenv("TEAMS_WEBHOOK") if not LOCAL else None
 FRIENDLY_NAME = getenv("FRIENDLY_NAME", default="BPL")
