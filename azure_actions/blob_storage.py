@@ -4,14 +4,7 @@ from datetime import datetime
 
 from azure.storage.blob import BlobClient, BlobType, ContentSettings
 
-from settings import (
-    BLOB_ARCHIVE_CONTAINER,
-    BLOB_IMPORT_CONTAINER,
-    BLOB_STORAGE_DSN,
-    REPORT_CONTAINER,
-    REPORT_DIRECTORY,
-    logger,
-)
+from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, REPORT_CONTAINER, REPORT_DIRECTORY, logger
 
 
 def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> str:
@@ -30,7 +23,7 @@ def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> st
 
 
 def upload_voucher_update_to_blob_storage(retailer_slug: str) -> str:
-    blob_name = f"test_import.csv"
+    blob_name = "test_import.csv"
     blob_path = os.path.join(retailer_slug, "voucher-updates", blob_name)
     today_date = datetime.now().strftime("%Y-%m-%d")
     content = f"A2eYRbcvF9yYpW2,{today_date},redeemed\n08oVk3czC9QYLBJ,{today_date},cancelled\n"

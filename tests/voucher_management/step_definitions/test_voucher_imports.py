@@ -48,7 +48,7 @@ def check_voucher_updates_import(retailer_slug: str, carina_db_session: "Session
 
 
 @then(parsers.parse("The {retailer_slug} import file is archived by the voucher importer"))
-def check_async_voucher_allocation(retailer_slug: str, carina_db_session: "Session", request_context: dict) -> None:
+def check_voucher_updates_archive(retailer_slug: str, carina_db_session: "Session", request_context: dict) -> None:
     """
     The schedule.run_test() function should place a CSV file onto blob storage, which a running instance of
     carina will pick up and process, creating an archive blob for today's date. If you're running locally
