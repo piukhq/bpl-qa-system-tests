@@ -1,13 +1,16 @@
 import json
 import logging
 import uuid
+
 from typing import TYPE_CHECKING
 
 from deepdiff import DeepDiff
-from pytest_bdd import when, parsers, then
+from pytest_bdd import parsers, then, when
 
-from tests.customer_management_api.api_requests.accounts import send_get_accounts_status, \
-    send_invalid_get_accounts_status
+from tests.customer_management_api.api_requests.accounts import (
+    send_get_accounts_status,
+    send_invalid_get_accounts_status,
+)
 from tests.customer_management_api.db_actions.account_holder import get_active_account_holder
 from tests.customer_management_api.db_actions.retailer import get_retailer
 from tests.customer_management_api.response_fixtures.accounts_status import AccountsStatusResponses

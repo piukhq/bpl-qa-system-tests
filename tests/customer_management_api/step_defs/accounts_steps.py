@@ -1,6 +1,7 @@
 import json
 import logging
 import uuid
+
 from typing import TYPE_CHECKING
 
 from deepdiff import DeepDiff
@@ -13,9 +14,7 @@ from tests.customer_management_api.api_requests.accounts import (
 )
 from tests.customer_management_api.api_requests.base import get_headers
 from tests.customer_management_api.response_fixtures.accounts import AccountsResponses
-from tests.customer_management_api.response_fixtures.shared import (
-    account_holder_details_response_body,
-)
+from tests.customer_management_api.response_fixtures.shared import account_holder_details_response_body
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

@@ -1,15 +1,18 @@
 import logging
 import time
 import uuid
+
 from datetime import datetime, timedelta
 from pprint import pformat
 from typing import TYPE_CHECKING, List
 
 import requests
+
 from pytest_bdd import given, parsers, then, when
 from sqlalchemy import select
 
 import settings
+
 from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolderVoucher
 from tests.rewards_rule_management_api.api_requests.base import post_transaction_request
@@ -75,22 +78,22 @@ def check_or_make_unallocated_vouchers(
     voucher_config = (
         carina_db_session.execute(
             select(VoucherConfig)
-                .where(VoucherConfig.retailer_slug == retailer_slug)
-                .where(VoucherConfig.voucher_type_slug == voucher_type_slug)
+            .where(VoucherConfig.retailer_slug == retailer_slug)
+            .where(VoucherConfig.voucher_type_slug == voucher_type_slug)
         )
-            .scalars()
-            .one()
+        .scalars()
+        .one()
     )
     existing_vouchers = (
         carina_db_session.execute(
             select(Voucher)
-                .join(VoucherConfig)
-                .where(Voucher.retailer_slug == retailer_slug)  # type: ignore  # "Join" has no attribute "where" (?)
-                .where(Voucher.voucher_config == voucher_config)
-                .where(Voucher.allocated.is_(False))
+            .join(VoucherConfig)
+            .where(Voucher.retailer_slug == retailer_slug)  # type: ignore  # "Join" has no attribute "where" (?)
+            .where(Voucher.voucher_config == voucher_config)
+            .where(Voucher.allocated.is_(False))
         )
-            .scalars()
-            .all()
+        .scalars()
+        .all()
     )
     unallocated_voucher_codes = [voucher.voucher_code for voucher in existing_vouchers]
     if (
@@ -110,8 +113,8 @@ def check_or_make_unallocated_vouchers(
                 # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved
                 select(AccountHolderVoucher).where(AccountHolderVoucher.voucher_code.in_(unallocated_voucher_codes))
             )
-                .scalars()
-                .all()
+            .scalars()
+            .all()
         )
         == 0
     )
@@ -155,9 +158,9 @@ def check_voucher_allocated(polaris_db_session: "Session", request_context: dict
         time.sleep(i)
         allocated_vouchers = (
             polaris_db_session.query(AccountHolderVoucher)
-                # FIXME: BPL-190 will add a unique constraint across voucher_code and retailer at which point this query
-                # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved
-                .filter(
+            # FIXME: BPL-190 will add a unique constraint across voucher_code and retailer at which point this query
+            # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved
+            .filter(
                 AccountHolderVoucher.voucher_code.in_(request_context["unallocated_voucher_codes"]),
                 AccountHolderVoucher.account_holder_id == request_context["account_holder_uuid"],
                 AccountHolderVoucher.voucher_type_slug == request_context["voucher_type_slug"],

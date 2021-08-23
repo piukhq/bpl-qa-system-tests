@@ -3,15 +3,16 @@ import logging
 import random
 import string
 import uuid
+
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, then, when
 
+from settings import POLARIS_BASE_URL
 from tests.customer_management_api.api_requests.accounts_vouchers import send_post_accounts_voucher
 from tests.customer_management_api.db_actions.account_holder import get_account_holder_voucher
 from tests.customer_management_api.response_fixtures.vouchers import VoucherResponses
-from settings import POLARIS_BASE_URL
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

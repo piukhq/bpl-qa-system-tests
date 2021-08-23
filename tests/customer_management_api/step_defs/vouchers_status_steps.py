@@ -1,17 +1,20 @@
 import json
 import logging
+
 from datetime import datetime, timedelta
 from uuid import uuid4
 
 import requests
+
 from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.orm import Session
 
 import settings
+
+from db.polaris.models import AccountHolderVoucher
 from tests.customer_management_api.api_requests.accounts import send_get_accounts
 from tests.customer_management_api.response_fixtures.vouchers_status import VoucherStatusResponses
-from db.polaris.models import AccountHolderVoucher
 
 
 @given(parse("The account holder has an {voucher_status} voucher"))
@@ -29,12 +32,12 @@ def setup_account_holder_voucher(voucher_status: str, request_context: dict, pol
     voucher_code = "ATMTST123456"
     voucher = (
         polaris_db_session.query(AccountHolderVoucher)
-            .filter_by(
+        .filter_by(
             account_holder_id=account_holder_uuid,
             voucher_code=voucher_code,
             voucher_type_slug="test-voucher-type",
         )
-            .first()
+        .first()
     )
 
     if voucher is None:

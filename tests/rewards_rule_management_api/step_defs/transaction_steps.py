@@ -1,4 +1,5 @@
 import uuid
+
 from datetime import datetime
 from time import sleep
 
@@ -17,9 +18,9 @@ def setup_non_existent_account_holder(retailer_slug: str, request_context: dict,
         account_holder_uuid = uuid.uuid4()
         account_holder = (
             polaris_db_session.query(AccountHolder)
-                .join(RetailerConfig)
-                .filter(AccountHolder.id == account_holder_uuid, RetailerConfig.slug == retailer_slug)
-                .first()
+            .join(RetailerConfig)
+            .filter(AccountHolder.id == account_holder_uuid, RetailerConfig.slug == retailer_slug)
+            .first()
         )
         if account_holder is None:
             request_context["account_holder_uuid"] = str(account_holder_uuid)
@@ -100,11 +101,11 @@ def check_transaction_in_db(
 def expected_new_balance_is_over_reward_goal(request_context: dict, vela_db_session: Session) -> None:
     campaign = (
         vela_db_session.query(Campaign)
-            .filter(
+        .filter(
             Campaign.slug == "test-campaign-1",
             Campaign.retailer_id == request_context["retailer_id"],
         )
-            .first()
+        .first()
     )
     reward_rule = campaign.reward_rule_collection[0]  # type: ignore
     earn_rule = campaign.earn_rule_collection[0]  # type: ignore

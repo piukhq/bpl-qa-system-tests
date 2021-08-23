@@ -9,6 +9,7 @@ from pytest_bdd import given, parsers, then, when
 
 import settings
 
+from db.polaris.models import AccountHolder, AccountHolderActivation
 from tests.customer_management_api.api_requests.enrolment import (
     send_invalid_post_enrolment,
     send_malformed_post_enrolment,
@@ -34,7 +35,6 @@ from tests.customer_management_api.step_defs.shared_steps import (
     enrol_missing_channel_header,
     enrol_missing_third_party_identifier,
 )
-from db.polaris.models import AccountHolder, AccountHolderActivation
 
 if TYPE_CHECKING:
     from requests import Response

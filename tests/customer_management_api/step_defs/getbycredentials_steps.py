@@ -1,5 +1,6 @@
 import json
 import logging
+
 from typing import TYPE_CHECKING
 
 from deepdiff import DeepDiff
@@ -100,8 +101,9 @@ def post_invalid_token_request(retailer_slug: str, request_context: dict) -> Non
 
 
 @then(parsers.parse("I get a {response_fixture} getbycredentials response body"))
-def check_getbycredentials_response(response_fixture: str, request_context: dict,
-                                    polaris_db_session: "Session") -> None:
+def check_getbycredentials_response(
+    response_fixture: str, request_context: dict, polaris_db_session: "Session"
+) -> None:
     resp = request_context["response"]
     diff = None
 

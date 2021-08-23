@@ -1,5 +1,6 @@
 import json
 import logging
+
 from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, then, when
