@@ -1,4 +1,4 @@
-from tests.shared.response_fixtures.errors import INVALID_RETAILER, INVALID_TOKEN, MALFORMED_REQUEST
+from tests.shared_utils.response_fixtures.errors import INVALID_RETAILER, INVALID_TOKEN, MALFORMED_REQUEST
 
 DUPLICATE_TRANSACTION = {
     "display_message": "Duplicate Transaction.",
