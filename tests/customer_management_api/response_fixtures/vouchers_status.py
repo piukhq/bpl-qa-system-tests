@@ -1,4 +1,4 @@
-from tests.shared.response_fixtures.base import BaseResponses
+from tests.shared_utils.response_fixtures.base import BaseResponses
 
 
 class VoucherStatusResponses(BaseResponses):
