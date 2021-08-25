@@ -9,6 +9,7 @@ Feature: Get a test-retailer account holder status
 
     Given I previously successfully enrolled a test-retailer account holder
     And the previous response returned a HTTP 202 status code
+    And the enrolled account holder has been activated
     When I send a get /accounts request for a test-retailer account holder status by UUID
     Then I receive a HTTP 200 status code response
     And I get a success accounts status response body
