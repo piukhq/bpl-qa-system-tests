@@ -1,4 +1,4 @@
-from tests.shared.response_fixtures.base import BaseResponses
+from tests.shared_utils.response_fixtures.base import BaseResponses
 
 UNKNOWN_VOUCHER_TYPE = {"display_message": "Voucher Type Slug does not exist.", "error": "UNKNOWN_VOUCHER_TYPE"}
 

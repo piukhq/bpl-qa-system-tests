@@ -1,4 +1,4 @@
-from tests.shared.response_fixtures.base import BaseResponses
+from tests.shared_utils.response_fixtures.base import BaseResponses
 
 MISSING_OR_INVALID_IDEMPOTENCY_TOKEN_HEADER = {
     "display_message": "Submitted headers are missing or invalid.",

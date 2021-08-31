@@ -1,4 +1,4 @@
-from tests.shared.response_fixtures.base import BaseResponses
+from tests.shared_utils.response_fixtures.base import BaseResponses
 
 MISSING_FIELDS = {
     "display_message": "Submitted fields are missing or invalid.",
