@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from typing import List
 
+from azure.core.exceptions import HttpResponseError
 from azure.storage.blob import BlobClient, BlobType, ContentSettings
 
 from db.carina.models import Voucher
@@ -46,7 +47,9 @@ def upload_voucher_update_to_blob_storage(retailer_slug: str, vouchers: List[Vou
             overwrite=True,
             content_settings=ContentSettings(content_type="text/csv"),
         )
-    except Exception as e:
+    except HttpResponseError as e:
+        # This can happen: that Carina will be processing the test file at the exact same time
+        logger.warning(f"Error while uploading {blob_path} to blob storage due to Carina owning the lease {str(e)}")
         pass
 
     return blob.url

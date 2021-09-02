@@ -2,6 +2,7 @@ import logging
 import uuid
 
 from datetime import datetime
+from time import sleep
 from typing import TYPE_CHECKING, Callable, List
 
 from azure.core.exceptions import HttpResponseError, ResourceExistsError
@@ -61,23 +62,40 @@ def _get_voucher_update_rows(carina_db_session: "Session", retailer_slug: str, r
 
 @given(parsers.parse("the file for {retailer_slug} is imported by the voucher management system"))
 def check_voucher_updates_import(
-    retailer_slug: str, voucher_config: VoucherConfig, carina_db_session: "Session"
+    retailer_slug: str,
+    voucher_config: VoucherConfig,
+    carina_db_session: "Session",
 ) -> None:
+    """
+    Wait for just over 1 min to give Carina a chance to process the test voucher update file we've put
+    onto blob storage
+    """
     # GIVEN
+    wait_times = 7
+    wait_duration_secs = 10
     today: str = datetime.now().strftime("%Y-%m-%d")
-    voucher_update_rows = _get_voucher_update_rows(carina_db_session, retailer_slug, today)
-    n_voucher_update_rows = len(voucher_update_rows)
+    voucher_update_rows = []
+    n_voucher_update_rows = 0
+    for _ in range(wait_times):
+        # wait for callback process to handle the callback
+        logging.info(f"Sleeping for {wait_duration_secs} seconds...")
+        sleep(wait_duration_secs)
+        voucher_update_rows = _get_voucher_update_rows(carina_db_session, retailer_slug, today)
+        if voucher_update_rows:
+            n_voucher_update_rows = len(voucher_update_rows)
+            break
+        else:
+            logging.info("Still waiting for Carina to process today's voucher update test file.")
 
     # THEN
     # Latest 2 rows should be the vouchers created in the initial Given part of this test
-    assert n_voucher_update_rows == 2
-    assert voucher_update_rows[0].voucher_code in ["TEST12345678", "TEST87654321"]
-    assert voucher_update_rows[1].voucher_code in ["TEST12345678", "TEST87654321"]
-
     logging.info(
         "checking that voucher_update table contains at least 2 voucher update rows for today's date, "
         f"found: {n_voucher_update_rows}"
     )
+    assert n_voucher_update_rows == 2
+    assert voucher_update_rows[0].voucher_code in ["TEST12345678", "TEST87654321"]
+    assert voucher_update_rows[1].voucher_code in ["TEST12345678", "TEST87654321"]
 
 
 @then(parsers.parse("The {retailer_slug} import file is archived by the voucher importer"))
