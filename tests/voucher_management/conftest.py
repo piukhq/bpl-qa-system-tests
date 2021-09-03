@@ -1,3 +1,5 @@
+import uuid
+
 from typing import TYPE_CHECKING, Callable, Dict, Generator, List
 
 import pytest
@@ -43,33 +45,38 @@ def voucher_config(carina_db_session: "Session") -> VoucherConfig:
 
 
 @pytest.fixture(scope="function")
-def create_mock_voucher(carina_db_session: "Session") -> Generator:
-    mock_vouchers = []
+def create_mock_vouchers(carina_db_session: "Session") -> Generator:
+    mock_vouchers: List[Voucher] = []
 
-    def _create_mock_voucher(voucher_config: VoucherConfig, **voucher_params: Dict) -> Voucher:
+    def _create_mock_vouchers(voucher_config: VoucherConfig, n_vouchers: int, voucher_overrides: List[Dict]) -> Voucher:
         """
         Create a voucher in carina's test DB
         :param voucher_params: override any values for voucher
         :return: Callable function
         """
-        default_voucher_params = {
-            "voucher_code": "TSTCD1234",
-            "retailer_slug": voucher_config.retailer_slug,
-            "voucher_config": voucher_config,
-            "allocated": False,
-            "deleted": False,
-        }
+        assert (
+            len(voucher_overrides) == n_vouchers
+        ), "You must pass in a (empty if necessary) override dict for each voucher"
+        for idx in range(n_vouchers):
+            voucher_override = voucher_overrides[idx]
+            voucher_params = {
+                "id": str(uuid.uuid4()),
+                "voucher_code": str(uuid.uuid4()),
+                "retailer_slug": voucher_config.retailer_slug,
+                "voucher_config": voucher_config,
+                "allocated": False,
+                "deleted": False,
+            }
 
-        assert voucher_params["id"], "You will need to pass in a new id for each mock Voucher"
-        default_voucher_params.update(voucher_params)  # type: ignore
-        mock_voucher = Voucher(**default_voucher_params)
-        mock_vouchers.append(mock_voucher)
-        carina_db_session.add(mock_voucher)
-        carina_db_session.commit()
+            voucher_params.update(voucher_override)  # type: ignore
+            mock_voucher = Voucher(**voucher_params)
+            mock_vouchers.append(mock_voucher)
+            carina_db_session.add(mock_voucher)
+            carina_db_session.commit()
 
-        return mock_voucher
+        return mock_vouchers
 
-    yield _create_mock_voucher
+    yield _create_mock_vouchers
 
     for mock_voucher in mock_vouchers:
         carina_db_session.delete(mock_voucher)
