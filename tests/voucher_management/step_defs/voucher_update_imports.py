@@ -17,34 +17,6 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-@given(parsers.parse("The voucher code provider provides a bulk file for {retailer_slug}"))
-def voucher_updates_upload(
-    retailer_slug: str,
-    voucher_config: VoucherConfig,
-    create_mock_vouchers: Callable,
-    request_context: dict,
-    upload_voucher_updates_to_blob_storage: Callable,
-) -> None:
-    """
-    The fixture should place a CSV file onto blob storage, which a running instance of
-    carina (the scheduler job for doing these imports) will pick up and process, putting rows into carina's DB
-    for today's date.
-    """
-    # GIVEN
-    mock_vouchers: List[Voucher] = create_mock_vouchers(
-        voucher_config=voucher_config,
-        n_vouchers=3,
-        voucher_overrides=[
-            {"allocated": True},
-            {"allocated": True},
-            {"allocated": False},  # This one should end up being soft-deleted
-        ],
-    )
-    url = upload_voucher_updates_to_blob_storage(mock_vouchers)
-    assert url
-    request_context["mock_vouchers"] = mock_vouchers
-
-
 def _get_voucher_update_rows(
     carina_db_session: "Session", voucher_codes: List[str], req_date: str
 ) -> List[VoucherUpdate]:
@@ -76,6 +48,34 @@ def _get_voucher_row(carina_db_session: "Session", voucher_code: str, req_date: 
         .scalars()
         .first()
     )
+
+
+@given(parsers.parse("The voucher code provider provides a bulk file for {retailer_slug}"))
+def voucher_updates_upload(
+    retailer_slug: str,
+    voucher_config: VoucherConfig,
+    create_mock_vouchers: Callable,
+    request_context: dict,
+    upload_voucher_updates_to_blob_storage: Callable,
+) -> None:
+    """
+    The fixture should place a CSV file onto blob storage, which a running instance of
+    carina (the scheduler job for doing these imports) will pick up and process, putting rows into carina's DB
+    for today's date.
+    """
+    # GIVEN
+    mock_vouchers: List[Voucher] = create_mock_vouchers(
+        voucher_config=voucher_config,
+        n_vouchers=3,
+        voucher_overrides=[
+            {"allocated": True},
+            {"allocated": True},
+            {"allocated": False},  # This one should end up being soft-deleted
+        ],
+    )
+    url = upload_voucher_updates_to_blob_storage(mock_vouchers)
+    assert url
+    request_context["mock_vouchers"] = mock_vouchers
 
 
 @then(parsers.parse("the file for {retailer_slug} is imported by the voucher management system"))
@@ -122,6 +122,8 @@ def check_voucher_updates_import(
     )
     assert voucher_row
 
+    request_context["voucher_update_rows"] = voucher_update_rows
+
 
 @then(
     parsers.parse(
@@ -129,7 +131,7 @@ def check_voucher_updates_import(
         "by the voucher management system"
     )
 )
-def check_voucher_updates_deleted(
+def check_voucher_updates_are_soft_deleted(
     retailer_slug: str,
     voucher_config: VoucherConfig,
     request_context: dict,
@@ -195,3 +197,20 @@ def check_voucher_updates_archive(retailer_slug: str, carina_db_session: "Sessio
             else:
                 byte_content = blob_client.download_blob(lease=lease).readall()
                 assert byte_content
+
+
+@then(parsers.parse("the entries for today's date in the voucher_update table are cleaned up"))
+def check_voucher_updates_deleted(
+    voucher_config: VoucherConfig,
+    request_context: dict,
+    carina_db_session: "Session",
+) -> None:
+    """
+    Clean up today's entries into the voucher_update table
+    """
+    # GIVEN
+    voucher_update_rows = request_context["voucher_update_rows"]
+    for voucher_update_row in voucher_update_rows:
+        carina_db_session.delete(voucher_update_row)
+
+    carina_db_session.commit()
