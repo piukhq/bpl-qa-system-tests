@@ -81,7 +81,6 @@ def voucher_updates_upload(
 @then(parsers.parse("the file for {retailer_slug} is imported by the voucher management system"))
 def check_voucher_updates_import(
     retailer_slug: str,
-    voucher_config: VoucherConfig,
     request_context: dict,
     carina_db_session: "Session",
 ) -> None:
@@ -93,9 +92,8 @@ def check_voucher_updates_import(
     wait_times = 7
     wait_duration_secs = 10
     today: str = datetime.now().strftime("%Y-%m-%d")
-    voucher_codes = []
-    voucher_codes.append(request_context["mock_vouchers"][0].voucher_code)
-    voucher_codes.append(request_context["mock_vouchers"][1].voucher_code)
+    # The allocated voucher codes created in step one
+    voucher_codes = [mock_voucher.voucher_code for mock_voucher in request_context["mock_vouchers"][:2]]
     voucher_update_rows = []
     for _ in range(wait_times):
         # wait for callback process to handle the callback
@@ -133,7 +131,6 @@ def check_voucher_updates_import(
 )
 def check_voucher_updates_are_soft_deleted(
     retailer_slug: str,
-    voucher_config: VoucherConfig,
     request_context: dict,
     carina_db_session: "Session",
 ) -> None:
@@ -201,7 +198,6 @@ def check_voucher_updates_archive(retailer_slug: str, carina_db_session: "Sessio
 
 @then(parsers.parse("the entries for today's date in the voucher_update table are cleaned up"))
 def check_voucher_updates_deleted(
-    voucher_config: VoucherConfig,
     request_context: dict,
     carina_db_session: "Session",
 ) -> None:
@@ -209,8 +205,13 @@ def check_voucher_updates_deleted(
     Clean up today's entries into the voucher_update table
     """
     # GIVEN
+    today: str = datetime.now().strftime("%Y-%m-%d")
     voucher_update_rows = request_context["voucher_update_rows"]
     for voucher_update_row in voucher_update_rows:
         carina_db_session.delete(voucher_update_row)
 
     carina_db_session.commit()
+
+    voucher_codes = [mock_voucher.voucher_code for mock_voucher in request_context["mock_vouchers"]]
+    voucher_update_rows = _get_voucher_update_rows(carina_db_session, voucher_codes, today)
+    assert not voucher_update_rows
