@@ -113,12 +113,12 @@ def check_voucher_updates_import(
         f"found: {n_voucher_update_rows}"
     )
     assert n_voucher_update_rows == 2
-    # Check that allocated == False in Voucher table for one of the vouchers that was allocated
-    voucher_code = request_context["mock_vouchers"][0].voucher_code
-    voucher_row = _get_voucher_row(
-        carina_db_session=carina_db_session, voucher_code=voucher_code, req_date=today, deleted=False
-    )
-    assert voucher_row
+    # Check that the allocated vouchers have not been marked for soft-deletion
+    for voucher_code in voucher_codes:
+        voucher_row = _get_voucher_row(
+            carina_db_session=carina_db_session, voucher_code=voucher_code, req_date=today, deleted=False
+        )
+        assert voucher_row
 
     request_context["voucher_update_rows"] = voucher_update_rows
 
