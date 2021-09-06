@@ -4,6 +4,8 @@ from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Callable, List
 
+import pytest
+
 from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient
 from pytest_bdd import given, parsers, then
@@ -15,6 +17,30 @@ from settings import BLOB_ARCHIVE_CONTAINER, BLOB_STORAGE_DSN, LOCAL
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
+
+
+@pytest.fixture(scope="function")
+def check_voucher_updates_deleted(
+    request_context: dict,
+    carina_db_session: "Session",
+) -> Callable:
+    """
+    Clean up this test's entries in the voucher_update table
+    """
+
+    def _check_voucher_updates_deleted() -> None:
+        today: str = datetime.now().strftime("%Y-%m-%d")
+        voucher_update_rows = request_context["voucher_update_rows"]
+        for voucher_update_row in voucher_update_rows:
+            carina_db_session.delete(voucher_update_row)
+
+        carina_db_session.commit()
+
+        voucher_codes = [mock_voucher.voucher_code for mock_voucher in request_context["mock_vouchers"]]
+        voucher_update_rows = _get_voucher_update_rows(carina_db_session, voucher_codes, today)
+        assert not voucher_update_rows
+
+    return _check_voucher_updates_deleted
 
 
 def _get_voucher_update_rows(
@@ -168,7 +194,9 @@ def check_voucher_updates_are_soft_deleted(
 
 
 @then(parsers.parse("The {retailer_slug} import file is archived by the voucher importer"))
-def check_voucher_updates_archive(retailer_slug: str, carina_db_session: "Session", request_context: dict) -> None:
+def check_voucher_updates_archive(
+    retailer_slug: str, carina_db_session: "Session", check_voucher_updates_deleted: Callable, request_context: dict
+) -> None:
     """
     The fixture should place a CSV file onto blob storage, which a running instance of
     carina (the scheduler job for doing these imports) will pick up and process, archiving on the carina-archive
@@ -190,23 +218,4 @@ def check_voucher_updates_archive(retailer_slug: str, carina_db_session: "Sessio
             blob_client = blob_service_client.get_blob_client(BLOB_ARCHIVE_CONTAINER, blob.name)
             assert blob_client.exists()
 
-
-@then(parsers.parse("the entries for today's date in the voucher_update table are cleaned up"))
-def check_voucher_updates_deleted(
-    request_context: dict,
-    carina_db_session: "Session",
-) -> None:
-    """
-    Clean up today's entries into the voucher_update table
-    """
-    # GIVEN
-    today: str = datetime.now().strftime("%Y-%m-%d")
-    voucher_update_rows = request_context["voucher_update_rows"]
-    for voucher_update_row in voucher_update_rows:
-        carina_db_session.delete(voucher_update_row)
-
-    carina_db_session.commit()
-
-    voucher_codes = [mock_voucher.voucher_code for mock_voucher in request_context["mock_vouchers"]]
-    voucher_update_rows = _get_voucher_update_rows(carina_db_session, voucher_codes, today)
-    assert not voucher_update_rows
+    check_voucher_updates_deleted()
