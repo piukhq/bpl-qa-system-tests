@@ -29,16 +29,11 @@ def check_voucher_updates_deleted(
     """
 
     def _check_voucher_updates_deleted() -> None:
-        today: str = datetime.now().strftime("%Y-%m-%d")
         voucher_update_rows = request_context["voucher_update_rows"]
         for voucher_update_row in voucher_update_rows:
             carina_db_session.delete(voucher_update_row)
 
         carina_db_session.commit()
-
-        voucher_codes = [mock_voucher.voucher_code for mock_voucher in request_context["mock_vouchers"]]
-        voucher_update_rows = _get_voucher_update_rows(carina_db_session, voucher_codes, today)
-        assert not voucher_update_rows
 
     return _check_voucher_updates_deleted
 
