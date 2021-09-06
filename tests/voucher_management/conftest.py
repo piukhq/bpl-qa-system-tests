@@ -51,12 +51,12 @@ def create_mock_vouchers(carina_db_session: "Session") -> Generator:
     def _create_mock_vouchers(voucher_config: VoucherConfig, n_vouchers: int, voucher_overrides: List[Dict]) -> Voucher:
         """
         Create a voucher in carina's test DB
-        :param voucher_params: override any values for voucher
+        :param voucher_overrides: override any values for voucher, one for each voucher you require
         :return: Callable function
         """
         assert (
             len(voucher_overrides) == n_vouchers
-        ), "You must pass in a (empty if necessary) override dict for each voucher"
+        ), "You must pass in an (empty if necessary) override dict for each voucher"
         for idx in range(n_vouchers):
             voucher_override = voucher_overrides[idx]
             voucher_params = {

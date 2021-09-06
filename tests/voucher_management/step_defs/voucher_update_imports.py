@@ -4,7 +4,7 @@ from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Callable, List
 
-from azure.core.exceptions import HttpResponseError, ResourceExistsError
+from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient
 from pytest_bdd import given, parsers, then
 from sqlalchemy import Date
@@ -50,7 +50,7 @@ def _get_voucher_row(carina_db_session: "Session", voucher_code: str, req_date: 
     )
 
 
-@given(parsers.parse("The voucher code provider provides a bulk file for {retailer_slug}"))
+@given(parsers.parse("The voucher code provider provides a bulk update file for {retailer_slug}"))
 def voucher_updates_upload(
     retailer_slug: str,
     voucher_config: VoucherConfig,
@@ -93,7 +93,9 @@ def check_voucher_updates_import(
     wait_duration_secs = 10
     today: str = datetime.now().strftime("%Y-%m-%d")
     # The allocated voucher codes created in step one
-    voucher_codes = [mock_voucher.voucher_code for mock_voucher in request_context["mock_vouchers"][:2]]
+    voucher_codes = [
+        mock_voucher.voucher_code for mock_voucher in request_context["mock_vouchers"] if mock_voucher.allocated is True
+    ]
     voucher_update_rows = []
     for _ in range(wait_times):
         # wait for callback process to handle the callback
@@ -145,16 +147,17 @@ def check_voucher_updates_are_soft_deleted(
     deleted_voucher_row = None
     voucher_code = request_context["mock_vouchers"][2].voucher_code  # The unallocated voucher created in step one
     for _ in range(wait_times):
-        # wait for callback process to handle the callback
-        logging.info(f"Sleeping for {wait_duration_secs} seconds...")
-        sleep(wait_duration_secs)
         deleted_voucher_row = _get_voucher_row(
             carina_db_session=carina_db_session, voucher_code=voucher_code, req_date=today, deleted=True
         )
         if deleted_voucher_row:
             break
         else:
+            # Sleep after the check here as Carina will most likely have run already for previous steps,
+            # but this test can still be run independently.
             logging.info("Still waiting for Carina to process today's unallocated vouchers.")
+            logging.info(f"Sleeping for {wait_duration_secs} seconds...")
+            sleep(wait_duration_secs)
 
     # THEN
     logging.info(
@@ -185,15 +188,7 @@ def check_voucher_updates_archive(retailer_slug: str, carina_db_session: "Sessio
             name_starts_with=f"{datetime.now().strftime('%Y/%m/%d')}/{retailer_slug}/voucher-updates"
         ):
             blob_client = blob_service_client.get_blob_client(BLOB_ARCHIVE_CONTAINER, blob.name)
-
-            try:
-                lease = blob_client.acquire_lease(lease_duration=60)
-            except HttpResponseError:
-                logging.debug(f"Skipping blob {blob.name} as we could not acquire a lease.")
-                continue
-            else:
-                byte_content = blob_client.download_blob(lease=lease).readall()
-                assert byte_content
+            assert blob_client.exists()
 
 
 @then(parsers.parse("the entries for today's date in the voucher_update table are cleaned up"))
