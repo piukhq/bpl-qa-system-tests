@@ -9,3 +9,4 @@ Base.prepare(engine, reflect=True)
 Voucher = Base.classes.voucher
 VoucherConfig = Base.classes.voucher_config
 VoucherAllocation = Base.classes.voucher_allocation
+VoucherUpdate = Base.classes.voucher_update
