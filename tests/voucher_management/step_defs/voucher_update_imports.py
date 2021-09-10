@@ -46,8 +46,11 @@ def _get_voucher_update_rows(
     """
     voucher_update_rows = (
         carina_db_session.execute(
-            select(VoucherUpdate).where(
-                VoucherUpdate.voucher_code.in_(voucher_codes), VoucherUpdate.updated_at.cast(Date) == req_date
+            select(VoucherUpdate)
+            .join(Voucher)
+            .where(
+                Voucher.voucher_code.in_(voucher_codes),
+                VoucherUpdate.updated_at.cast(Date) == req_date,
             )
         )
         .scalars()
