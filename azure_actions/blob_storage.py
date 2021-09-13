@@ -1,16 +1,16 @@
 import os
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from azure.core.exceptions import HttpResponseError
 from azure.storage.blob import BlobClient, BlobType, ContentSettings
-
 from db.carina.models import Voucher
-from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, REPORT_CONTAINER, REPORT_DIRECTORY, logger
+from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, REPORT_CONTAINER, REPORT_DIRECTORY, logger, LOCAL
 
 
 def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> str:
+    assert not LOCAL
     blob_name = f"{blob_prefix}-{datetime.now().strftime('%Y%m%d-%H%M%S')}.html"
     blob_path = os.path.join(REPORT_DIRECTORY, blob_name)
     logger.info(f"Uploading test report: {blob_path} to blob storage")
@@ -25,13 +25,27 @@ def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> st
     return blob.url
 
 
-def upload_voucher_update_to_blob_storage(retailer_slug: str, vouchers: List[Voucher]) -> str:
+def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Voucher]) -> str:
     blob_name = "test_import.csv"
     blob_path = os.path.join(retailer_slug, "voucher-updates", blob_name)
     today_date = datetime.now().strftime("%Y-%m-%d")
-    content = ""
-    for voucher in vouchers:
-        content += f"{voucher.voucher_code},{today_date},redeemed\n"
+    content = "\n".join([f"{voucher.voucher_code},{today_date},redeemed" for voucher in vouchers])
+    return upload_blob(blob_path, content)
+
+
+def put_new_available_vouchers_file(
+    retailer_slug: str, voucher_codes: List[str], voucher_type_slug: Optional[str] = None
+) -> str:
+    blob_name = "test_import.csv"
+    path_elems = [retailer_slug, "available-vouchers", blob_name]
+    if voucher_type_slug:
+        path_elems.insert(2, voucher_type_slug)
+    blob_path = os.path.join(*path_elems)
+    content = "\n".join([voucher_code for voucher_code in voucher_codes])
+    return upload_blob(blob_path, content)
+
+
+def upload_blob(blob_path: str, content: str) -> str:
     content_binary = content.encode("utf-8")
     blob = BlobClient.from_connection_string(
         conn_str=BLOB_STORAGE_DSN,
@@ -39,7 +53,7 @@ def upload_voucher_update_to_blob_storage(retailer_slug: str, vouchers: List[Vou
         blob_name=blob_path,
     )
 
-    logger.info(f"Uploading test report: {blob_path} to blob storage")
+    logger.info(f"Uploading {blob_path} to blob storage")
     try:
         blob.upload_blob(
             content_binary,

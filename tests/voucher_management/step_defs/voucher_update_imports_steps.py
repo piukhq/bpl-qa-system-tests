@@ -10,7 +10,7 @@ from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient
 from pytest_bdd import given, parsers, then
 from sqlalchemy import Date
-from sqlalchemy.future import select
+from sqlalchemy.future import select  # type: ignore
 
 from db.carina.models import Voucher, VoucherConfig, VoucherUpdate
 from db.polaris.models import AccountHolderVoucher
@@ -78,7 +78,7 @@ def _get_voucher_row(carina_db_session: "Session", voucher_code: str, req_date: 
 @given(parsers.parse("The voucher code provider provides a bulk update file for {retailer_slug}"))
 def voucher_updates_upload(
     retailer_slug: str,
-    voucher_config: VoucherConfig,
+    get_voucher_config: Callable[[str], VoucherConfig],
     create_mock_vouchers: Callable,
     request_context: dict,
     upload_voucher_updates_to_blob_storage: Callable,
@@ -90,7 +90,7 @@ def voucher_updates_upload(
     """
     # GIVEN
     mock_vouchers: List[Voucher] = create_mock_vouchers(
-        voucher_config=voucher_config,
+        voucher_config=get_voucher_config(retailer_slug),
         n_vouchers=3,
         voucher_overrides=[
             {"allocated": True},
@@ -98,7 +98,7 @@ def voucher_updates_upload(
             {"allocated": False},  # This one should end up being soft-deleted
         ],
     )
-    url = upload_voucher_updates_to_blob_storage(mock_vouchers)
+    url = upload_voucher_updates_to_blob_storage(retailer_slug, mock_vouchers)
     assert url
     request_context["mock_vouchers"] = mock_vouchers
 
@@ -192,7 +192,7 @@ def check_voucher_updates_are_soft_deleted(
     assert deleted_voucher_row
 
 
-@then(parsers.parse("The {retailer_slug} import file is archived by the voucher importer"))
+@then(parsers.parse("The {retailer_slug} voucher update file is archived by the voucher importer"))
 def check_voucher_updates_archive(
     retailer_slug: str, carina_db_session: "Session", check_voucher_updates_deleted: Callable, request_context: dict
 ) -> None:

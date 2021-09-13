@@ -5,7 +5,16 @@ from apscheduler.triggers.cron import CronTrigger
 
 from azure_actions.blob_storage import upload_report_to_blob_storage
 from azure_actions.teams import post_to_teams
-from settings import ALERT_ON_FAILURE, ALERT_ON_SUCCESS, BLOB_STORAGE_DSN, COMMAND, SCHEDULE, TEAMS_WEBHOOK, logger
+from settings import (
+    ALERT_ON_FAILURE,
+    ALERT_ON_SUCCESS,
+    BLOB_STORAGE_DSN,
+    COMMAND,
+    LOCAL,
+    SCHEDULE,
+    TEAMS_WEBHOOK,
+    logger,
+)
 
 
 def run_test() -> None:
@@ -27,7 +36,7 @@ def run_test() -> None:
         if ALERT_ON_FAILURE:
             alert = True
 
-    if BLOB_STORAGE_DSN:
+    if BLOB_STORAGE_DSN and not LOCAL:
         logger.debug("Uploading report.html to blob storage...")
         url = upload_report_to_blob_storage("report.html")
         logger.debug(f"Successfully uploaded report to blob storage: {url}")

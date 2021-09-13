@@ -1,13 +1,13 @@
 import uuid
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Callable, Dict, Generator, List
+from typing import TYPE_CHECKING, Callable, Dict, Generator, List, Optional
 
 import pytest
 
-from sqlalchemy.future import select
+from sqlalchemy.future import select  # type: ignore
 
-from azure_actions.blob_storage import upload_voucher_update_to_blob_storage
+from azure_actions.blob_storage import put_new_voucher_updates_file, put_new_available_vouchers_file
 from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolder, AccountHolderVoucher, RetailerConfig
 from settings import BLOB_STORAGE_DSN, logger
@@ -17,33 +17,54 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture(scope="function")
-def upload_voucher_updates_to_blob_storage() -> Callable:
-    def _upload_voucher_updates_to_blob_storage(vouchers: List[Voucher]) -> str:
-        """Upload some voucher updates to blob storage to test end-to-end import"""
-        url = ""
+def upload_available_vouchers_to_blob_storage() -> Callable:
+    def func(retailer_slug: str, voucher_codes: List[str], *, voucher_type_slug: Optional[str] = None) -> Optional[str]:
+        """Upload some new voucher codes to blob storage to test end-to-end import"""
+        url = None
 
         if BLOB_STORAGE_DSN:
-            retailer_slug = "test-retailer"
+            logger.debug(
+                f"Uploading voucher import file to blob storage for {retailer_slug} "
+                f"(voucher type: {voucher_type_slug})..."
+            )
+            url = put_new_available_vouchers_file(retailer_slug, voucher_codes, voucher_type_slug)
+            logger.debug(f"Successfully uploaded new voucher codes to blob storage: {url}")
+        else:
+            logger.debug("No BLOB_STORAGE_DSN set, skipping voucher updates upload")
+
+        return url
+
+    return func
+
+
+@pytest.fixture(scope="function")
+def upload_voucher_updates_to_blob_storage() -> Callable:
+    def func(retailer_slug: str, vouchers: List[Voucher]) -> Optional[str]:
+        """Upload some voucher updates to blob storage to test end-to-end import"""
+        url = None
+
+        if BLOB_STORAGE_DSN:
             logger.debug(f"Uploading voucher updates to blob storage for {retailer_slug}...")
-            url = upload_voucher_update_to_blob_storage(retailer_slug, vouchers)
+            url = put_new_voucher_updates_file(retailer_slug, vouchers)
             logger.debug(f"Successfully uploaded voucher updates to blob storage: {url}")
         else:
             logger.debug("No BLOB_STORAGE_DSN set, skipping voucher updates upload")
 
         return url
 
-    return _upload_voucher_updates_to_blob_storage
+    return func
 
 
 @pytest.fixture(scope="function")
-def voucher_config(carina_db_session: "Session") -> VoucherConfig:
-    voucher_config = (
-        carina_db_session.execute(select(VoucherConfig).where(VoucherConfig.retailer_slug == "test-retailer"))
-        .scalars()
-        .first()
-    )
+def get_voucher_config(carina_db_session: "Session") -> Callable:
+    def func(retailer_slug: str) -> VoucherConfig:
+        return (
+            carina_db_session.execute(select(VoucherConfig).where(VoucherConfig.retailer_slug == retailer_slug))
+            .scalars()
+            .first()
+        )
 
-    yield voucher_config
+    return func
 
 
 @pytest.fixture(scope="function")
@@ -90,9 +111,11 @@ def create_mock_vouchers(
     mock_account_holder_vouchers: List[AccountHolderVoucher] = []
     now = datetime.utcnow()
 
-    def _create_mock_vouchers(voucher_config: VoucherConfig, n_vouchers: int, voucher_overrides: List[Dict]) -> Voucher:
+    def func(voucher_config: VoucherConfig, n_vouchers: int, voucher_overrides: List[Dict]) -> Voucher:
         """
         Create a voucher in carina's test DB
+        :param voucher_config: the VoucherConfig to link the vouchers to
+        :param n_vouchers: the number of vouchers to create
         :param voucher_overrides: override any values for voucher, one for each voucher you require
         :return: Callable function
         """
@@ -132,7 +155,7 @@ def create_mock_vouchers(
 
         return mock_vouchers
 
-    yield _create_mock_vouchers
+    yield func
 
     for voucher in mock_vouchers:
         carina_db_session.delete(voucher)
