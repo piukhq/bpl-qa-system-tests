@@ -87,7 +87,7 @@ def create_mock_vouchers(
     carina_db_session: "Session", polaris_db_session: "Session", account_holder: AccountHolder
 ) -> Generator:
     mock_vouchers: List[Voucher] = []
-    mock_account_holder_vouchers: List[Voucher] = []
+    mock_account_holder_vouchers: List[AccountHolderVoucher] = []
     now = datetime.utcnow()
 
     def _create_mock_vouchers(voucher_config: VoucherConfig, n_vouchers: int, voucher_overrides: List[Dict]) -> Voucher:
