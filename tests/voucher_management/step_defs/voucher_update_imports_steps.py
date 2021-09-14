@@ -13,6 +13,7 @@ from sqlalchemy import Date
 from sqlalchemy.future import select
 
 from db.carina.models import Voucher, VoucherConfig, VoucherUpdate
+from db.polaris.models import AccountHolderVoucher
 from settings import BLOB_ARCHIVE_CONTAINER, BLOB_STORAGE_DSN, LOCAL
 
 if TYPE_CHECKING:
@@ -217,3 +218,30 @@ def check_voucher_updates_archive(
             assert blob_client.exists()
 
     check_voucher_updates_deleted()
+
+
+@then("the status of the allocated account holder vouchers is updated")
+def check_account_holder_voucher_status(request_context: dict, polaris_db_session: "Session") -> None:
+    allocated_vouchers_codes = [
+        voucher.voucher_code for voucher in request_context["mock_vouchers"] if voucher.allocated
+    ]
+    ah_vouchers = (
+        polaris_db_session.execute(
+            select(AccountHolderVoucher).where(
+                AccountHolderVoucher.voucher_code.in_(allocated_vouchers_codes),
+                AccountHolderVoucher.retailer_slug == "test-retailer",
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    assert len(allocated_vouchers_codes) == len(ah_vouchers)
+
+    for ah_voucher in ah_vouchers:
+        for i in range(5):
+            sleep(i)
+            if ah_voucher.status != "ISSUED":
+                break
+
+        assert ah_voucher.status == "REDEEMED"
