@@ -47,10 +47,10 @@ def voucher_config(carina_db_session: "Session") -> VoucherConfig:
 
 
 @pytest.fixture(scope="function")
-def account_holder(polaris_db_session: "Session") -> AccountHolder:
+def mock_account_holder(polaris_db_session: "Session") -> AccountHolder:
     retailer_slug = "test-retailer"
 
-    ah = (
+    account_holder = (
         polaris_db_session.execute(
             select(AccountHolder)
             .join(RetailerConfig)
@@ -63,28 +63,28 @@ def account_holder(polaris_db_session: "Session") -> AccountHolder:
         .first()
     )
 
-    if ah is None:
+    if account_holder is None:
         retailer_id = (
             polaris_db_session.execute(select(RetailerConfig.id).where(RetailerConfig.slug == retailer_slug))
             .scalars()
             .one()
         )
 
-        ah = AccountHolder(
+        account_holder = AccountHolder(
             id=uuid.uuid4(),
             email="voucher_status_adjustment@automated.tests",
             retailer_id=retailer_id,
             status="ACTIVE",
         )
-        polaris_db_session.add(ah)
+        polaris_db_session.add(account_holder)
         polaris_db_session.commit()
 
-    return ah
+    return account_holder
 
 
 @pytest.fixture(scope="function")
 def create_mock_vouchers(
-    carina_db_session: "Session", polaris_db_session: "Session", account_holder: AccountHolder
+    carina_db_session: "Session", polaris_db_session: "Session", mock_account_holder: AccountHolder
 ) -> Generator:
     mock_vouchers: List[Voucher] = []
     mock_account_holder_vouchers: List[AccountHolderVoucher] = []
@@ -116,7 +116,7 @@ def create_mock_vouchers(
 
             if voucher_params["allocated"]:
                 mock_account_holder_voucher = AccountHolderVoucher(
-                    account_holder_id=str(account_holder.id),
+                    account_holder_id=str(mock_account_holder.id),
                     voucher_id=voucher_params["id"],
                     voucher_code=voucher_params["voucher_code"],
                     issued_date=now,
