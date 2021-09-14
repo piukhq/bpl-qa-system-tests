@@ -47,7 +47,7 @@ def voucher_config(carina_db_session: "Session") -> VoucherConfig:
 
 
 @pytest.fixture(scope="function")
-def voucher_account_holder(polaris_db_session: "Session") -> AccountHolder:
+def account_holder(polaris_db_session: "Session") -> AccountHolder:
     retailer_slug = "test-retailer"
 
     ah = (
@@ -84,10 +84,10 @@ def voucher_account_holder(polaris_db_session: "Session") -> AccountHolder:
 
 @pytest.fixture(scope="function")
 def create_mock_vouchers(
-    carina_db_session: "Session", polaris_db_session: "Session", voucher_account_holder: AccountHolder
+    carina_db_session: "Session", polaris_db_session: "Session", account_holder: AccountHolder
 ) -> Generator:
     mock_vouchers: List[Voucher] = []
-    mock_ah_vouchers: List[Voucher] = []
+    mock_account_holder_vouchers: List[Voucher] = []
     now = datetime.utcnow()
 
     def _create_mock_vouchers(voucher_config: VoucherConfig, n_vouchers: int, voucher_overrides: List[Dict]) -> Voucher:
@@ -115,8 +115,8 @@ def create_mock_vouchers(
             mock_vouchers.append(mock_voucher)
 
             if voucher_params["allocated"]:
-                mock_ah_voucher = AccountHolderVoucher(
-                    account_holder_id=str(voucher_account_holder.id),
+                mock_account_holder_voucher = AccountHolderVoucher(
+                    account_holder_id=str(account_holder.id),
                     voucher_id=voucher_params["id"],
                     voucher_code=voucher_params["voucher_code"],
                     issued_date=now,
@@ -124,8 +124,8 @@ def create_mock_vouchers(
                     voucher_type_slug=voucher_config.voucher_type_slug,
                     retailer_slug=voucher_config.retailer_slug,
                 )
-                polaris_db_session.add(mock_ah_voucher)
-                mock_ah_vouchers.append(mock_ah_voucher)
+                polaris_db_session.add(mock_account_holder_voucher)
+                mock_account_holder_vouchers.append(mock_account_holder_voucher)
 
         carina_db_session.commit()
         polaris_db_session.commit()
@@ -139,7 +139,7 @@ def create_mock_vouchers(
 
     carina_db_session.commit()
 
-    for ah_voucher in mock_ah_vouchers:
-        polaris_db_session.delete(ah_voucher)
+    for account_holder_voucher in mock_account_holder_vouchers:
+        polaris_db_session.delete(account_holder_voucher)
 
     polaris_db_session.commit()

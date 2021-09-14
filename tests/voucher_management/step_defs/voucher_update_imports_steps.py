@@ -221,11 +221,11 @@ def check_voucher_updates_archive(
 
 
 @then("the status of the allocated account holder vouchers is updated")
-def check_account_holder_voucher_status(request_context: dict, polaris_db_session: "Session") -> None:
+def check_account_holder_vouchers(request_context: dict, polaris_db_session: "Session") -> None:
     allocated_vouchers_codes = [
         voucher.voucher_code for voucher in request_context["mock_vouchers"] if voucher.allocated
     ]
-    ah_vouchers = (
+    account_holder_vouchers = (
         polaris_db_session.execute(
             select(AccountHolderVoucher).where(
                 AccountHolderVoucher.voucher_code.in_(allocated_vouchers_codes),
@@ -236,12 +236,12 @@ def check_account_holder_voucher_status(request_context: dict, polaris_db_sessio
         .all()
     )
 
-    assert len(allocated_vouchers_codes) == len(ah_vouchers)
+    assert len(allocated_vouchers_codes) == len(account_holder_vouchers)
 
-    for ah_voucher in ah_vouchers:
+    for account_holder_voucher in account_holder_vouchers:
         for i in range(5):
             sleep(i)
-            if ah_voucher.status != "ISSUED":
+            if account_holder_voucher.status != "ISSUED":
                 break
 
-        assert ah_voucher.status == "REDEEMED"
+        assert account_holder_voucher.status == "REDEEMED"
