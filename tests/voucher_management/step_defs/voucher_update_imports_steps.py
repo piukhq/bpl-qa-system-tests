@@ -221,7 +221,7 @@ def check_voucher_updates_archive(
 
 
 @then("the status of the allocated account holder vouchers is updated")
-def check_account_holder_vouchers(request_context: dict, polaris_db_session: "Session") -> None:
+def check_account_holder_voucher_statuses(request_context: dict, polaris_db_session: "Session") -> None:
     allocated_vouchers_codes = [
         voucher.voucher_code for voucher in request_context["mock_vouchers"] if voucher.allocated
     ]
