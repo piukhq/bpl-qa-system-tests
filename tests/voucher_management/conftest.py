@@ -1,9 +1,12 @@
 import uuid
+
+from datetime import datetime
 from typing import TYPE_CHECKING, Callable, Dict, Generator, List
 
 import pytest
+
 from sqlalchemy.future import select
-from datetime import datetime
+
 from azure_actions.blob_storage import upload_voucher_update_to_blob_storage
 from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolder, AccountHolderVoucher, RetailerConfig
