@@ -1,13 +1,15 @@
 import uuid
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Callable, Dict, Generator, List
 
 import pytest
 
-from sqlalchemy import select
+from sqlalchemy.future import select
 
 from azure_actions.blob_storage import upload_voucher_update_to_blob_storage
 from db.carina.models import Voucher, VoucherConfig
+from db.polaris.models import AccountHolder, AccountHolderVoucher, RetailerConfig
 from settings import BLOB_STORAGE_DSN, logger
 
 if TYPE_CHECKING:
@@ -45,8 +47,48 @@ def voucher_config(carina_db_session: "Session") -> VoucherConfig:
 
 
 @pytest.fixture(scope="function")
-def create_mock_vouchers(carina_db_session: "Session") -> Generator:
+def mock_account_holder(polaris_db_session: "Session") -> AccountHolder:
+    retailer_slug = "test-retailer"
+
+    account_holder = (
+        polaris_db_session.execute(
+            select(AccountHolder)
+            .join(RetailerConfig)
+            .where(
+                AccountHolder.email == "voucher_status_adjustment@automated.tests",
+                RetailerConfig.slug == retailer_slug,
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+    if account_holder is None:
+        retailer_id = (
+            polaris_db_session.execute(select(RetailerConfig.id).where(RetailerConfig.slug == retailer_slug))
+            .scalars()
+            .one()
+        )
+
+        account_holder = AccountHolder(
+            id=uuid.uuid4(),
+            email="voucher_status_adjustment@automated.tests",
+            retailer_id=retailer_id,
+            status="ACTIVE",
+        )
+        polaris_db_session.add(account_holder)
+        polaris_db_session.commit()
+
+    return account_holder
+
+
+@pytest.fixture(scope="function")
+def create_mock_vouchers(
+    carina_db_session: "Session", polaris_db_session: "Session", mock_account_holder: AccountHolder
+) -> Generator:
     mock_vouchers: List[Voucher] = []
+    mock_account_holder_vouchers: List[AccountHolderVoucher] = []
+    now = datetime.utcnow()
 
     def _create_mock_vouchers(voucher_config: VoucherConfig, n_vouchers: int, voucher_overrides: List[Dict]) -> Voucher:
         """
@@ -58,7 +100,6 @@ def create_mock_vouchers(carina_db_session: "Session") -> Generator:
             len(voucher_overrides) == n_vouchers
         ), "You must pass in an (empty if necessary) override dict for each voucher"
         for idx in range(n_vouchers):
-            voucher_override = voucher_overrides[idx]
             voucher_params = {
                 "id": str(uuid.uuid4()),
                 "voucher_code": str(uuid.uuid4()),
@@ -68,17 +109,37 @@ def create_mock_vouchers(carina_db_session: "Session") -> Generator:
                 "deleted": False,
             }
 
-            voucher_params.update(voucher_override)  # type: ignore
+            voucher_params.update(voucher_overrides[idx])
             mock_voucher = Voucher(**voucher_params)
-            mock_vouchers.append(mock_voucher)
             carina_db_session.add(mock_voucher)
-            carina_db_session.commit()
+            mock_vouchers.append(mock_voucher)
+
+            if voucher_params["allocated"]:
+                mock_account_holder_voucher = AccountHolderVoucher(
+                    account_holder_id=str(mock_account_holder.id),
+                    voucher_id=voucher_params["id"],
+                    voucher_code=voucher_params["voucher_code"],
+                    issued_date=now,
+                    status="ISSUED",
+                    voucher_type_slug=voucher_config.voucher_type_slug,
+                    retailer_slug=voucher_config.retailer_slug,
+                )
+                polaris_db_session.add(mock_account_holder_voucher)
+                mock_account_holder_vouchers.append(mock_account_holder_voucher)
+
+        carina_db_session.commit()
+        polaris_db_session.commit()
 
         return mock_vouchers
 
     yield _create_mock_vouchers
 
-    for mock_voucher in mock_vouchers:
-        carina_db_session.delete(mock_voucher)
+    for voucher in mock_vouchers:
+        carina_db_session.delete(voucher)
 
     carina_db_session.commit()
+
+    for account_holder_voucher in mock_account_holder_vouchers:
+        polaris_db_session.delete(account_holder_voucher)
+
+    polaris_db_session.commit()
