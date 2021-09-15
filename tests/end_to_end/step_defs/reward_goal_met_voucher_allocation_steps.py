@@ -131,6 +131,7 @@ def make_spare_vouchers(
                 voucher_code=str(uuid.uuid4()),
                 voucher_config_id=voucher_config.id,
                 allocated=False,
+                deleted=False,
                 retailer_slug=retailer_slug,
             )
         )

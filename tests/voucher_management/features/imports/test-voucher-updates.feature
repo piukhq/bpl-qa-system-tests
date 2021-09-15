@@ -8,5 +8,5 @@ Feature: Voucher code status updates from 3rd party
     Given The voucher code provider provides a bulk update file for test-retailer
     Then the file for test-retailer is imported by the voucher management system
     And the unallocated voucher for test-retailer is marked as deleted and is not imported by the voucher management system
-    And The test-retailer import file is archived by the voucher importer
+    And The test-retailer voucher update file is archived by the voucher importer
     And the status of the allocated account holder vouchers is updated

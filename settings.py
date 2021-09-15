@@ -45,7 +45,7 @@ VOUCHER_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-voucher-mgmt-auth-token")
 
 LOCAL = getenv("LOCAL", default="False", conv=boolconv)
 
-BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN") if not LOCAL else None
+BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN")
 REPORT_CONTAINER = getenv("REPORT_CONTAINER", default="qareports")
 REPORT_DIRECTORY = getenv("REPORT_DIRECTORY", default="bpl/isolated/")
 BLOB_IMPORT_CONTAINER = "carina-imports"
