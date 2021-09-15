@@ -67,7 +67,7 @@ def check_new_vouchers_imported(request_context: dict, carina_db_session: "Sessi
             break
 
     expected_codes = sorted(request_context["new_voucher_codes"] + request_context["pre_existing_voucher_codes"])
-    db_codes = [v.voucher_code for v in vouchers] if vouchers else None
+    db_codes = sorted([v.voucher_code for v in vouchers]) if vouchers else None
     assert expected_codes == db_codes
 
 
