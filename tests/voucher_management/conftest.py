@@ -16,23 +16,36 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
+@pytest.fixture(scope="function", autouse=True)
+def cleanup_voucher_updates(carina_db_session: "Session", request_context: dict) -> Generator:
+
+    yield
+
+    if voucher_update_rows := request_context.get("voucher_update_rows", []):
+        logger.info("Deleting VoucherUpdate rows...")
+        for voucher_update_row in voucher_update_rows:
+            carina_db_session.delete(voucher_update_row)
+
+        carina_db_session.commit()
+
+
 @pytest.fixture(scope="function")
 def upload_available_vouchers_to_blob_storage() -> Callable:
     def func(retailer_slug: str, voucher_codes: List[str], *, voucher_type_slug: Optional[str] = None) -> Optional[str]:
         """Upload some new voucher codes to blob storage to test end-to-end import"""
-        url = None
+        blob = None
 
         if BLOB_STORAGE_DSN:
             logger.debug(
                 f"Uploading voucher import file to blob storage for {retailer_slug} "
                 f"(voucher type: {voucher_type_slug})..."
             )
-            url = put_new_available_vouchers_file(retailer_slug, voucher_codes, voucher_type_slug)
-            logger.debug(f"Successfully uploaded new voucher codes to blob storage: {url}")
+            blob = put_new_available_vouchers_file(retailer_slug, voucher_codes, voucher_type_slug)
+            logger.debug(f"Successfully uploaded new voucher codes to blob storage: {blob.url}")
         else:
             logger.debug("No BLOB_STORAGE_DSN set, skipping voucher updates upload")
 
-        return url
+        return blob
 
     return func
 
@@ -41,28 +54,27 @@ def upload_available_vouchers_to_blob_storage() -> Callable:
 def upload_voucher_updates_to_blob_storage() -> Callable:
     def func(retailer_slug: str, vouchers: List[Voucher]) -> Optional[str]:
         """Upload some voucher updates to blob storage to test end-to-end import"""
-        url = None
+        blob = None
 
         if BLOB_STORAGE_DSN:
             logger.debug(f"Uploading voucher updates to blob storage for {retailer_slug}...")
-            url = put_new_voucher_updates_file(retailer_slug, vouchers)
-            logger.debug(f"Successfully uploaded voucher updates to blob storage: {url}")
+            blob = put_new_voucher_updates_file(retailer_slug, vouchers)
+            logger.debug(f"Successfully uploaded voucher updates to blob storage: {blob.url}")
         else:
             logger.debug("No BLOB_STORAGE_DSN set, skipping voucher updates upload")
 
-        return url
+        return blob
 
     return func
 
 
 @pytest.fixture(scope="function")
 def get_voucher_config(carina_db_session: "Session") -> Callable:
-    def func(retailer_slug: str) -> VoucherConfig:
-        return (
-            carina_db_session.execute(select(VoucherConfig).where(VoucherConfig.retailer_slug == retailer_slug))
-            .scalars()
-            .first()
-        )
+    def func(retailer_slug: str, voucher_type_slug: Optional[str] = None) -> VoucherConfig:
+        query = select(VoucherConfig).where(VoucherConfig.retailer_slug == retailer_slug)
+        if voucher_type_slug is not None:
+            query = query.where(VoucherConfig.voucher_type_slug == voucher_type_slug)
+        return carina_db_session.execute(query).scalars().first()
 
     return func
 
