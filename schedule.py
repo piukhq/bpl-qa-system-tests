@@ -38,10 +38,10 @@ def run_test() -> None:
 
     if BLOB_STORAGE_DSN and not LOCAL:
         logger.debug("Uploading report.html to blob storage...")
-        url = upload_report_to_blob_storage("report.html")
-        logger.debug(f"Successfully uploaded report to blob storage: {url}")
+        blob = upload_report_to_blob_storage("report.html")
+        logger.debug(f"Successfully uploaded report to blob storage: {blob.url}")
         if alert:
-            post_to_teams(TEAMS_WEBHOOK, status, url)
+            post_to_teams(TEAMS_WEBHOOK, status, blob.url)
     else:
         logger.debug("No BLOB_STORAGE_DSN set, skipping report upload and teams notification")
 
