@@ -17,7 +17,7 @@ def check_file_moved(
     request_context: dict,
 ) -> None:
     blob_service_client = BlobServiceClient.from_connection_string(BLOB_STORAGE_DSN)
-    now = datetime.now()
+    now = datetime.utcnow()
     # Note: possible timing issue with looking for %H%M (hour/minute) if test is behind or ahead of file_agent.py
     possible_dates = [now - timedelta(seconds=60), now, now + timedelta(seconds=60)]
     blob_starts_withs = [f"{dt.strftime('%Y/%m/%d/%H%M')}/{request_context['blob'].blob_name}" for dt in possible_dates]
