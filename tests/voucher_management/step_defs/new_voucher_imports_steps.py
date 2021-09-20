@@ -54,7 +54,7 @@ def put_new_vouchers_file(
 
 @then("only unseen vouchers are imported by the voucher management system")
 def check_new_vouchers_imported(request_context: dict, carina_db_session: "Session") -> None:
-    new_codes = request_context["new_voucher_codes"]
+    new_codes = request_context["import_file_new_voucher_codes"]
     pre_existing_codes = request_context["pre_existing_voucher_codes"]
     vouchers: Optional[List[Voucher]] = None
     for i in range(7):
@@ -71,7 +71,9 @@ def check_new_vouchers_imported(request_context: dict, carina_db_session: "Sessi
         else:
             break
 
-    expected_codes = sorted(request_context["new_voucher_codes"] + request_context["pre_existing_voucher_codes"])
+    expected_codes = sorted(
+        request_context["import_file_new_voucher_codes"] + request_context["pre_existing_voucher_codes"]
+    )
     db_codes = sorted([v.voucher_code for v in vouchers]) if vouchers else None
     assert expected_codes == db_codes
 
@@ -79,7 +81,9 @@ def check_new_vouchers_imported(request_context: dict, carina_db_session: "Sessi
 @then("the voucher codes are not imported")
 def check_vouchers_not_imported(carina_db_session: "Session", request_context: dict) -> None:
     vouchers = (
-        carina_db_session.execute(select(Voucher).where(Voucher.voucher_code.in_(request_context["new_voucher_codes"])))
+        carina_db_session.execute(
+            select(Voucher).where(Voucher.voucher_code.in_(request_context["import_file_new_voucher_codes"]))
+        )
         .scalars()
         .all()
     )
