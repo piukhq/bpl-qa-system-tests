@@ -1,8 +1,10 @@
 from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Optional, Union
-
+from sqlalchemy.future import select
 from db.polaris.models import AccountHolder, AccountHolderProfile, AccountHolderVoucher, RetailerConfig
+from sqlalchemy.orm import joinedload
+
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -20,7 +22,17 @@ def get_account_holder(
 
 
 def get_account_holder_by_id(polaris_db_session: "Session", account_holder_id: "UUID") -> AccountHolder:
-    account_holder = polaris_db_session.query(AccountHolder).filter_by(id=account_holder_id).first()
+
+    account_holder = (
+        polaris_db_session.execute(
+            select(AccountHolder)
+            .options(joinedload(AccountHolder.account_holder_campaign_balance_collection))
+            .where(AccountHolder.id == account_holder_id)
+        )
+        .scalars()
+        .first()
+    )
+
     if account_holder is None:
         raise ValueError(f"No account holder found for id {account_holder_id}.")
 

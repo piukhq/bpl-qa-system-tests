@@ -10,15 +10,15 @@ if TYPE_CHECKING:
 
 def account_holder_details_response_body(polaris_db_session: "Session", account_holder_id: "UUID") -> dict:
     account_holder = get_account_holder_by_id(polaris_db_session, account_holder_id)
-    account_holder_balances = [balance for balance in account_holder.current_balances.values()]
-    for balance in account_holder_balances:
-        balance["value"] = balance["value"] / 100
     return {
         "UUID": str(account_holder.id),
         "email": account_holder.email,
         "status": account_holder.status.lower(),
         "account_number": account_holder.account_number,
-        "current_balances": account_holder_balances,
+        "current_balances": [
+            {"value": balance.balance / 100, "campaign_slug": balance.campaign_slug}
+            for balance in account_holder.account_holder_campaign_balance_collection
+        ],
         "transaction_history": [],
         "vouchers": [],
     }
