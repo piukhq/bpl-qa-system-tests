@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Callable, Dict, Generator, List, Optional
 
 import pytest
 
+from sqlalchemy import delete
 from sqlalchemy.future import select  # type: ignore
 
 from azure_actions.blob_storage import put_new_voucher_updates_file, put_new_available_vouchers_file
@@ -17,15 +18,13 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture(scope="function", autouse=True)
-def cleanup_voucher_updates(carina_db_session: "Session", request_context: dict) -> Generator:
+def cleanup_imported_vouchers(carina_db_session: "Session", request_context: dict) -> Generator:
 
     yield
 
-    if voucher_update_rows := request_context.get("voucher_update_rows", []):
-        logger.info("Deleting VoucherUpdate rows...")
-        for voucher_update_row in voucher_update_rows:
-            carina_db_session.delete(voucher_update_row)
-
+    if voucher_codes := request_context.get("import_file_new_voucher_codes", []):
+        logger.info("Deleting newly imported Vouchers...")
+        carina_db_session.execute(delete(Voucher).where(Voucher.id.in_(voucher_codes)))
         carina_db_session.commit()
 
 
@@ -169,6 +168,7 @@ def create_mock_vouchers(
 
     yield func
 
+    # note that VoucherUpdates are cascade deleted when associated Vouchers are deleted
     for voucher in mock_vouchers:
         carina_db_session.delete(voucher)
 
