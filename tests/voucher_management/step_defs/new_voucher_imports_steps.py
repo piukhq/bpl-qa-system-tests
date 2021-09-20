@@ -42,7 +42,7 @@ def put_new_vouchers_file(
     request_context: dict,
     upload_available_vouchers_to_blob_storage: Callable,
 ) -> None:
-    new_voucher_codes = request_context["new_voucher_codes"] = [str(uuid.uuid4()) for _ in range(5)]
+    new_voucher_codes = request_context["import_file_new_voucher_codes"] = [str(uuid.uuid4()) for _ in range(5)]
     blob = upload_available_vouchers_to_blob_storage(
         retailer_slug,
         new_voucher_codes + request_context.get("pre_existing_voucher_codes", []),
