@@ -6,7 +6,8 @@ import uuid
 from typing import TYPE_CHECKING, Optional
 
 from pytest_bdd import given, parsers, when
-
+from sqlalchemy.future import select
+from db.polaris.models import AccountHolderCampaignBalance
 from tests.customer_management_api.api_requests.accounts import send_get_accounts
 from tests.customer_management_api.api_requests.base import get_headers
 from tests.customer_management_api.api_requests.enrolment import send_post_enrolment
@@ -97,6 +98,16 @@ def check_account_holder_is_active(polaris_db_session: "Session", request_contex
     assert account_holder.account_number is not None
 
     request_context["account_holder"] = account_holder
+    request_context["balance"] = (
+        polaris_db_session.execute(
+            select(AccountHolderCampaignBalance).where(
+                AccountHolderCampaignBalance.account_holder_id == str(account_holder.id),
+                AccountHolderCampaignBalance.campaign_slug == "test-campaign-1",
+            )
+        )
+        .scalars()
+        .first()
+    )
 
 
 @when("I send a get /accounts request for the account holder by UUID")
