@@ -9,7 +9,7 @@ from db.carina.models import Voucher
 from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, REPORT_CONTAINER, REPORT_DIRECTORY, logger, LOCAL
 
 
-def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> str:
+def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> BlobClient:
     assert not LOCAL
     blob_name = f"{blob_prefix}-{datetime.now().strftime('%Y%m%d-%H%M%S')}.html"
     blob_path = os.path.join(REPORT_DIRECTORY, blob_name)
@@ -22,10 +22,10 @@ def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> st
     with open(filename, "rb") as f:
         blob.upload_blob(f, content_settings=ContentSettings(content_type="text/html"))
 
-    return blob.url
+    return blob
 
 
-def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Voucher]) -> str:
+def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Voucher]) -> BlobClient:
     blob_name = "test_import.csv"
     blob_path = os.path.join(retailer_slug, "voucher-updates", blob_name)
     today_date = datetime.now().strftime("%Y-%m-%d")
@@ -35,7 +35,7 @@ def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Voucher]) ->
 
 def put_new_available_vouchers_file(
     retailer_slug: str, voucher_codes: List[str], voucher_type_slug: Optional[str] = None
-) -> str:
+) -> BlobClient:
     blob_name = "test_import.csv"
     path_elems = [retailer_slug, "available-vouchers", blob_name]
     if voucher_type_slug:
@@ -45,7 +45,7 @@ def put_new_available_vouchers_file(
     return upload_blob(blob_path, content)
 
 
-def upload_blob(blob_path: str, content: str) -> str:
+def upload_blob(blob_path: str, content: str) -> BlobClient:
     content_binary = content.encode("utf-8")
     blob = BlobClient.from_connection_string(
         conn_str=BLOB_STORAGE_DSN,
@@ -66,4 +66,4 @@ def upload_blob(blob_path: str, content: str) -> str:
         logger.warning(f"Error while uploading {blob_path} to blob storage due to Carina owning the lease {str(e)}")
         pass
 
-    return blob.url
+    return blob

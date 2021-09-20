@@ -14,22 +14,21 @@ if TYPE_CHECKING:
 
 
 def _get_adjustment_account_holder_and_payload(request_context: dict) -> Tuple[str, dict]:
-    account_holder = request_context["account_holder"]
-    campaign_slug, balance = next(iter(account_holder.current_balances.items()))
+    balance = request_context["balance"]
     balance_change = randint(5, 5000)
     payload = {
         "balance_change": balance_change,
-        "campaign_slug": campaign_slug,
+        "campaign_slug": balance.campaign_slug,
     }
     request_context["request_details"] = payload
-    request_context["request_details"]["old_balance"] = balance["value"]
+    request_context["request_details"]["old_balance"] = balance.balance
 
-    return account_holder.id, payload
+    return balance.account_holder_id, payload
 
 
 @when(parsers.parse("I post the balance adjustment for a {retailer_slug} account holder with a {token} auth token"))
 def send_adjustment_request(retailer_slug: str, token: str, request_context: dict) -> None:
-    if "account_holder" in request_context:
+    if "balance" in request_context:
         account_holder_id, payload = _get_adjustment_account_holder_and_payload(request_context)
     else:
         account_holder_id = str(uuid.uuid4())
@@ -53,16 +52,15 @@ def send_adjustment_request(retailer_slug: str, token: str, request_context: dic
 @then(parsers.parse("The account holder's balance {action} updated in the database"))
 @then(parsers.parse("The account holder's balance {action} updated in the database only once"))
 def check_updated_balance(action: str, request_context: dict, polaris_db_session: "Session") -> None:
-    account_holder = request_context["account_holder"]
-    polaris_db_session.refresh(account_holder)
-    campaign_slug = request_context["request_details"]["campaign_slug"]
+    balance = request_context["balance"]
+    polaris_db_session.refresh(balance)
     old_balance = request_context["request_details"]["old_balance"]
     balance_change = request_context["request_details"]["balance_change"]
 
     if action == "is":
-        assert account_holder.current_balances[campaign_slug]["value"] == old_balance + balance_change
+        assert balance.balance == old_balance + balance_change
     elif action == "is not":
-        assert account_holder.current_balances[campaign_slug]["value"] == old_balance
+        assert balance.balance == old_balance
     else:
         raise ValueError(f"{action} is an invalid value for action")
 

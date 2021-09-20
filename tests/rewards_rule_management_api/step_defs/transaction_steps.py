@@ -121,10 +121,10 @@ def expected_new_balance_is_over_reward_goal(request_context: dict, vela_db_sess
 
 @then(parse("The account holder's balance is updated"))
 def check_account_holder_balance(request_context: dict, polaris_db_session: Session, vela_db_session: Session) -> None:
-    account_holder = request_context["account_holder"]
+    balance = request_context["balance"]
     reward_rule = request_context["reward_rule"]
     earn_rule = request_context["earn_rule"]
-    current_balance = None
+
     expected_balance = (
         request_context["start_balance"]
         + (earn_rule.increment * earn_rule.increment_multiplier)
@@ -133,13 +133,9 @@ def check_account_holder_balance(request_context: dict, polaris_db_session: Sess
 
     for i in range(5):
         sleep(i)
-        polaris_db_session.refresh(account_holder)
-        try:
-            current_balance = account_holder.current_balances[request_context["campaign"].slug]["value"]  # type: ignore
-        except KeyError:
-            pass
+        polaris_db_session.refresh(balance)
 
-        if current_balance == expected_balance:
+        if balance.balance == expected_balance:
             break
 
-    assert current_balance == expected_balance
+    assert balance.balance == expected_balance

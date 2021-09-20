@@ -4,39 +4,16 @@ from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Callable, List
 
-import pytest
-
-from azure.core.exceptions import ResourceExistsError
-from azure.storage.blob import BlobServiceClient
 from pytest_bdd import given, parsers, then
 from sqlalchemy import Date
 from sqlalchemy.future import select  # type: ignore
 
 from db.carina.models import Voucher, VoucherConfig, VoucherUpdate
 from db.polaris.models import AccountHolderVoucher
-from settings import BLOB_ARCHIVE_CONTAINER, BLOB_STORAGE_DSN, LOCAL
+
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
-
-
-@pytest.fixture(scope="function")
-def check_voucher_updates_deleted(
-    request_context: dict,
-    carina_db_session: "Session",
-) -> Callable:
-    """
-    Clean up this test's entries in the voucher_update table
-    """
-
-    def _check_voucher_updates_deleted() -> None:
-        voucher_update_rows = request_context["voucher_update_rows"]
-        for voucher_update_row in voucher_update_rows:
-            carina_db_session.delete(voucher_update_row)
-
-        carina_db_session.commit()
-
-    return _check_voucher_updates_deleted
 
 
 def _get_voucher_update_rows(
@@ -78,7 +55,7 @@ def _get_voucher_row(carina_db_session: "Session", voucher_code: str, req_date: 
 @given(parsers.parse("The voucher code provider provides a bulk update file for {retailer_slug}"))
 def voucher_updates_upload(
     retailer_slug: str,
-    get_voucher_config: Callable[[str], VoucherConfig],
+    get_voucher_config: Callable[[str, str], VoucherConfig],
     create_mock_vouchers: Callable,
     request_context: dict,
     upload_voucher_updates_to_blob_storage: Callable,
@@ -90,7 +67,7 @@ def voucher_updates_upload(
     """
     # GIVEN
     mock_vouchers: List[Voucher] = create_mock_vouchers(
-        voucher_config=get_voucher_config(retailer_slug),
+        voucher_config=get_voucher_config(retailer_slug, "10percentoff"),
         n_vouchers=3,
         voucher_overrides=[
             {"allocated": True},
@@ -98,9 +75,10 @@ def voucher_updates_upload(
             {"allocated": False},  # This one should end up being soft-deleted
         ],
     )
-    url = upload_voucher_updates_to_blob_storage(retailer_slug, mock_vouchers)
-    assert url
+    blob = upload_voucher_updates_to_blob_storage(retailer_slug, mock_vouchers)
+    assert blob
     request_context["mock_vouchers"] = mock_vouchers
+    request_context["blob"] = blob
 
 
 @then(parsers.parse("the file for {retailer_slug} is imported by the voucher management system"))
@@ -190,34 +168,6 @@ def check_voucher_updates_are_soft_deleted(
         f"for today's date, found one: {'true' if deleted_voucher_row else 'false'}"
     )
     assert deleted_voucher_row
-
-
-@then(parsers.parse("The {retailer_slug} voucher update file is archived by the voucher importer"))
-def check_voucher_updates_archive(
-    retailer_slug: str, carina_db_session: "Session", check_voucher_updates_deleted: Callable, request_context: dict
-) -> None:
-    """
-    The fixture should place a CSV file onto blob storage, which a running instance of
-    carina (the scheduler job for doing these imports) will pick up and process, archiving on the carina-archive
-    container for today's date
-    """
-    if LOCAL:
-        pass
-    else:
-        blob_service_client = BlobServiceClient.from_connection_string(BLOB_STORAGE_DSN)
-        try:
-            blob_service_client.create_container(BLOB_ARCHIVE_CONTAINER)
-        except ResourceExistsError:
-            pass  # this is fine
-
-        container = blob_service_client.get_container_client(BLOB_ARCHIVE_CONTAINER)
-        for blob in container.list_blobs(
-            name_starts_with=f"{datetime.now().strftime('%Y/%m/%d')}/{retailer_slug}/voucher-updates"
-        ):
-            blob_client = blob_service_client.get_blob_client(BLOB_ARCHIVE_CONTAINER, blob.name)
-            assert blob_client.exists()
-
-    check_voucher_updates_deleted()
 
 
 @then("the status of the allocated account holder vouchers is updated")
