@@ -74,7 +74,9 @@ def check_async_voucher_allocation(carina_db_session: "Session", request_context
 def check_voucher_allocation_expiry_date(carina_db_session: "Session", request_context: dict) -> None:
     """Check that validity_days have been used to assign an expiry date"""
     voucher_allocation = request_context["voucher_allocation"]
-    date_time_format = "%Y-%m-%d %H"
+    # TODO: it may be possible to put back the check for hours ("%Y-%m-%d %H") once
+    # https://hellobink.atlassian.net/browse/BPL-129 is done
+    date_time_format = "%Y-%m-%d"
     now = datetime.utcnow()
     expiry_datetime: str = datetime.fromtimestamp(voucher_allocation.expiry_date, tz=timezone.utc).strftime(
         date_time_format
