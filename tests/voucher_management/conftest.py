@@ -136,7 +136,7 @@ def create_mock_vouchers(
         for idx in range(n_vouchers):
             voucher_params = {
                 "id": str(uuid.uuid4()),
-                "voucher_code": str(uuid.uuid4()),
+                "voucher_code": "AUTOMATED_" + str(uuid.uuid4()),
                 "retailer_slug": voucher_config.retailer_slug,
                 "voucher_config": voucher_config,
                 "allocated": False,
