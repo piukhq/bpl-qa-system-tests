@@ -2,25 +2,22 @@ import json
 import logging
 import uuid
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from pytest_bdd import given, parsers, then, when
 
-from db.vela.models import Campaign, CampaignStatuses
+from db.vela.models import Campaign, CampaignStatuses, RetailerRewards
 from tests.rewards_rule_management_api.api_requests.campaign_status import (
     send_post_campaign_status_change,
     send_post_malformed_campaign_status_change,
 )
-from tests.rewards_rule_management_api.db_actions.campaigns import get_active_campaigns
+from tests.rewards_rule_management_api.db_actions.campaigns import get_active_campaigns, get_retailer_rewards
 from tests.rewards_rule_management_api.payloads.campaign_status_change import (
     get_campaign_status_change_payload,
     get_malformed_request_body,
 )
 from tests.rewards_rule_management_api.response_fixtures.campaign_status import CampaignStatusResponses
-from tests.voucher_management_api.payloads.voucher_allocation import (
-    get_malformed_request_body,
-    get_voucher_allocation_payload,
-)
+from tests.voucher_management_api.payloads.voucher_allocation import get_malformed_request_body
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -35,16 +32,32 @@ def _change_campaign_status(vela_db_session: "Session", campaign: Campaign, requ
 
 @given(parsers.parse("{retailer_slug} has at least {active_campaigns_total:d} active campaign(s)"))
 def check_campaigns(
-    vela_db_session: "Session", retailer_slug: str, active_campaigns_total: int, request_context: dict
+    vela_db_session: "Session",
+    create_mock_campaign: Callable,
+    retailer_slug: str,
+    active_campaigns_total: int,
+    request_context: dict,
 ) -> None:
-    active_campaigns: list[Campaign] = get_active_campaigns(vela_db_session, retailer_slug)
-    actual_active_campaigns_total = len(active_campaigns)
+    retailer: RetailerRewards = get_retailer_rewards(vela_db_session, retailer_slug)
+    active_campaigns: list[Campaign] = []  # get_active_campaigns(vela_db_session, retailer_slug)
+    for _ in range(active_campaigns_total):
+        mock_campaign: Campaign = create_mock_campaign(
+            retailer=retailer,
+            **{
+                "status": CampaignStatuses.ACTIVE,
+                "name": str(uuid.uuid4()),
+                "slug": str(uuid.uuid4())[:32],
+            },
+        )
+        active_campaigns.append(mock_campaign)
 
-    logging.info(
-        f"checking retailer: {retailer_slug} has at least {active_campaigns_total} active campaigns, "
-        f"found: {actual_active_campaigns_total}"
-    )
-    assert actual_active_campaigns_total >= active_campaigns_total
+    # actual_active_campaigns_total = len(active_campaigns)
+
+    # logging.info(
+    #     f"checking retailer: {retailer_slug} has at least {active_campaigns_total} active campaigns, "
+    #     f"found: {actual_active_campaigns_total}"
+    # )
+    # assert actual_active_campaigns_total >= active_campaigns_total
 
     request_context["retailer_slug"] = retailer_slug
     request_context["active_campaigns"] = active_campaigns

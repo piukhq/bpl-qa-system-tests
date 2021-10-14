@@ -40,3 +40,11 @@ associated entities are updated accordingly
     When I perform a POST operation against the status change endpoint with the correct payload for a Draft status for a test-retailer retailer with a valid auth token
     Then I receive a HTTP 409 status code response
     And I get a invalid_status_requested status change response body
+
+
+  Scenario: Send a POST status change request with a mix of legal and illegal state changes
+
+    Given test-retailer has at least 1 active campaign(s)
+    When I perform a POST operation against the status change endpoint with the correct payload for a Draft status for a test-retailer retailer with a valid auth token
+    Then I receive a HTTP 409 status code response
+    And I get a invalid_status_requested status change response body
