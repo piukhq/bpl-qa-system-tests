@@ -3,6 +3,7 @@ import logging
 import uuid
 
 from typing import TYPE_CHECKING, Callable
+from unittest.mock import ANY
 
 from pytest_bdd import given, parsers, then, when
 
@@ -30,37 +31,33 @@ def _change_campaign_status(vela_db_session: "Session", campaign: Campaign, requ
     vela_db_session.commit()
 
 
-@given(parsers.parse("{retailer_slug} has at least {active_campaigns_total:d} active campaign(s)"))
-def check_campaigns(
+@given(parsers.parse("{retailer_slug} has at least {campaigns_total:d} {status} campaign(s)"))
+def make_campaigns_available_for_test(
     vela_db_session: "Session",
     create_mock_campaign: Callable,
     retailer_slug: str,
-    active_campaigns_total: int,
+    campaigns_total: int,
+    status: str,
     request_context: dict,
 ) -> None:
     retailer: RetailerRewards = get_retailer_rewards(vela_db_session, retailer_slug)
-    active_campaigns: list[Campaign] = []  # get_active_campaigns(vela_db_session, retailer_slug)
-    for _ in range(active_campaigns_total):
+    if request_context.get("active_campaigns"):
+        mock_campaigns: list[Campaign] = request_context["active_campaigns"]
+    else:
+        mock_campaigns: list[Campaign] = []  # get_active_campaigns(vela_db_session, retailer_slug)
+    for _ in range(campaigns_total):
         mock_campaign: Campaign = create_mock_campaign(
             retailer=retailer,
             **{
-                "status": CampaignStatuses.ACTIVE,
+                "status": CampaignStatuses(status).name,
                 "name": str(uuid.uuid4()),
                 "slug": str(uuid.uuid4())[:32],
             },
         )
-        active_campaigns.append(mock_campaign)
-
-    # actual_active_campaigns_total = len(active_campaigns)
-
-    # logging.info(
-    #     f"checking retailer: {retailer_slug} has at least {active_campaigns_total} active campaigns, "
-    #     f"found: {actual_active_campaigns_total}"
-    # )
-    # assert actual_active_campaigns_total >= active_campaigns_total
+        mock_campaigns.append(mock_campaign)
 
     request_context["retailer_slug"] = retailer_slug
-    request_context["active_campaigns"] = active_campaigns
+    request_context["active_campaigns"] = mock_campaigns
 
 
 @when(
@@ -73,7 +70,7 @@ def check_campaigns(
 def send_post_campaign_change_request(
     vela_db_session: "Session", payload_type: str, status: str, retailer_slug: str, token: str, request_context: dict
 ) -> None:
-    request_context["active_campaigns"] = request_context["active_campaigns"][:1]  # only need the first one
+    # request_context["active_campaigns"] = request_context["active_campaigns"][:1]  # only need the first one
 
     payload = {}
     if payload_type == "correct":
@@ -152,4 +149,16 @@ def check_status_change_response(response_fixture: str, request_context: dict) -
         f"POST campaign status change expected response: {json.dumps(expected_response_body, indent=4)}\n"
         f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}"
     )
+    assert resp.json() == expected_response_body
+
+
+@then(parsers.parse("I get an incomplete status update response body"))
+def check_status_change_response(request_context: dict) -> None:
+    expected_response_body = {
+        "display_message": "Not all campaigns were updated as requested.",
+        "error": "INCOMPLETE_STATUS_UPDATE",
+        "failed_campaigns": [ANY, ANY],
+    }
+    resp = request_context["response"]
+    logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
     assert resp.json() == expected_response_body
