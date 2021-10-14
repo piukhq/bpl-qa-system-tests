@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Union
 
-from settings import REWARDS_RULE_MANAGEMENT_API_TOKEN, VELA_BASE_URL, VOUCHER_MANAGEMENT_API_TOKEN
+from settings import REWARDS_RULE_MANAGEMENT_API_TOKEN, VELA_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
@@ -25,16 +25,14 @@ def send_post_campaign_status_change(retailer_slug: str, request_body: dict, aut
     return _send_post_campaign_status_change(retailer_slug, request_body, headers)
 
 
-def send_post_malformed_campaign_status_change(
-    retailer_slug: str, voucher_type_slug: str, request_body: str
-) -> "Response":
+def send_post_malformed_campaign_status_change(retailer_slug: str, request_body: str) -> "Response":
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "Authorization": f"Token {VOUCHER_MANAGEMENT_API_TOKEN}",
+        "Authorization": f"Token {REWARDS_RULE_MANAGEMENT_API_TOKEN}",
     }
     return retry_session().post(
-        f"{CARINA_BASE_URL}/{retailer_slug}/vouchers/{voucher_type_slug}/allocation",
+        f"{VELA_BASE_URL}/{retailer_slug}/campaigns/status_change",
         data=request_body,
         headers=headers,
     )

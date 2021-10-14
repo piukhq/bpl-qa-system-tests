@@ -25,3 +25,13 @@ MISSING_CHANNEL_HEADER = {
         "bpl-user-channel",
     ],
 }
+
+INVALID_STATUS_REQUESTED = {
+    "display_message": "The requested status change could not be performed.",
+    "error": "INVALID_STATUS_REQUESTED",
+}
+
+NO_CAMPAIGN_FOUND = {
+    "display_message": "Campaign not found for provided slug.",
+    "error": "NO_CAMPAIGN_FOUND",
+}
