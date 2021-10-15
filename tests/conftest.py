@@ -17,9 +17,6 @@ from db.vela.session import VelaSessionMaker
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
-
 
 # Hooks
 def pytest_bdd_step_error(
