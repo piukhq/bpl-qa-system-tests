@@ -12,13 +12,12 @@ from tests.rewards_rule_management_api.api_requests.campaign_status import (
     send_post_campaign_status_change,
     send_post_malformed_campaign_status_change,
 )
-from tests.rewards_rule_management_api.db_actions.campaigns import get_active_campaigns, get_retailer_rewards
+from tests.rewards_rule_management_api.db_actions.campaigns import get_retailer_rewards
 from tests.rewards_rule_management_api.payloads.campaign_status_change import (
     get_campaign_status_change_payload,
     get_malformed_request_body,
 )
 from tests.rewards_rule_management_api.response_fixtures.campaign_status import CampaignStatusResponses
-from tests.voucher_management_api.payloads.voucher_allocation import get_malformed_request_body
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -26,7 +25,7 @@ if TYPE_CHECKING:
 status_change_responses = CampaignStatusResponses
 
 
-def _change_campaign_status(vela_db_session: "Session", campaign: Campaign, requested_status: CampaignStatuses):
+def _change_campaign_status(vela_db_session: "Session", campaign: Campaign, requested_status: CampaignStatuses) -> None:
     campaign.status = requested_status  # type: ignore
     vela_db_session.commit()
 
@@ -41,10 +40,9 @@ def make_campaigns_available_for_test(
     request_context: dict,
 ) -> None:
     retailer: RetailerRewards = get_retailer_rewards(vela_db_session, retailer_slug)
+    mock_campaigns: list[Campaign] = []
     if request_context.get("active_campaigns"):
-        mock_campaigns: list[Campaign] = request_context["active_campaigns"]
-    else:
-        mock_campaigns: list[Campaign] = []  # get_active_campaigns(vela_db_session, retailer_slug)
+        mock_campaigns.extend(request_context["active_campaigns"])
     for _ in range(campaigns_total):
         mock_campaign: Campaign = create_mock_campaign(
             retailer=retailer,
@@ -62,8 +60,8 @@ def make_campaigns_available_for_test(
 
 @when(
     parsers.parse(
-        "I perform a POST operation against the status change endpoint with the {payload_type} payload for a {status} status for "
-        "a {retailer_slug} retailer "
+        "I perform a POST operation against the status change endpoint with the {payload_type} payload for "
+        "a {status} status for a {retailer_slug} retailer "
         "with a {token} auth token"
     )
 )
@@ -99,7 +97,7 @@ def send_post_campaign_change_request(
         "campaign for a {retailer_slug} retailer"
     )
 )
-def send_post_campaign_change_request(
+def send_post_nonexistent_campaign_change_request(
     vela_db_session: "Session", status: str, campaign_slug: str, retailer_slug: str, request_context: dict
 ) -> None:
     payload = {
@@ -153,7 +151,7 @@ def check_status_change_response(response_fixture: str, request_context: dict) -
 
 
 @then(parsers.parse("I get an incomplete status update response body"))
-def check_status_change_response(request_context: dict) -> None:
+def check_incomplete_status_update_response(request_context: dict) -> None:
     expected_response_body = {
         "display_message": "Not all campaigns were updated as requested.",
         "error": "INCOMPLETE_STATUS_UPDATE",
@@ -162,3 +160,20 @@ def check_status_change_response(request_context: dict) -> None:
     resp = request_context["response"]
     logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
     assert resp.json() == expected_response_body
+
+
+@then(parsers.parse("the legal campaign state change(s) are applied"))
+def check_legal_campaign_state_changes(vela_db_session: "Session", retailer_slug: str, request_context: dict) -> None:
+    vela_db_session.refresh(request_context["active_campaigns"][0])
+    assert request_context["active_campaigns"][0].status == CampaignStatuses.CANCELLED  # i.e. changed
+
+
+@then(parsers.parse("the illegal campaign state change(s) are not made"))
+def check_illegal_campaign_state_are_unchanged(
+    vela_db_session: "Session", retailer_slug: str, request_context: dict
+) -> None:
+    vela_db_session.refresh(request_context["active_campaigns"][1])
+    assert request_context["active_campaigns"][1].status == CampaignStatuses.DRAFT  # i.e. not changed
+
+    vela_db_session.refresh(request_context["active_campaigns"][2])
+    assert request_context["active_campaigns"][2].status == CampaignStatuses.ENDED  # i.e. not changed

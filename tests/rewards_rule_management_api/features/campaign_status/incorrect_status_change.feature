@@ -50,3 +50,5 @@ associated entities are updated accordingly
     When I perform a POST operation against the status change endpoint with the correct payload for a Cancelled status for a test-retailer retailer with a valid auth token
     Then I receive a HTTP 409 status code response
     And I get an incomplete status update response body
+    And the legal campaign state change(s) are applied
+    And the illegal campaign state change(s) are not made
