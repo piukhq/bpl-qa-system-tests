@@ -55,14 +55,14 @@ def check_voucher_configs(carina_db_session: "Session", amount: int, retailer_sl
 @then(parsers.parse("a Voucher code will be allocated asynchronously"))
 def check_async_voucher_allocation(carina_db_session: "Session", request_context: dict) -> None:
     """Check that the voucher in the Voucher table has been marked as 'allocated' and that it has an id"""
-    voucher_allocation = get_last_created_voucher_allocation(
+    voucher_allocation_task = get_last_created_voucher_allocation(
         carina_db_session=carina_db_session, voucher_config_id=request_context["voucher_config"].id
     )
-    voucher = carina_db_session.query(Voucher).filter_by(id=voucher_allocation.voucher_id).one()
+    voucher = carina_db_session.query(Voucher).filter_by(id=voucher_allocation_task.params["voucher_id"]).one()
     assert voucher.allocated
     assert voucher.id
 
-    request_context["voucher_allocation"] = voucher_allocation
+    request_context["voucher_allocation"] = voucher_allocation_task
 
 
 @then(
