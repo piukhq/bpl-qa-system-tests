@@ -1,3 +1,4 @@
+import logging
 import os
 
 from datetime import datetime
@@ -42,6 +43,7 @@ def put_new_available_vouchers_file(
         path_elems.insert(2, voucher_type_slug)
     blob_path = os.path.join(*path_elems)
     content = "\n".join([voucher_code for voucher_code in voucher_codes])
+    logging.info(f"content of csv file upload: {content}")
     return upload_blob(blob_path, content)
 
 
