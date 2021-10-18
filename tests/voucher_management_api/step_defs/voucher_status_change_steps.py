@@ -2,7 +2,7 @@ import json
 import logging
 import uuid
 
-from typing import Callable, Literal, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Literal, Optional, Union
 
 from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
@@ -10,12 +10,11 @@ from sqlalchemy.future import select  # type: ignore
 
 from db.carina.models import VoucherConfig
 from settings import CARINA_BASE_URL, VOUCHER_MANAGEMENT_API_TOKEN
-
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
-    from sqlalchemy.orm import Session
     from requests import Response
+    from sqlalchemy.orm import Session
 
 default_headers = {
     "Authorization": f"Token {VOUCHER_MANAGEMENT_API_TOKEN}",
@@ -23,7 +22,7 @@ default_headers = {
 
 
 def send_patch_voucher_type_status(
-        retailer_slug: str, voucher_type_slug: str, request_body: dict, headers: Optional[dict] = None
+    retailer_slug: str, voucher_type_slug: str, request_body: dict, headers: Optional[dict] = None
 ) -> "Response":
     logging.info(
         f"PATCH Voucher type status Valid Auth token: {default_headers}\n"
@@ -50,10 +49,10 @@ def noop(request_context: dict) -> None:
 
 @given(parse("there is an {status} voucher configuration for {retailer_slug} with unallocated vouchers"))
 def create_voucher_config_with_available_vouchers(
-        create_config_and_vouchers: Callable,
-        retailer_slug: str,
-        status: Union[Literal["ACTIVE"], Literal["CANCELLED"], Literal["ENDED"]],
-        request_context: dict,
+    create_config_and_vouchers: Callable,
+    retailer_slug: str,
+    status: Union[Literal["ACTIVE"], Literal["CANCELLED"], Literal["ENDED"]],
+    request_context: dict,
 ) -> None:
     request_context["voucher_type_slug"] = voucher_type_slug = str(uuid.uuid4()).replace("-", "")
 
@@ -71,7 +70,7 @@ def create_voucher_config_with_available_vouchers(
     )
 )
 def patch_status(
-        new_status: str, correct_incorrect: Union[Literal["correct"], Literal["incorrect"]], request_context: dict
+    new_status: str, correct_incorrect: Union[Literal["correct"], Literal["incorrect"]], request_context: dict
 ) -> None:
     response = send_patch_voucher_type_status(
         request_context["retailer_slug"],
@@ -88,10 +87,10 @@ def patch_status(
     )
 )
 def patch_status_invalid_token(
-        new_status: str,
-        invalid: str,
-        correct_incorrect: Union[Literal["correct"], Literal["incorrect"]],
-        request_context: dict,
+    new_status: str,
+    invalid: str,
+    correct_incorrect: Union[Literal["correct"], Literal["incorrect"]],
+    request_context: dict,
 ) -> None:
     response = send_patch_voucher_type_status(
         request_context["retailer_slug"],
@@ -120,9 +119,7 @@ def check_invalid_token_status(request_context: dict) -> None:
 
 @then(parse("i receive {invalid_retailer} response message"))
 def check_invalid_retailer(request_context: dict) -> None:
-    expected_response_body = {"display_message": "Requested retailer is invalid.",
-                              "error": "INVALID_RETAILER"
-                              }
+    expected_response_body = {"display_message": "Requested retailer is invalid.", "error": "INVALID_RETAILER"}
     resp = request_context["response"]
     logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
     assert resp.json() == expected_response_body
@@ -130,9 +127,7 @@ def check_invalid_retailer(request_context: dict) -> None:
 
 @then(parse("I receive {unknown_voucher} response body"))
 def check_unknown_voucher_type(request_context: dict) -> None:
-    expected_response_body = {"display_message": "Voucher Type Slug does not exist.",
-                              "error": "UNKNOWN_VOUCHER_TYPE"
-                              }
+    expected_response_body = {"display_message": "Voucher Type Slug does not exist.", "error": "UNKNOWN_VOUCHER_TYPE"}
     resp = request_context["response"]
     logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
     assert resp.json() == expected_response_body
@@ -140,9 +135,10 @@ def check_unknown_voucher_type(request_context: dict) -> None:
 
 @then(parse("I receive status {update_failed} response body"))
 def check_status_update_fail(request_context: dict) -> None:
-    expected_response_body = {"display_message": "Status could not be updated as requested",
-                              "error": "STATUS_UPDATE_FAILED"
-                              }
+    expected_response_body = {
+        "display_message": "Status could not be updated as requested",
+        "error": "STATUS_UPDATE_FAILED",
+    }
     resp = request_context["response"]
     logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
     assert resp.json() == expected_response_body
@@ -153,9 +149,7 @@ def check_field_validation_status(request_context: dict) -> None:
     expected_response_body = {
         "display_message": "Submitted fields are missing or invalid.",
         "error": "FIELD_VALIDATION_ERROR",
-        "fields": [
-            "status"
-        ]
+        "fields": ["status"],
     }
     resp = request_context["response"]
     logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")

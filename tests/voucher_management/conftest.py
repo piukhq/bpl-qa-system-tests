@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy import delete
 from sqlalchemy.future import select  # type: ignore
 
-from azure_actions.blob_storage import put_new_voucher_updates_file, put_new_available_vouchers_file
+from azure_actions.blob_storage import put_new_available_vouchers_file, put_new_voucher_updates_file
 from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolder, AccountHolderVoucher, RetailerConfig
 from settings import BLOB_STORAGE_DSN, logger

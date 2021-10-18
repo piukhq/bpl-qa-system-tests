@@ -4,12 +4,13 @@ import uuid
 from typing import TYPE_CHECKING, Any, Generator, Optional
 
 import pytest
+
 from sqlalchemy import delete
 
+from db.carina.models import Voucher, VoucherConfig
 from db.carina.session import CarinaSessionMaker
 from db.polaris.session import PolarisSessionMaker
 from db.vela.session import VelaSessionMaker
-from db.carina.models import Voucher, VoucherConfig
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

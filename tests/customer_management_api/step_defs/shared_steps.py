@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Optional
 
 from pytest_bdd import given, parsers, when
 from sqlalchemy.future import select
+
 from db.polaris.models import AccountHolderCampaignBalance
 from tests.customer_management_api.api_requests.accounts import send_get_accounts
 from tests.customer_management_api.api_requests.base import get_headers

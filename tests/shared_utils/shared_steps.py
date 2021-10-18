@@ -2,10 +2,10 @@ import json
 import logging
 
 from pytest_bdd import given, parsers, then
+from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
-from sqlalchemy.future import select
-from db.polaris.models import AccountHolder, RetailerConfig, AccountHolderCampaignBalance
+from db.polaris.models import AccountHolder, AccountHolderCampaignBalance, RetailerConfig
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 
 
