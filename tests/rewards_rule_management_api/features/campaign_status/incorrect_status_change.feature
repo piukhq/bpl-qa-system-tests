@@ -41,7 +41,7 @@ associated entities are updated accordingly
     Then I receive a HTTP 409 status code response
     And I get a invalid_status_requested status change response body
 
-  @undertest
+
   Scenario: Send a POST status change request with a mix of legal and illegal state changes
 
     Given test-retailer has at least 1 ACTIVE campaign(s)
@@ -52,3 +52,13 @@ associated entities are updated accordingly
     And I get an incomplete status update response body
     And the legal campaign state change(s) are applied
     And the illegal campaign state change(s) are not made
+
+    
+  Scenario: Send a POST status change request and the retailer would be left with no active campaigns
+
+    Given a automated-test-retailer retailer exists
+    And automated-test-retailer has at least 3 ACTIVE campaign(s)
+    When I perform a POST operation against the status change endpoint with the correct payload for a Ended status for a automated-test-retailer retailer with a valid auth token
+    Then I receive a HTTP 409 status code response
+    And I get a invalid_status_requested status change response body
+    And the campaigns still have the ACTIVE status
