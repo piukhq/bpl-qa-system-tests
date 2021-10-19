@@ -30,6 +30,22 @@ def _change_campaign_status(vela_db_session: "Session", campaign: Campaign, requ
     vela_db_session.commit()
 
 
+@given(parsers.parse("a {retailer_slug} retailer exists"))
+def make_retailer_available_for_test(
+    vela_db_session: "Session",
+    create_mock_retailer: Callable,
+    retailer_slug: str,
+    request_context: dict,
+) -> None:
+    create_mock_retailer(
+        **{
+            "slug": retailer_slug,
+        },
+    )
+
+    request_context["retailer_slug"] = retailer_slug
+
+
 @given(parsers.parse("{retailer_slug} has at least {campaigns_total:d} {status} campaign(s)"))
 def make_campaigns_available_for_test(
     vela_db_session: "Session",
@@ -169,11 +185,17 @@ def check_legal_campaign_state_changes(vela_db_session: "Session", retailer_slug
 
 
 @then(parsers.parse("the illegal campaign state change(s) are not made"))
-def check_illegal_campaign_state_are_unchanged(
-    vela_db_session: "Session", retailer_slug: str, request_context: dict
-) -> None:
+def check_illegal_campaign_state_are_unchanged(vela_db_session: "Session", request_context: dict) -> None:
     vela_db_session.refresh(request_context["active_campaigns"][1])
     assert request_context["active_campaigns"][1].status == CampaignStatuses.DRAFT  # i.e. not changed
 
     vela_db_session.refresh(request_context["active_campaigns"][2])
     assert request_context["active_campaigns"][2].status == CampaignStatuses.ENDED  # i.e. not changed
+
+
+@then(parsers.parse("the campaigns still have the {status} status"))
+def check_campaign_statuses(vela_db_session: "Session", status: str, request_context: dict) -> None:
+    expected_campaign_status = CampaignStatuses(status).name
+    for campaign in request_context["active_campaigns"]:
+        vela_db_session.refresh(campaign)
+        assert campaign.status == expected_campaign_status
