@@ -3,12 +3,10 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
-
 [[source]]
 name = "gitlab-libraries"
 url = "https://bink-libs:y6nzdKbo9J6MkEmwvB-i@git.bink.com/api/v4/groups/86/-/packages/pypi/simple"
 verify_ssl = true
-
 
 [requires]
 python_version = "3.9"
@@ -34,5 +32,4 @@ flake8 = "*"
 mypy = "*"
 isort = "*"
 xenon = "*"
-sqlalchemy-stubs = "*"
 types-requests = "*"
