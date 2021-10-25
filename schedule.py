@@ -21,8 +21,8 @@ def run_test() -> None:
     logger.debug(f"Starting automated test suite using command: {COMMAND}")
     try:
         process = subprocess.run(COMMAND.split(" "), timeout=2400, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except subprocess.TimeoutExpired:
-        logger.error("Timeout occurred, skipping run")
+    except subprocess.SubprocessError:
+        logger.exception("Error in subprocess, skipping run")
         return
 
     logger.debug(process.stdout.decode())
