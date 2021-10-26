@@ -1,8 +1,10 @@
 import time
-
 from typing import TYPE_CHECKING
 
-from db.carina.models import Voucher, VoucherAllocation, VoucherConfig
+from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue
+from sqlalchemy.future import select
+
+from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolderVoucher
 
 if TYPE_CHECKING:
@@ -21,19 +23,27 @@ def get_voucher_config(carina_db_session: "Session", retailer_slug: str) -> Vouc
     return carina_db_session.query(VoucherConfig).filter_by(retailer_slug=retailer_slug).first()
 
 
-def get_last_created_voucher_allocation(carina_db_session: "Session", voucher_config_id: int) -> VoucherAllocation:
+def get_last_created_voucher_allocation(carina_db_session: "Session", voucher_config_id: int) -> RetryTask:
     for i in (1, 3, 5, 10):
         time.sleep(i)
-        allocated_voucher = (
-            carina_db_session.query(VoucherAllocation)
-            .filter_by(voucher_config_id=voucher_config_id)
-            .order_by(VoucherAllocation.created_at.desc())
+        allocation_task = (
+            carina_db_session.execute(
+                select(RetryTask)
+                .where(
+                    TaskTypeKey.name == "voucher_allocation",
+                    TaskTypeKeyValue.task_type_key_id == TaskTypeKey.task_type_key_id,
+                    TaskTypeKeyValue.value == voucher_config_id,
+                    RetryTask.retry_task_id == TaskTypeKeyValue.retry_task_id,
+                )
+                .order_by(RetryTask.created_at.desc())
+            )
+            .scalars()
             .first()
         )
-        if allocated_voucher:
+        if allocation_task:
             break
 
-    return allocated_voucher
+    return allocation_task
 
 
 def get_allocated_voucher(polaris_db_session: "Session", voucher_id: int) -> AccountHolderVoucher:
