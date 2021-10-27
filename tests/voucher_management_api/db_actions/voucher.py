@@ -1,9 +1,11 @@
 import time
+
 from typing import TYPE_CHECKING
 
-from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue, TaskType
+from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue
 from sqlalchemy.future import select
 from sqlalchemy.sql.functions import count
+
 from db.carina.models import Voucher, VoucherConfig
 from db.polaris.models import AccountHolderVoucher
 
@@ -59,7 +61,6 @@ def get_last_created_voucher_allocation(carina_db_session: "Session", voucher_co
                 select(RetryTask)
                 .where(
                     TaskTypeKey.name == "voucher_config_id",
-                    TaskTypeKey.task_type_id == TaskType.task_type_id,
                     TaskTypeKeyValue.task_type_key_id == TaskTypeKey.task_type_key_id,
                     TaskTypeKeyValue.value == str(voucher_config_id),
                     RetryTask.retry_task_id == TaskTypeKeyValue.retry_task_id,
