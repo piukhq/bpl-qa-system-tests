@@ -93,7 +93,7 @@ def create_mock_campaign(vela_db_session: "Session") -> Generator:
     vela_db_session.commit()
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def create_config_and_vouchers(carina_db_session: "Session") -> Generator:
     voucher_config: Optional[VoucherConfig] = None
 
