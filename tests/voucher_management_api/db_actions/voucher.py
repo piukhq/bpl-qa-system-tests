@@ -22,20 +22,32 @@ def get_count_unallocated_vouchers_by_voucher_config(
 
 
 def get_voucher_configs_ids_by_retailer(carina_db_session: "Session", retailer_slug: str) -> list[int]:
-    return carina_db_session.scalars(select(VoucherConfig.id).where(VoucherConfig.retailer_slug == retailer_slug)).all()
+    return (
+        carina_db_session.execute(select(VoucherConfig.id).where(VoucherConfig.retailer_slug == retailer_slug))
+        .scalars()
+        .all()
+    )
 
 
 def get_voucher_config(carina_db_session: "Session", retailer_slug: str) -> VoucherConfig:
-    return carina_db_session.scalar(select(VoucherConfig).where(VoucherConfig.retailer_slug == retailer_slug))
+    return (
+        carina_db_session.execute(select(VoucherConfig).where(VoucherConfig.retailer_slug == retailer_slug))
+        .scalars()
+        .first()
+    )
 
 
 def get_voucher_config_with_available_vouchers(carina_db_session: "Session", retailer_slug: str) -> VoucherConfig:
-    return carina_db_session.scalar(
-        select(VoucherConfig).where(
-            VoucherConfig.retailer_slug == retailer_slug,
-            Voucher.voucher_config_id == VoucherConfig.id,
-            Voucher.allocated.is_(False),
+    return (
+        carina_db_session.execute(
+            select(VoucherConfig).where(
+                VoucherConfig.retailer_slug == retailer_slug,
+                Voucher.voucher_config_id == VoucherConfig.id,
+                Voucher.allocated.is_(False),
+            )
         )
+        .scalars()
+        .first()
     )
 
 
