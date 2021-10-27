@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers, then, when
 from pytest_bdd.parsers import parse
+from retry_tasks_lib.enums import RetryTaskStatuses
 
 from db.carina.models import Voucher, VoucherConfig
 from tests.voucher_management_api.api_requests.voucher_allocation import (
@@ -15,10 +16,11 @@ from tests.voucher_management_api.api_requests.voucher_allocation import (
 )
 from tests.voucher_management_api.db_actions.voucher import (
     get_allocated_voucher,
-    get_count_unallocated_vouchers,
-    get_count_voucher_configs,
+    get_count_unallocated_vouchers_by_voucher_config,
+    get_voucher_configs_ids_by_retailer,
     get_last_created_voucher_allocation,
     get_voucher_config,
+    get_voucher_config_with_available_vouchers,
 )
 from tests.voucher_management_api.payloads.voucher_allocation import (
     get_malformed_request_body,
@@ -32,9 +34,12 @@ if TYPE_CHECKING:
 voucher_allocation_responses = VoucherAllocationResponses
 
 
-@given(parsers.parse("there are vouchers that can be allocated"))
-def check_vouchers(carina_db_session: "Session") -> None:
-    count_unallocated_vouchers = get_count_unallocated_vouchers(carina_db_session=carina_db_session)
+@given(parsers.parse("there are vouchers that can be allocated for the existing voucher configs"))
+def check_vouchers(carina_db_session: "Session", request_context: dict) -> None:
+
+    count_unallocated_vouchers = get_count_unallocated_vouchers_by_voucher_config(
+        carina_db_session=carina_db_session, voucher_configs_ids=request_context["voucher_configs_ids"]
+    )
     logging.info(
         "checking that voucher table containers at least 1 voucher that can be allocated, "
         f"found: {count_unallocated_vouchers}"
@@ -43,13 +48,17 @@ def check_vouchers(carina_db_session: "Session") -> None:
 
 
 @given(parse("there are at least {amount:d} voucher configs for {retailer_slug}"))
-def check_voucher_configs(carina_db_session: "Session", amount: int, retailer_slug: str) -> None:
-    count_voucher_configs = get_count_voucher_configs(carina_db_session=carina_db_session, retailer_slug=retailer_slug)
+def check_voucher_configs(carina_db_session: "Session", amount: int, retailer_slug: str, request_context: dict) -> None:
+    voucher_configs_ids = get_voucher_configs_ids_by_retailer(
+        carina_db_session=carina_db_session, retailer_slug=retailer_slug
+    )
+    count_voucher_configs = len(voucher_configs_ids)
     logging.info(
         "checking that voucher config table containers at least 1 config for retailer {retailer_slug}, "
         f"found: {count_voucher_configs}"
     )
     assert count_voucher_configs >= amount
+    request_context["voucher_configs_ids"] = voucher_configs_ids
 
 
 @then(parsers.parse("a Voucher code will be allocated asynchronously"))
@@ -58,11 +67,15 @@ def check_async_voucher_allocation(carina_db_session: "Session", request_context
     voucher_allocation_task = get_last_created_voucher_allocation(
         carina_db_session=carina_db_session, voucher_config_id=request_context["voucher_config"].id
     )
+
+    assert voucher_allocation_task != RetryTaskStatuses.WAITING
+
     voucher = carina_db_session.query(Voucher).filter_by(id=voucher_allocation_task.get_params()["voucher_id"]).one()
     assert voucher.allocated
     assert voucher.id
 
     request_context["voucher_allocation"] = voucher_allocation_task
+    request_context["voucher_allocation_task_params"] = voucher_allocation_task.get_params()
 
 
 @then(
@@ -73,14 +86,13 @@ def check_async_voucher_allocation(carina_db_session: "Session", request_context
 )
 def check_voucher_allocation_expiry_date(carina_db_session: "Session", request_context: dict) -> None:
     """Check that validity_days have been used to assign an expiry date"""
-    voucher_allocation = request_context["voucher_allocation"]
     # TODO: it may be possible to put back the check for hours ("%Y-%m-%d %H") once
     # https://hellobink.atlassian.net/browse/BPL-129 is done
     date_time_format = "%Y-%m-%d"
     now = datetime.utcnow()
-    expiry_datetime: str = datetime.fromtimestamp(voucher_allocation.expiry_date, tz=timezone.utc).strftime(
-        date_time_format
-    )
+    expiry_datetime: str = datetime.fromtimestamp(
+        request_context["voucher_allocation_task_params"]["expiry_date"], tz=timezone.utc
+    ).strftime(date_time_format)
     expected_expiry: str = (now + timedelta(days=request_context["voucher_config"].validity_days)).strftime(
         date_time_format
     )
@@ -89,7 +101,7 @@ def check_voucher_allocation_expiry_date(carina_db_session: "Session", request_c
 
 @then(parsers.parse("a POST to /vouchers will be made to update the users account with the voucher allocation"))
 def check_voucher_created(polaris_db_session: "Session", request_context: dict) -> None:
-    voucher = get_allocated_voucher(polaris_db_session, request_context["voucher_allocation"].voucher_id)
+    voucher = get_allocated_voucher(polaris_db_session, request_context["voucher_allocation_task_params"]["voucher_id"])
     assert voucher.account_holder_id == request_context["account_holder_uuid"]
     assert voucher.voucher_type_slug == request_context["voucher_config"].voucher_type_slug
     assert voucher.issued_date is not None
@@ -106,7 +118,9 @@ def check_voucher_created(polaris_db_session: "Session", request_context: dict) 
 def send_post_voucher_allocation_request(
     carina_db_session: "Session", retailer_slug: str, token: str, request_context: dict
 ) -> None:
-    voucher_config: VoucherConfig = get_voucher_config(carina_db_session=carina_db_session, retailer_slug=retailer_slug)
+    voucher_config: VoucherConfig = get_voucher_config_with_available_vouchers(
+        carina_db_session=carina_db_session, retailer_slug=retailer_slug
+    )
     payload = get_voucher_allocation_payload(request_context)
     if token == "valid":
         auth = True
