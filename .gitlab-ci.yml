@@ -5,23 +5,24 @@ stages:
 default:
   image: ghcr.io/binkhq/python:3.9
 
-complexity:
-  stage: tests
+test:style: &test
+  stage: test
+  before_script:
+    - pipenv install --dev --system --deploy --ignore-pipfile
+    - pip freeze
   script:
-    - pip install xenon flake8_polyfill
-    - xenon --max-average A --max-modules B --max-absolute B .
+    - flake8
+    - black --check .
 
-style:
-  stage: tests
+test:complexity:
+  <<: *test
   script:
-    - pip install flake8 black
-    - flake8 && black --line-length 120 --check .
+    - xenon --no-assert --max-average A --max-modules B --max-absolute B .
 
-type-check:
-  stage: tests
+test:type-check:
+  <<: *test
   script:
-    - pip install mypy sqlalchemy-stubs types-requests
-    - mypy --config-file .mypy.ini .
+    - mypy .
 
 master:
   stage: master
