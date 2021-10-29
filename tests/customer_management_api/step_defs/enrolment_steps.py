@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 
 from pytest_bdd import given, parsers, then, when
 from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue
-from sqlalchemy.future import select  # type: ignore
+from sqlalchemy.future import select
 
 import settings
 
