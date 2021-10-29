@@ -1,5 +1,5 @@
 stages:
-  - tests
+  - test
   - master
 
 default:
