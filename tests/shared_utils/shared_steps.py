@@ -61,6 +61,7 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
             status=account_status,
         )
         polaris_db_session.add(account_holder)
+        polaris_db_session.flush()
 
     else:
         account_holder.status = account_status

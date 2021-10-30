@@ -26,7 +26,7 @@ status_change_responses = CampaignStatusResponses
 
 
 def _change_campaign_status(vela_db_session: "Session", campaign: Campaign, requested_status: CampaignStatuses) -> None:
-    campaign.status = requested_status  # type: ignore
+    campaign.status = requested_status
     vela_db_session.commit()
 
 

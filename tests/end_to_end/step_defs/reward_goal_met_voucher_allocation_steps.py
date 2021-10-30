@@ -88,7 +88,7 @@ def check_or_make_unallocated_vouchers(
         carina_db_session.execute(
             select(Voucher)
             .join(VoucherConfig)
-            .where(Voucher.retailer_slug == retailer_slug)  # type: ignore  # "Join" has no attribute "where" (?)
+            .where(Voucher.retailer_slug == retailer_slug)
             .where(Voucher.voucher_config == voucher_config)
             .where(Voucher.allocated.is_(False))
         )

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Callable, List
 
 from pytest_bdd import given, parsers, then
 from sqlalchemy import Date
-from sqlalchemy.future import select  # type: ignore
+from sqlalchemy.future import select
 
 from db.carina.models import Voucher, VoucherConfig, VoucherUpdate
 from db.polaris.models import AccountHolderVoucher

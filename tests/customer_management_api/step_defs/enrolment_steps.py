@@ -6,10 +6,12 @@ from time import sleep
 from typing import TYPE_CHECKING, Optional
 
 from pytest_bdd import given, parsers, then, when
+from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue
+from sqlalchemy.future import select
 
 import settings
 
-from db.polaris.models import AccountHolder, AccountHolderActivation
+from db.polaris.models import AccountHolder
 from tests.customer_management_api.api_requests.enrolment import (
     send_invalid_post_enrolment,
     send_malformed_post_enrolment,
@@ -21,7 +23,7 @@ from tests.customer_management_api.db_actions.account_holder import (
     get_account_holder,
     get_account_holder_profile,
 )
-from tests.customer_management_api.db_actions.account_holder_activation import get_account_holder_activation
+from tests.customer_management_api.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
 from tests.customer_management_api.db_actions.retailer import get_retailer
 from tests.customer_management_api.payloads.enrolment import (
     all_required_and_all_optional_credentials,
@@ -205,41 +207,45 @@ def check_account_holder_is_saved_in_db(polaris_db_session: "Session", request_c
     assert get_account_holder_from_request_data(polaris_db_session, request_context) is not None
 
 
-@then(parsers.parse("an account holder activation is saved in the database"))
+@then(parsers.parse("an enrolment callback task is saved in the database"))
 def check_account_holder_activation_is_saved_in_db(polaris_db_session: "Session", request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
-    assert activation is not None
-    assert settings.MOCK_SERVICE_BASE_URL in activation.callback_url
-    assert activation.third_party_identifier == "identifier"
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    assert callback_task is not None
+    assert settings.MOCK_SERVICE_BASE_URL in callback_task.get_params()["callback_url"]
+    assert callback_task.get_params()["third_party_identifier"] == "identifier"
 
 
 @then(parsers.parse("the enrolment callback is tried"))
 def check_enrolment_callback_is_tried(polaris_db_session: "Session", request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
     for i in range(1, 18):  # 3 minute wait
-        logging.info(f"Sleeping for 10 seconds while waiting for callback attempt ({activation.account_holder_id})...")
+        logging.info(
+            f"Sleeping for 10 seconds while waiting for callback attempt "
+            f"({callback_task.get_params()['account_holder_uuid']})..."
+        )
         sleep(10)
-        polaris_db_session.refresh(activation)
-        if activation.attempts > 0:
+        polaris_db_session.refresh(callback_task)
+        if callback_task.attempts > 0:
             break
-    assert activation.attempts > 0
+    assert callback_task.attempts > 0
 
 
 @then(parsers.parse("the account holder activation is in {status} state"))
 def check_enrolment_callback_status(polaris_db_session: "Session", status: str, request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
-    assert account_holder is not None
-    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
-    assert activation.status == status.upper()
+    assert account_holder
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    assert callback_task is not None
+    assert callback_task.status.name == status.upper()
 
 
 def assert_account_holder_activation_status_transition(
     polaris_db_session: "Session",
-    activation: AccountHolderActivation,
+    callback_task: RetryTask,
     *,
     new_status: str,
     # Note: This corresponds to up to 3 minutes wait time.
@@ -247,20 +253,20 @@ def assert_account_holder_activation_status_transition(
     # the number of retries is adjusted as the retry backs off.
     wait_times: int = 18,
     wait_duration_secs: int = 10,
-) -> AccountHolderActivation:
+) -> RetryTask:
     for _ in range(wait_times):
         # wait for callback process to handle the callback
         logging.info(f"Sleeping for {wait_duration_secs} seconds...")
         sleep(wait_duration_secs)
-        polaris_db_session.refresh(activation)
-        if activation.status == new_status:
+        polaris_db_session.refresh(callback_task)
+        if callback_task.status.name == new_status:
             break
         else:
             logging.info(
                 f"Still waiting for callback status transition to {new_status} "
-                f"({activation.account_holder_id} status: {activation.status})"
+                f"({callback_task.get_params()['account_holder_uuid']} status: {callback_task.status})"
             )
-    assert activation.status == new_status
+    assert callback_task.status.name == new_status
 
 
 @then(parsers.parse("the account holder activation completes successfully"))
@@ -269,8 +275,8 @@ def check_account_holder_activation_completes_successfully(
 ) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
-    assert_account_holder_activation_status_transition(polaris_db_session, activation, new_status="SUCCESS")
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    assert_account_holder_activation_status_transition(polaris_db_session, callback_task, new_status="SUCCESS")
 
 
 @then(parsers.parse("the account holder activation is marked as {status} and is not retried"))
@@ -279,9 +285,9 @@ def check_account_holder_activation_is_failed(
 ) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
-    assert_account_holder_activation_status_transition(polaris_db_session, activation, new_status=status)
-    assert activation.next_attempt_time is None
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    assert_account_holder_activation_status_transition(polaris_db_session, callback_task, new_status=status)
+    assert callback_task.next_attempt_time is None
 
 
 def get_callback_url(
@@ -311,11 +317,22 @@ def alter_callback_url(
 ) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    activation = get_account_holder_activation(polaris_db_session, account_holder.id)
-    activation.callback_url = get_callback_url(
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    key_val = (
+        polaris_db_session.execute(
+            select(TaskTypeKeyValue)
+            .join(TaskTypeKey)
+            .where(
+                TaskTypeKeyValue.retry_task_id == callback_task.retry_task_id,
+                TaskTypeKey.name == "callback_url",
+            )
+        )
+        .unique()
+        .scalar_one()
+    )
+    key_val.value = get_callback_url(
         status_code=status_code, num_failures=num_failures, timeout_seconds=timeout_seconds
     )
-    polaris_db_session.add(activation)
     polaris_db_session.commit()
 
 

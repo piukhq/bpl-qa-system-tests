@@ -79,7 +79,7 @@ def create_mock_campaign(vela_db_session: "Session") -> Generator:
         :return: Callable function
         """
 
-        mock_campaign_params.update(campaign_params)  # type: ignore
+        mock_campaign_params.update(campaign_params)
         nonlocal mock_campaign
         mock_campaign = Campaign(**mock_campaign_params, retailer_id=retailer.id)
         vela_db_session.add(mock_campaign)
