@@ -1,15 +1,12 @@
 [[source]]
-name = "bypi"
-url = "https://269fdc63-af3d-4eca-8101-8bddc22d6f14:b694b5b1-f97e-49e4-959e-f3c202e3ab91@pypi.tools.bink.sh/simple"
-verify_ssl = true
-
-[[source]]
-name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
+name = "pypi"
 
-[requires]
-python_version = "3.9"
+[[source]]
+url = "https://bink-libs:y6nzdKbo9J6MkEmwvB-i@git.bink.com/api/v4/groups/86/-/packages/pypi/simple"
+verify_ssl = true
+name = "gitlab-libraries"
 
 [packages]
 pytest-bdd = "*"
@@ -17,13 +14,14 @@ azure-keyvault = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 cryptography = "*"
-azure-storage-blob = "*"
+azure-storage-blob = "!=12.9.0"
 azure-identity = "*"
 pytest-html = "*"
 apscheduler = "*"
 faker = "*"
 python-dotenv = "*"
 deepdiff = "*"
+retry-tasks-lib = {version=">=1.7.1", index="gitlab-libraries"}
 
 [dev-packages]
 black = "==20.8b1"
@@ -31,4 +29,7 @@ flake8 = "*"
 mypy = "*"
 isort = "*"
 xenon = "*"
-sqlalchemy-stubs = "*"
+types-requests = "*"
+
+[requires]
+python_version = "3.9"

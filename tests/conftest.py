@@ -1,6 +1,7 @@
 import logging
 import uuid
 
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Generator, Optional
 
 import pytest
@@ -10,6 +11,7 @@ from sqlalchemy import delete
 from db.carina.models import Voucher, VoucherConfig
 from db.carina.session import CarinaSessionMaker
 from db.polaris.session import PolarisSessionMaker
+from db.vela.models import Campaign, CampaignStatuses, RetailerRewards
 from db.vela.session import VelaSessionMaker
 
 if TYPE_CHECKING:
@@ -58,7 +60,40 @@ def vela_db_session() -> Generator:
         yield db_session
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
+def create_mock_campaign(vela_db_session: "Session") -> Generator:
+    mock_campaign: Campaign = None
+
+    mock_campaign_params = {
+        "status": CampaignStatuses.ACTIVE,
+        "name": "testcampaign",
+        "slug": "test-campaign",
+        "start_date": datetime.utcnow() - timedelta(minutes=5),
+        "earn_inc_is_tx_value": True,
+    }
+
+    def _create_mock_campaign(retailer: RetailerRewards, **campaign_params: dict) -> Campaign:
+        """
+        Create a campaign in the DB
+        :param campaign_params: override any values for the campaign, from what the default dict provides
+        :return: Callable function
+        """
+
+        mock_campaign_params.update(campaign_params)
+        nonlocal mock_campaign
+        mock_campaign = Campaign(**mock_campaign_params, retailer_id=retailer.id)
+        vela_db_session.add(mock_campaign)
+        vela_db_session.commit()
+
+        return mock_campaign
+
+    yield _create_mock_campaign
+
+    vela_db_session.delete(mock_campaign)
+    vela_db_session.commit()
+
+
+@pytest.fixture(scope="function")
 def create_config_and_vouchers(carina_db_session: "Session") -> Generator:
     voucher_config: Optional[VoucherConfig] = None
 
@@ -100,3 +135,32 @@ def create_config_and_vouchers(carina_db_session: "Session") -> Generator:
         carina_db_session.execute(delete(Voucher).where(Voucher.voucher_config_id == voucher_config.id))
         carina_db_session.delete(voucher_config)
         carina_db_session.commit()
+
+
+@pytest.fixture(scope="function")
+def create_mock_retailer(vela_db_session: "Session") -> Generator:
+    mock_retailer: RetailerRewards = None
+
+    mock_retailer_params = {
+        "slug": "automated-test-retailer",
+    }
+
+    def _create_mock_retailer(**retailer_params: dict) -> RetailerRewards:
+        """
+        Create a retailer in the Vela DB
+        :param retailer_params: override any values for the retailer, from what the default dict provides
+        :return: Callable function
+        """
+
+        mock_retailer_params.update(retailer_params)  # type: ignore
+        nonlocal mock_retailer
+        mock_retailer = RetailerRewards(**mock_retailer_params)
+        vela_db_session.add(mock_retailer)
+        vela_db_session.commit()
+
+        return mock_retailer
+
+    yield _create_mock_retailer
+
+    vela_db_session.delete(mock_retailer)
+    vela_db_session.commit()

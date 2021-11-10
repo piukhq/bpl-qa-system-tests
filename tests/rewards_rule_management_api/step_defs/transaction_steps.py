@@ -107,8 +107,8 @@ def expected_new_balance_is_over_reward_goal(request_context: dict, vela_db_sess
         )
         .first()
     )
-    reward_rule = campaign.reward_rule_collection[0]  # type: ignore
-    earn_rule = campaign.earn_rule_collection[0]  # type: ignore
+    reward_rule = campaign.reward_rule_collection[0]
+    earn_rule = campaign.earn_rule_collection[0]
     request_context["campaign"] = campaign
     request_context["reward_rule"] = reward_rule
     request_context["earn_rule"] = earn_rule

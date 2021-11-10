@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Callable, Literal, Optional, Union
 
 from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
-from sqlalchemy.future import select  # type: ignore
+from sqlalchemy.future import select
 
 from db.carina.models import VoucherConfig
 from settings import CARINA_BASE_URL, VOUCHER_MANAGEMENT_API_TOKEN

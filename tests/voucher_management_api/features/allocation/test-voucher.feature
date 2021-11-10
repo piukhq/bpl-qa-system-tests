@@ -5,12 +5,11 @@ Feature: Allocate a specific voucher type to an account
   from other BPL internal systems so that a customer can be issued a voucher and their Account updated.
   Using the POST /{retailer_slug}/vouchers/{voucher_type_slug}/allocation endpoint
 
-
   Scenario: Allocate a specific voucher type to an account for test-retailer with a valid voucher_type_slug
 
     Given A active account holder exists for test-retailer
-    And there are vouchers that can be allocated
     And there are at least 1 voucher configs for test-retailer
+    And there are vouchers that can be allocated for the existing voucher configs
     When I perform a POST operation against the allocation endpoint for a test-retailer account holder with a valid auth token
     Then I receive a HTTP 202 status code response
     And a Voucher code will be allocated asynchronously
@@ -21,8 +20,8 @@ Feature: Allocate a specific voucher type to an account
   Scenario:  Allocate a specific voucher type to an account for test-retailer with an invalid voucher_type_slug
 
     Given A active account holder exists for test-retailer
-    And there are vouchers that can be allocated
     And there are at least 1 voucher configs for test-retailer
+    And there are vouchers that can be allocated for the existing voucher configs
     When I perform a POST operation against the allocation endpoint for a test-retailer account holder with a invalid auth token
     Then I receive a HTTP 401 status code response
     And I get a invalid_token voucher allocation response body

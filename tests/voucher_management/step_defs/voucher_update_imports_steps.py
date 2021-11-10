@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Callable, List
 
 from pytest_bdd import given, parsers, then
 from sqlalchemy import Date
-from sqlalchemy.future import select  # type: ignore
+from sqlalchemy.future import select
 
 from db.carina.models import Voucher, VoucherConfig, VoucherUpdate
 from db.polaris.models import AccountHolderVoucher
@@ -188,7 +188,7 @@ def check_account_holder_voucher_statuses(request_context: dict, polaris_db_sess
     assert len(allocated_vouchers_codes) == len(account_holder_vouchers)
 
     for account_holder_voucher in account_holder_vouchers:
-        for i in range(5):
+        for i in range(6):
             sleep(i)
             if account_holder_voucher.status != "ISSUED":
                 break

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Callable, Dict, Generator, List, Optional
 import pytest
 
 from sqlalchemy import delete
-from sqlalchemy.future import select  # type: ignore
+from sqlalchemy.future import select
 
 from azure_actions.blob_storage import put_new_available_vouchers_file, put_new_voucher_updates_file
 from db.carina.models import Voucher, VoucherConfig

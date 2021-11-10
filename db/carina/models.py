@@ -8,5 +8,4 @@ Base.prepare(engine, reflect=True)
 # get models from Base mapping
 Voucher = Base.classes.voucher
 VoucherConfig = Base.classes.voucher_config
-VoucherAllocation = Base.classes.voucher_allocation
 VoucherUpdate = Base.classes.voucher_update
