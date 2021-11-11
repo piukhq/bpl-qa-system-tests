@@ -23,7 +23,7 @@ Feature: Cancel a voucher type for a retailer
     Given there are no voucher configurations for invalid-test-retailer
     When I perform a PATCH operation against the incorrect voucher type status endpoint instructing a cancelled status change
     Then I receive a HTTP 403 status code response
-    And i receive invalid_retailer response message
+    And  I get a invalid_retailer status response body
 
   Scenario: Cancel voucher type for retailer (unknown voucher_type_slug)
 
@@ -31,7 +31,7 @@ Feature: Cancel a voucher type for a retailer
     When I perform a PATCH operation against the incorrect voucher type status endpoint instructing a cancelled status change
     Then I receive a HTTP 404 status code response
     And the status of the voucher config is ACTIVE
-    And I receive unknown_voucher response body
+    And I get a unknown_voucher_type status response body
 
   Scenario: Cancel voucher type for retailer (incorrect status transition)
 
@@ -39,7 +39,7 @@ Feature: Cancel a voucher type for a retailer
     When I perform a PATCH operation against the correct voucher type status endpoint instructing a cancelled status change
     Then I receive a HTTP 409 status code response
     And the status of the voucher config is CANCELLED
-    And I receive status update_failed response body
+    And I get a update_failed status response body
 
   Scenario: Alter voucher type for retailer (bad data)
 
@@ -47,7 +47,7 @@ Feature: Cancel a voucher type for a retailer
     When I perform a PATCH operation against the correct voucher type status endpoint instructing a bad-status status change
     Then I receive a HTTP 422 status code response
     And the status of the voucher config is ACTIVE
-    And I get a Field_validation message response body
+    And I get a failed_validation status response body
 
 
   Scenario: Cancel voucher type for retailer with invalid token

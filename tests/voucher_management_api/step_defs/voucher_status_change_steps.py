@@ -109,48 +109,22 @@ def check_voucher_config_status(carina_db_session: "Session", new_status: str, r
     assert voucher_config_status == new_status, f"{voucher_config_status} != {new_status}"
 
 
-@then(parse("I get a {invalid_token} status response body"))
-def check_invalid_token_status(request_context: dict) -> None:
-    expected_response_body = {"display_message": "Supplied token is invalid.", "error": "INVALID_TOKEN"}
+@then(parse("I get a {response_type} status response body"))
+def check_response(request_context: dict, response_type: str) -> None:
+    expected_response_body = response_types[response_type]
     resp = request_context["response"]
     logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
     assert resp.json() == expected_response_body
 
 
-@then(parse("i receive {invalid_retailer} response message"))
-def check_invalid_retailer(request_context: dict) -> None:
-    expected_response_body = {"display_message": "Requested retailer is invalid.", "error": "INVALID_RETAILER"}
-    resp = request_context["response"]
-    logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
-    assert resp.json() == expected_response_body
-
-
-@then(parse("I receive {unknown_voucher} response body"))
-def check_unknown_voucher_type(request_context: dict) -> None:
-    expected_response_body = {"display_message": "Voucher Type Slug does not exist.", "error": "UNKNOWN_VOUCHER_TYPE"}
-    resp = request_context["response"]
-    logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
-    assert resp.json() == expected_response_body
-
-
-@then(parse("I receive status {update_failed} response body"))
-def check_status_update_fail(request_context: dict) -> None:
-    expected_response_body = {
-        "display_message": "Status could not be updated as requested",
-        "error": "STATUS_UPDATE_FAILED",
-    }
-    resp = request_context["response"]
-    logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
-    assert resp.json() == expected_response_body
-
-
-@then(parse("I get a {Field_validation} message response body"))
-def check_field_validation_status(request_context: dict) -> None:
-    expected_response_body = {
+response_types = {
+    "invalid_token": {"display_message": "Supplied token is invalid.", "error": "INVALID_TOKEN"},
+    "invalid_retailer": {"display_message": "Requested retailer is invalid.", "error": "INVALID_RETAILER"},
+    "unknown_voucher_type": {"display_message": "Voucher Type Slug does not exist.", "error": "UNKNOWN_VOUCHER_TYPE"},
+    "update_failed": {"display_message": "Status could not be updated as requested", "error": "STATUS_UPDATE_FAILED"},
+    "failed_validation": {
         "display_message": "Submitted fields are missing or invalid.",
         "error": "FIELD_VALIDATION_ERROR",
         "fields": ["status"],
-    }
-    resp = request_context["response"]
-    logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
-    assert resp.json() == expected_response_body
+    },
+}
