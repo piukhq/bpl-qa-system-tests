@@ -157,6 +157,7 @@ def create_mock_vouchers(
                     status="ISSUED",
                     voucher_type_slug=voucher_config.voucher_type_slug,
                     retailer_slug=voucher_config.retailer_slug,
+                    idempotency_token=str(uuid.uuid4()),
                 )
                 polaris_db_session.add(mock_account_holder_voucher)
                 mock_account_holder_vouchers.append(mock_account_holder_voucher)
