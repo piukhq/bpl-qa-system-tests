@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING, Union
 
 from settings import CARINA_BASE_URL, VOUCHER_MANAGEMENT_API_TOKEN
@@ -26,6 +27,7 @@ def send_post_voucher_allocation(
     retailer_slug: str, voucher_type_slug: str, request_body: dict, auth: bool = True
 ) -> "Response":
     headers = default_headers.copy()
+    headers["Idempotency-Token"] = str(uuid.uuid4())
     if auth is False:
         headers["Authorization"] = "wrong token"
 

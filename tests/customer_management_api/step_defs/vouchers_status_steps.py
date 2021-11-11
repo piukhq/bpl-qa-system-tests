@@ -49,6 +49,8 @@ def setup_account_holder_voucher(voucher_status: str, request_context: dict, pol
             voucher_type_slug="test-voucher-type",
             account_holder_id=account_holder_uuid,
             status=status,
+            retailer_slug="test-retailer",
+            idempotency_token=str(uuid4()),
         )
         polaris_db_session.add(voucher)
     else:

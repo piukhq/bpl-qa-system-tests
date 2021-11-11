@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from typing import TYPE_CHECKING, Literal, Optional, Union
 
@@ -21,6 +22,7 @@ def send_post_accounts_voucher(
     headers: Optional[dict] = None,
 ) -> "Response":
     headers = headers or default_headers.copy()
+    headers["Idempotency-Token"] = str(uuid.uuid4())
     logging.info(f"Headers for POST Vouchers API : {headers}")
     if token_validity == "invalid":
         headers = headers | {"Authorization": "WRONG TOKEN"}
