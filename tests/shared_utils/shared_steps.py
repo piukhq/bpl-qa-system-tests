@@ -1,10 +1,11 @@
+import json
 import logging
 
 from pytest_bdd import given, parsers, then
+from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
-from sqlalchemy.future import select
-from db.polaris.models import AccountHolder, RetailerConfig, AccountHolderCampaignBalance
+from db.polaris.models import AccountHolder, AccountHolderCampaignBalance, RetailerConfig
 from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 
 
@@ -83,7 +84,9 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
 @then(parsers.parse("I receive a HTTP {status_code:d} status code response"))
 def check_response_status_code(status_code: int, request_context: dict) -> None:
     resp = request_context["response"]
-    logging.info(f"response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response HTTP status code: {resp.status_code}" f"Response status :{json.dumps(resp.json(), indent=4)}"
+    )
     assert resp.status_code == status_code
 
 

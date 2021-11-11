@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Callable, List, Optional
 from pytest_bdd import given, parsers, then
 from sqlalchemy.future import select
 
-from db.carina.models import VoucherConfig, Voucher
+from db.carina.models import Voucher, VoucherConfig
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session

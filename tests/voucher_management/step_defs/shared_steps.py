@@ -8,7 +8,7 @@ from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient
 from pytest_bdd import parsers, then
 
-from settings import BLOB_ARCHIVE_CONTAINER, BLOB_STORAGE_DSN, BLOB_ERROR_CONTAINER
+from settings import BLOB_ARCHIVE_CONTAINER, BLOB_ERROR_CONTAINER, BLOB_STORAGE_DSN
 
 
 @then(parsers.parse("the file is moved to the {container_type} container by the voucher importer"))

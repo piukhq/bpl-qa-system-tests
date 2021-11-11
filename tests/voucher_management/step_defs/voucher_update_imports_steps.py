@@ -11,7 +11,6 @@ from sqlalchemy.future import select
 from db.carina.models import Voucher, VoucherConfig, VoucherUpdate
 from db.polaris.models import AccountHolderVoucher
 
-
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 

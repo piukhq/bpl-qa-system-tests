@@ -1,3 +1,4 @@
+import logging
 import os
 
 from datetime import datetime
@@ -5,8 +6,9 @@ from typing import List, Optional
 
 from azure.core.exceptions import HttpResponseError
 from azure.storage.blob import BlobClient, BlobType, ContentSettings
+
 from db.carina.models import Voucher
-from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, REPORT_CONTAINER, REPORT_DIRECTORY, logger, LOCAL
+from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, LOCAL, REPORT_CONTAINER, REPORT_DIRECTORY, logger
 
 
 def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> BlobClient:
@@ -42,6 +44,7 @@ def put_new_available_vouchers_file(
         path_elems.insert(2, voucher_type_slug)
     blob_path = os.path.join(*path_elems)
     content = "\n".join([voucher_code for voucher_code in voucher_codes])
+    logging.info(f"content of csv file upload: {content}")
     return upload_blob(blob_path, content)
 
 

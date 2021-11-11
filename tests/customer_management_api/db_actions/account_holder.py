@@ -1,10 +1,11 @@
 from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Optional, Union
+
 from sqlalchemy.future import select
-from db.polaris.models import AccountHolder, AccountHolderProfile, AccountHolderVoucher, RetailerConfig
 from sqlalchemy.orm import joinedload
 
+from db.polaris.models import AccountHolder, AccountHolderProfile, AccountHolderVoucher, RetailerConfig
 
 if TYPE_CHECKING:
     from uuid import UUID
