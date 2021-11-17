@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 
 from datetime import datetime
 from typing import List, Optional
@@ -27,8 +28,7 @@ def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> Bl
     return blob
 
 
-def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Voucher]) -> BlobClient:
-    blob_name = "test_import.csv"
+def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Voucher], blob_name: str) -> BlobClient:
     blob_path = os.path.join(retailer_slug, "voucher-updates", blob_name)
     today_date = datetime.now().strftime("%Y-%m-%d")
     content = "\n".join([f"{voucher.voucher_code},{today_date},redeemed" for voucher in vouchers])
@@ -38,7 +38,7 @@ def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Voucher]) ->
 def put_new_available_vouchers_file(
     retailer_slug: str, voucher_codes: List[str], voucher_type_slug: Optional[str] = None
 ) -> BlobClient:
-    blob_name = "test_import.csv"
+    blob_name = f"test_import_{uuid.uuid4()}.csv"
     path_elems = [retailer_slug, "available-vouchers", blob_name]
     if voucher_type_slug:
         path_elems.insert(2, voucher_type_slug)

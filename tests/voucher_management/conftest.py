@@ -9,8 +9,9 @@ from sqlalchemy import delete
 from sqlalchemy.future import select
 
 from azure_actions.blob_storage import put_new_available_vouchers_file, put_new_voucher_updates_file
-from db.carina.models import Voucher, VoucherConfig
+from db.carina.models import Voucher, VoucherConfig, VoucherFileLog
 from db.polaris.models import AccountHolder, AccountHolderVoucher, RetailerConfig
+from enums import FileAgentType
 from settings import BLOB_STORAGE_DSN, logger
 
 if TYPE_CHECKING:
@@ -51,13 +52,15 @@ def upload_available_vouchers_to_blob_storage() -> Callable:
 
 @pytest.fixture(scope="function")
 def upload_voucher_updates_to_blob_storage() -> Callable:
-    def func(retailer_slug: str, vouchers: List[Voucher]) -> Optional[str]:
+    def func(retailer_slug: str, vouchers: List[Voucher], blob_name: str = None) -> Optional[str]:
         """Upload some voucher updates to blob storage to test end-to-end import"""
         blob = None
+        if blob_name is None:
+            blob_name = f"test_import_{uuid.uuid4()}.csv"
 
         if BLOB_STORAGE_DSN:
             logger.debug(f"Uploading voucher updates to blob storage for {retailer_slug}...")
-            blob = put_new_voucher_updates_file(retailer_slug, vouchers)
+            blob = put_new_voucher_updates_file(retailer_slug=retailer_slug, vouchers=vouchers, blob_name=blob_name)
             logger.debug(f"Successfully uploaded voucher updates to blob storage: {blob.url}")
         else:
             logger.debug("No BLOB_STORAGE_DSN set, skipping voucher updates upload")
@@ -179,3 +182,31 @@ def create_mock_vouchers(
         polaris_db_session.delete(account_holder_voucher)
 
     polaris_db_session.commit()
+
+
+@pytest.fixture(scope="function")
+def create_mock_voucher_file_log(carina_db_session: "Session") -> Generator:
+    mock_voucher_file_log: VoucherFileLog = None
+
+    def func(file_name: str, file_agent_type: FileAgentType) -> VoucherFileLog:
+        """
+        Create a voucher file log in carina's test DB
+        :param file_name: a blob file name (full path)
+        :param file_agent_type: FileAgentType
+        :return: Callable function
+        """
+        params = {
+            "file_name": file_name,
+            "file_agent_type": file_agent_type,
+        }
+        mock_voucher_file_log = VoucherFileLog(**params)
+        carina_db_session.add(mock_voucher_file_log)
+        carina_db_session.commit()
+
+        return mock_voucher_file_log
+
+    yield func
+
+    if mock_voucher_file_log:
+        carina_db_session.delete(mock_voucher_file_log)
+        carina_db_session.commit()
