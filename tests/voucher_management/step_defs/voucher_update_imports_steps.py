@@ -2,14 +2,15 @@ import logging
 
 from datetime import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Callable, List
+from typing import TYPE_CHECKING, Callable, List, Optional
 
 from pytest_bdd import given, parsers, then
 from sqlalchemy import Date
 from sqlalchemy.future import select
 
-from db.carina.models import Voucher, VoucherConfig, VoucherUpdate
+from db.carina.models import Voucher, VoucherConfig, VoucherFileLog, VoucherUpdate
 from db.polaris.models import AccountHolderVoucher
+from enums import FileAgentType
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -51,6 +52,20 @@ def _get_voucher_row(carina_db_session: "Session", voucher_code: str, req_date: 
     )
 
 
+def _get_voucher_file_log(
+    carina_db_session: "Session", file_name: str, file_agent_type: FileAgentType
+) -> Optional[VoucherFileLog]:
+    return (
+        carina_db_session.execute(
+            select(VoucherFileLog).where(
+                VoucherFileLog.file_name == file_name, VoucherFileLog.file_agent_type == file_agent_type.name
+            )
+        )
+        .scalars()
+        .one_or_none()
+    )
+
+
 @given(parsers.parse("The voucher code provider provides a bulk update file for {retailer_slug}"))
 def voucher_updates_upload(
     retailer_slug: str,
@@ -74,10 +89,59 @@ def voucher_updates_upload(
             {"allocated": False},  # This one should end up being soft-deleted
         ],
     )
-    blob = upload_voucher_updates_to_blob_storage(retailer_slug, mock_vouchers)
+    blob = upload_voucher_updates_to_blob_storage(retailer_slug=retailer_slug, vouchers=mock_vouchers)
     assert blob
     request_context["mock_vouchers"] = mock_vouchers
     request_context["blob"] = blob
+
+
+@given(parsers.parse("The voucher code provider provides a bulk update file named {blob_name} for {retailer_slug}"))
+def voucher_updates_upload_blob_name(
+    blob_name: str,
+    retailer_slug: str,
+    get_voucher_config: Callable[[str, str], VoucherConfig],
+    create_mock_vouchers: Callable,
+    request_context: dict,
+    upload_voucher_updates_to_blob_storage: Callable,
+) -> None:
+    """
+    The fixture should place a CSV file onto blob storage, which a running instance of
+    carina (the scheduler job for doing these imports) will pick up and process, putting rows into carina's DB
+    for today's date.
+    """
+    # GIVEN
+    mock_vouchers: List[Voucher] = create_mock_vouchers(
+        voucher_config=get_voucher_config(retailer_slug, "10percentoff"),
+        n_vouchers=3,
+        voucher_overrides=[
+            {"allocated": True},
+            {"allocated": True},
+            {"allocated": False},  # This one should end up being soft-deleted
+        ],
+    )
+
+    blob = upload_voucher_updates_to_blob_storage(
+        retailer_slug=retailer_slug, vouchers=mock_vouchers, blob_name=blob_name
+    )
+
+    assert blob
+    request_context["mock_vouchers"] = mock_vouchers
+    request_context["blob"] = blob
+
+
+@given(parsers.parse("a {file_agent_type} voucher file log record exists for the file name {file_name}"))
+def check_for_voucher_file_log(
+    file_agent_type: str,
+    file_name: str,
+    request_context: dict,
+    create_mock_voucher_file_log: Callable,
+    carina_db_session: "Session",
+) -> None:
+    """Check that one either exists, or create a mock"""
+    if not _get_voucher_file_log(
+        carina_db_session=carina_db_session, file_name=file_name, file_agent_type=FileAgentType(file_agent_type)
+    ):
+        create_mock_voucher_file_log(file_name=file_name, file_agent_type=FileAgentType(file_agent_type))
 
 
 @then(parsers.parse("the file for {retailer_slug} is imported by the voucher management system"))
