@@ -23,7 +23,7 @@ associated entities are updated accordingly
 
     When I perform a POST operation against the status change endpoint for a Ended status for a NONEXISTANT campaign for a test-retailer retailer
     Then I receive a HTTP 404 status code response
-    And I get a no_campaign_found status change response body
+    And I get a list no_campaign_found status change response body
 
 
   Scenario: Send a POST status change request with the wrong payload
@@ -39,7 +39,7 @@ associated entities are updated accordingly
     Given test-retailer has at least 1 ACTIVE campaign(s)
     When I perform a POST operation against the status change endpoint with the correct payload for a Draft status for a test-retailer retailer with a valid auth token
     Then I receive a HTTP 409 status code response
-    And I get a invalid_status_requested status change response body
+    And I get a list invalid_status_requested status change response body
 
 
   Scenario: Send a POST status change request with a mix of legal and illegal state changes
@@ -49,9 +49,9 @@ associated entities are updated accordingly
     And test-retailer has at least 1 ENDED campaign(s)
     When I perform a POST operation against the status change endpoint with the correct payload for a Cancelled status for a test-retailer retailer with a valid auth token
     Then I receive a HTTP 409 status code response
-    And I get an incomplete status update response body
     And the legal campaign state change(s) are applied
     And the illegal campaign state change(s) are not made
+    And I get a list invalid_status_requested status change response body
 
     
   Scenario: Send a POST status change request and the retailer would be left with no active campaigns

@@ -1,9 +1,7 @@
 import json
 import logging
 import uuid
-
-from typing import TYPE_CHECKING, Callable
-from unittest.mock import ANY
+from typing import TYPE_CHECKING, Callable, Union
 
 from pytest_bdd import given, parsers, then, when
 
@@ -21,8 +19,6 @@ from tests.rewards_rule_management_api.response_fixtures.campaign_status import 
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
-
-status_change_responses = CampaignStatusResponses
 
 
 def _change_campaign_status(vela_db_session: "Session", campaign: Campaign, requested_status: CampaignStatuses) -> None:
@@ -89,7 +85,9 @@ def send_post_campaign_change_request(
     payload = {}
     if payload_type == "correct":
         payload = get_campaign_status_change_payload(request_context, status)
+        request_context["campaign_slugs"] = payload["campaign_slugs"]
     elif payload_type == "incorrect":
+        request_context["campaign_slugs"] = []
         payload = {
             "bad_field_1": 1,
             "bad_field_2": [2],
@@ -124,6 +122,7 @@ def send_post_nonexistent_campaign_change_request(
     resp = send_post_campaign_status_change(retailer_slug=retailer_slug, request_body=payload, auth=True)
 
     request_context["response"] = resp
+    request_context["campaign_slugs"] = payload["campaign_slugs"]
 
 
 @then(parsers.parse("the campaign status should be updated in Vela"))
@@ -157,24 +156,31 @@ def send_post_malformed_status_change_request(
 
 @then(parsers.parse("I get a {response_fixture} status change response body"))
 def check_status_change_response(response_fixture: str, request_context: dict) -> None:
-    expected_response_body = status_change_responses.get_json(response_fixture)
+    expected_response_body: Union[dict, list]
+
+    if "illegal_campaigns" in request_context:
+        error_slugs = request_context["illegal_campaigns"]
+    else:
+        error_slugs = request_context["campaign_slugs"]
+
+    if "list" in response_fixture:
+        try:
+            is_list, error = response_fixture.split(" ")
+        except ValueError:
+            raise ValueError(
+                f"wrong response_fixture format. expected: `list response_fixture`, got {response_fixture}"
+            )
+
+        expected_response_body = CampaignStatusResponses(((error, error_slugs),)).mixed_errors
+
+    else:
+        expected_response_body = CampaignStatusResponses.get_json(response_fixture)
+
     resp = request_context["response"]
     logging.info(
         f"POST campaign status change expected response: {json.dumps(expected_response_body, indent=4)}\n"
         f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}"
     )
-    assert resp.json() == expected_response_body
-
-
-@then(parsers.parse("I get an incomplete status update response body"))
-def check_incomplete_status_update_response(request_context: dict) -> None:
-    expected_response_body = {
-        "display_message": "Not all campaigns were updated as requested.",
-        "error": "INCOMPLETE_STATUS_UPDATE",
-        "failed_campaigns": [ANY, ANY],
-    }
-    resp = request_context["response"]
-    logging.info(f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}")
     assert resp.json() == expected_response_body
 
 
@@ -186,11 +192,15 @@ def check_legal_campaign_state_changes(vela_db_session: "Session", retailer_slug
 
 @then(parsers.parse("the illegal campaign state change(s) are not made"))
 def check_illegal_campaign_state_are_unchanged(vela_db_session: "Session", request_context: dict) -> None:
-    vela_db_session.refresh(request_context["active_campaigns"][1])
+    active_campaigns = request_context["active_campaigns"]
+
+    vela_db_session.refresh(active_campaigns[1])
     assert request_context["active_campaigns"][1].status == CampaignStatuses.DRAFT  # i.e. not changed
 
-    vela_db_session.refresh(request_context["active_campaigns"][2])
+    vela_db_session.refresh(active_campaigns[2])
     assert request_context["active_campaigns"][2].status == CampaignStatuses.ENDED  # i.e. not changed
+
+    request_context["illegal_campaigns"] = [active_campaigns[1].slug, active_campaigns[2].slug]
 
 
 @then(parsers.parse("the campaigns still have the {status} status"))
