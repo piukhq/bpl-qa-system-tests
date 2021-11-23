@@ -158,12 +158,12 @@ def send_post_malformed_status_change_request(
 def check_status_change_response(response_fixture: str, request_context: dict) -> None:
     expected_response_body: Union[dict, list]
 
-    if "illegal_campaigns" in request_context:
-        error_slugs = request_context["illegal_campaigns"]
-    else:
-        error_slugs = request_context["campaign_slugs"]
-
     if "list" in response_fixture:
+        if "illegal_campaigns" in request_context:
+            error_slugs = request_context["illegal_campaigns"]
+        else:
+            error_slugs = request_context["campaign_slugs"]
+
         try:
             is_list, error = response_fixture.split(" ")
         except ValueError:
