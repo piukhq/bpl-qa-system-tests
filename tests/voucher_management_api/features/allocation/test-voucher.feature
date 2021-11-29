@@ -16,7 +16,7 @@ Feature: Allocate a specific voucher type to an account
     And the expiry date is calculated using the expiry window for the voucher_type_slug from the Voucher Management Config
     And a POST to /vouchers will be made to update the users account with the voucher allocation
 
-
+  
   Scenario:  Allocate a specific voucher type to an account for test-retailer with an invalid voucher_type_slug
 
     Given A active account holder exists for test-retailer

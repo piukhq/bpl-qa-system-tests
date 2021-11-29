@@ -4,14 +4,14 @@ Feature: Bink BPL - Ensure that as a channel user I can not retrieve an account 
   Using the GET /test-retailer/accounts/[AccountHolder.id] endpoint
   I can not access the requested account holder details
 
-
+  
   Scenario: GET accounts request to retrieve an account holder for an invalid retailer
 
     When I send a get /accounts request for an invalid-retailer account holder by UUID
     Then I receive a HTTP 403 status code response
     And I get a invalid_retailer accounts response body
 
-
+  
   Scenario: GET accounts request to retrieve an account holder with an invalid authorisation token
 
     When I send a get /accounts request for a invalid-retailer account holder by UUID with an invalid authorisation token

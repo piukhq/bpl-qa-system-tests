@@ -14,7 +14,7 @@ Feature: Get a test-retailer account holder status
     Then I receive a HTTP 200 status code response
     And I get a success accounts status response body
 
-
+  
   Scenario: Get a non existent test-retailer account holder status by UUID
 
     Given The test-retailer account holder I want to retrieve does not exists

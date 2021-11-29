@@ -4,7 +4,7 @@ Feature: Post a balance adjustment for a test-retailer
   Using the POST [retailer_slug]/accounts/[account_holder_uuid]/adjustments endpoint
   I can adjust an account holder balance
 
-
+  @thisone
   Scenario: Successfully POST a balance adjustment
 
     Given I previously successfully enrolled a test-retailer account holder

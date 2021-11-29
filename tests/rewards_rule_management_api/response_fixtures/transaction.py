@@ -2,28 +2,28 @@ from tests.shared_utils.response_fixtures.errors import INVALID_RETAILER, INVALI
 
 DUPLICATE_TRANSACTION = {
     "display_message": "Duplicate Transaction.",
-    "error": "DUPLICATE_TRANSACTION",
+    "code": "DUPLICATE_TRANSACTION",
 }
 
 USER_NOT_FOUND = {
     "display_message": "Unknown User.",
-    "error": "USER_NOT_FOUND",
+    "code": "USER_NOT_FOUND",
 }
 
 USER_NOT_ACTIVE = {
     "display_message": "User Account not Active",
-    "error": "USER_NOT_ACTIVE",
+    "code": "USER_NOT_ACTIVE",
 }
 
 INVALID_CONTENT = {
     "display_message": "BPL Schema not matched.",
-    "error": "INVALID_CONTENT",
+    "code": "INVALID_CONTENT",
 }
 
 
 NO_ACTIVE_CAMPAIGNS = {
     "display_message": "No active campaigns found for retailer.",
-    "error": "NO_ACTIVE_CAMPAIGNS",
+    "code": "NO_ACTIVE_CAMPAIGNS",
 }
 
 

@@ -2,15 +2,15 @@ from tests.shared_utils.response_fixtures.base import BaseResponses
 
 INVALID_CONTENT = {
     "display_message": "BPL Schema not matched.",
-    "error": "INVALID_CONTENT",
+    "code": "INVALID_CONTENT",
 }
 INCOMPLETE_STATUS_UPDATE = {
     "display_message": "Not all campaigns were updated as requested.",
-    "error": "INCOMPLETE_STATUS_UPDATE",
+    "code": "INCOMPLETE_STATUS_UPDATE",
 }
 MISSING_CAMPAIGN_COMPONENTS = {
     "display_message": "the provided campaign(s) could not be made active",
-    "error": "MISSING_CAMPAIGN_COMPONENTS",
+    "code": "MISSING_CAMPAIGN_COMPONENTS",
 }
 
 

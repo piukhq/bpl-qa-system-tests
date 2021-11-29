@@ -9,7 +9,7 @@ Feature: Campaign status change
     When I perform a POST operation against the status change endpoint with the correct payload for a Ended status for a test-retailer retailer with a valid auth token
     Then I receive a HTTP 200 status code response
     And the campaign status should be updated in Vela
-
+  
   Scenario: Attempt to change a campaign status with an invalid auth token
 
     Given test-retailer has at least 1 ACTIVE campaign(s)
