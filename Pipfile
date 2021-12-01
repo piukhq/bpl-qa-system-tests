@@ -24,7 +24,7 @@ deepdiff = "*"
 retry-tasks-lib = {version=">=1.7.1", index="gitlab-libraries"}
 
 [dev-packages]
-black = "==20.8b1"
+black = "==21.11b1"
 flake8 = "*"
 mypy = "*"
 isort = "*"

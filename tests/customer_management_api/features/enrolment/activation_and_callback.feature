@@ -32,7 +32,7 @@ Feature: Bink BPL - Ensure a customer can enrol and that activation and callback
     And an enrolment callback task is saved in the database
     And the enrolment callback task status is SUCCESS
 
-  @thisone
+  
   Scenario: Enrol with successful callback with timeout retry
 
     When I Enrol a test-retailer account holder passing in all required and all optional fields with a callback URL known to timeout after 15 seconds

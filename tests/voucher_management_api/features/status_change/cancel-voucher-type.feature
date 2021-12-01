@@ -17,7 +17,7 @@ Feature: Cancel a voucher type for a retailer
     When I perform a PATCH operation against the correct voucher type status endpoint instructing a ended status change
     Then I receive a HTTP 202 status code response
     And the status of the voucher config is ENDED
-
+  
   Scenario: Cancel voucher type for invalid retailer
 
     Given there are no voucher configurations for invalid-test-retailer
@@ -49,7 +49,7 @@ Feature: Cancel a voucher type for a retailer
     And the status of the voucher config is ACTIVE
     And I get a failed_validation status response body
 
-
+  
   Scenario: Cancel voucher type for retailer with invalid token
 
     Given there is an ACTIVE voucher configuration for test-retailer with unallocated vouchers

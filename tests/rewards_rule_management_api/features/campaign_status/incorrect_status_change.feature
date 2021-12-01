@@ -10,7 +10,7 @@ associated entities are updated accordingly
     Then I receive a HTTP 400 status code response
     And I get a malformed_request status change response body
 
-
+  
   Scenario: Call the status change endpoint where the retailer slug supplied does not exist
 
     Given test-retailer has at least 1 ACTIVE campaign(s)

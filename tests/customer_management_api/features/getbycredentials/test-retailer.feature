@@ -4,7 +4,7 @@ Feature: Bink BPL - Ensure that as a channel user I can retrieve a test-retailer
   Using the POST /test-retailer/accounts/getbycredentials endpoint
   I can access the requested account holder details
 
-
+  
   Scenario: Get an account holder for test-retailer by credentials
 
     Given I previously successfully enrolled a test-retailer account holder
@@ -14,7 +14,7 @@ Feature: Bink BPL - Ensure that as a channel user I can retrieve a test-retailer
     Then I receive a HTTP 200 status code response
     And I get a success getbycredentials response body
 
-
+  
   Scenario: Get a non existent account holder for test-retailer by credentials
 
     Given The test-retailer account holder I want to retrieve does not exists

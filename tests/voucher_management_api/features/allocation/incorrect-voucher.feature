@@ -25,7 +25,7 @@ Feature: Allocate a specific voucher type to an account
     Then I receive a HTTP 404 status code response
     And I get a unknown_voucher_type voucher allocation response body
 
-
+  
   Scenario: Allocate a specific voucher type to an account where the retailer slug supplied does not exist
 
     Given A active account holder exists for test-retailer

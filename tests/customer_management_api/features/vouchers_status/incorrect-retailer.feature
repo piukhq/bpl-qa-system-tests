@@ -4,7 +4,7 @@ Feature: Bink BPL - Ensure that as a bpl service I can't update an account holde
   Using the PATCH /test-retailer/vouchers/{voucher_id}/status endpoint
   I can't update the requested voucher status using a incorrect-retailer
 
-
+  
   Scenario: Update a voucher's status to redeemed for a incorrect-retailer
     Given A active account holder exists for test-retailer
     And The account holder has an issued voucher
@@ -12,7 +12,7 @@ Feature: Bink BPL - Ensure that as a bpl service I can't update an account holde
     Then I receive a HTTP 403 status code in the vouchers status response
     And I get a invalid_retailer voucher status response body
 
-
+  
   Scenario: Update a voucher's status to redeemed for a incorrect-retailer with an invalid token
     Given A active account holder exists for test-retailer
     And The account holder has an issued voucher

@@ -4,7 +4,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
   I want to utilise POST enrol endpoint
   So I can access to customer management system
 
-
+  
   Scenario: Try to create an account holder for a non-existing retailer
 
     When I Enrol a incorrect-retailer account holder passing in all required and all optional fields
@@ -35,7 +35,7 @@ Feature: Bink BPL - Ensure a customer can enrol the POST end point to authorise 
     And I get a validation_failed enrol response body
     And the account holder is not saved in the database
 
-
+  
   Scenario: POST Enrol request to create an account holder with a with an invalid token
 
     Given I Enrol a test-retailer account holder with an invalid token
