@@ -254,6 +254,7 @@ def check_account_holder_voucher_statuses(request_context: dict, polaris_db_sess
     for account_holder_voucher in account_holder_vouchers:
         for i in range(6):
             sleep(i)
+            polaris_db_session.refresh(account_holder_voucher)
             if account_holder_voucher.status != "ISSUED":
                 break
 
