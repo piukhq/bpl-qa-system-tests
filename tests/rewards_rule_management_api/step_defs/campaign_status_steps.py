@@ -48,7 +48,7 @@ def make_retailer_available_for_test(
 def make_campaigns_available_for_test(
     vela_db_session: "Session",
     create_mock_campaign: Callable,
-    create_mock_reward_rule,
+    create_mock_reward_rule: Callable,
     retailer_slug: str,
     campaigns_total: int,
     status: str,
