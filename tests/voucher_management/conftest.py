@@ -1,6 +1,6 @@
 import uuid
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Callable, Dict, Generator, List, Optional
 
 import pytest
@@ -157,6 +157,7 @@ def create_mock_vouchers(
                     voucher_id=voucher_params["id"],
                     voucher_code=voucher_params["voucher_code"],
                     issued_date=now,
+                    expiry_date=now + timedelta(days=30),
                     status="ISSUED",
                     voucher_type_slug=voucher_config.voucher_type_slug,
                     retailer_slug=voucher_config.retailer_slug,
