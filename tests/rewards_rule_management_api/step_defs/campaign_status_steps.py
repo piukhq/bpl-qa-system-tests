@@ -1,11 +1,13 @@
 import json
 import logging
 import uuid
+
 from typing import TYPE_CHECKING, Callable, Union
 
 from pytest_bdd import given, parsers, then, when
+from sqlalchemy.future import select
 
-from db.vela.models import Campaign, CampaignStatuses, RetailerRewards
+from db.vela.models import Campaign, CampaignStatuses, RetailerRewards, RewardRule
 from tests.rewards_rule_management_api.api_requests.campaign_status import (
     send_post_campaign_status_change,
     send_post_malformed_campaign_status_change,
@@ -46,6 +48,7 @@ def make_retailer_available_for_test(
 def make_campaigns_available_for_test(
     vela_db_session: "Session",
     create_mock_campaign: Callable,
+    create_mock_reward_rule,
     retailer_slug: str,
     campaigns_total: int,
     status: str,
@@ -65,6 +68,14 @@ def make_campaigns_available_for_test(
             },
         )
         mock_campaigns.append(mock_campaign)
+        # Ensure there is at least 1 reward rule for this campaign
+        reward_rule = (
+            vela_db_session.execute(select(RewardRule).where(RewardRule.campaign_id == mock_campaign.id))
+            .scalars()
+            .first()
+        )
+        if not reward_rule:
+            create_mock_reward_rule(voucher_type_slug=str(uuid.uuid4())[:32], campaign_id=mock_campaign.id)
 
     request_context["retailer_slug"] = retailer_slug
     request_context["active_campaigns"] = mock_campaigns
