@@ -5,8 +5,8 @@ import uuid
 
 from typing import TYPE_CHECKING, Optional
 
-from pytest_bdd import given, then, when
-from pytest_bdd.parsers import cfparse, parse
+from pytest_bdd import given, when
+from pytest_bdd.parsers import parse
 from sqlalchemy.future import select
 
 from db.polaris.models import AccountHolderCampaignBalance
@@ -18,7 +18,6 @@ from tests.customer_management_api.payloads.enrolment import (
     all_required_and_all_optional_credentials,
     only_required_credentials,
 )
-from tests.shared_utils.shared_steps import shared_check_response_status_code
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
