@@ -11,7 +11,7 @@ from sqlalchemy import delete
 from db.carina.models import Voucher, VoucherConfig
 from db.carina.session import CarinaSessionMaker
 from db.polaris.session import PolarisSessionMaker
-from db.vela.models import Campaign, CampaignStatuses, RetailerRewards
+from db.vela.models import Campaign, CampaignStatuses, RetailerRewards, RewardRule
 from db.vela.session import VelaSessionMaker
 
 if TYPE_CHECKING:
@@ -163,4 +163,27 @@ def create_mock_retailer(vela_db_session: "Session") -> Generator:
     yield _create_mock_retailer
 
     vela_db_session.delete(mock_retailer)
+    vela_db_session.commit()
+
+
+@pytest.fixture(scope="function")
+def create_mock_reward_rule(vela_db_session: "Session") -> Generator:
+    mock_reward_rule: RewardRule = None
+
+    def _create_mock_reward_rule(voucher_type_slug: str, campaign_id: int, reward_goal: int = 5) -> RewardRule:
+        """
+        Create a reward rule in the test DB
+        :return: Callable function
+        """
+        nonlocal mock_reward_rule
+        mock_reward_rule = RewardRule(
+            reward_goal=reward_goal, voucher_type_slug=voucher_type_slug, campaign_id=campaign_id
+        )
+        vela_db_session.add(mock_reward_rule)
+        vela_db_session.commit()
+        return mock_reward_rule
+
+    yield _create_mock_reward_rule
+
+    vela_db_session.delete(mock_reward_rule)
     vela_db_session.commit()
