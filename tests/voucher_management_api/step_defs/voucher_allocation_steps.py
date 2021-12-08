@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
-from pytest_bdd import given, parsers, then, when
+from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 from retry_tasks_lib.enums import RetryTaskStatuses
 
@@ -17,10 +17,10 @@ from tests.voucher_management_api.api_requests.voucher_allocation import (
 from tests.voucher_management_api.db_actions.voucher import (
     get_allocated_voucher,
     get_count_unallocated_vouchers_by_voucher_config,
-    get_voucher_configs_ids_by_retailer,
     get_last_created_voucher_allocation,
     get_voucher_config,
     get_voucher_config_with_available_vouchers,
+    get_voucher_configs_ids_by_retailer,
 )
 from tests.voucher_management_api.payloads.voucher_allocation import (
     get_malformed_request_body,
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 voucher_allocation_responses = VoucherAllocationResponses
 
 
-@given(parsers.parse("there are vouchers that can be allocated for the existing voucher configs"))
+@given(parse("there are vouchers that can be allocated for the existing voucher configs"))
 def check_vouchers(carina_db_session: "Session", request_context: dict) -> None:
 
     count_unallocated_vouchers = get_count_unallocated_vouchers_by_voucher_config(
@@ -61,7 +61,7 @@ def check_voucher_configs(carina_db_session: "Session", amount: int, retailer_sl
     request_context["voucher_configs_ids"] = voucher_configs_ids
 
 
-@then(parsers.parse("a Voucher code will be allocated asynchronously"))
+@then(parse("a Voucher code will be allocated asynchronously"))
 def check_async_voucher_allocation(carina_db_session: "Session", request_context: dict) -> None:
     """Check that the voucher in the Voucher table has been marked as 'allocated' and that it has an id"""
     voucher_allocation_task = get_last_created_voucher_allocation(
@@ -78,12 +78,9 @@ def check_async_voucher_allocation(carina_db_session: "Session", request_context
     request_context["voucher_allocation_task_params"] = voucher_allocation_task.get_params()
 
 
-@then(
-    parsers.parse(
-        "the expiry date is calculated using the expiry window for the voucher_type_slug from "
-        "the Voucher Management Config"
-    )
-)
+# fmt: off
+@then(parse("the expiry date is calculated using the expiry window for the voucher_type_slug from the Voucher Management Config"))  # noqa: E501
+# fmt: on
 def check_voucher_allocation_expiry_date(carina_db_session: "Session", request_context: dict) -> None:
     """Check that validity_days have been used to assign an expiry date"""
     # TODO: it may be possible to put back the check for hours ("%Y-%m-%d %H") once
@@ -99,7 +96,7 @@ def check_voucher_allocation_expiry_date(carina_db_session: "Session", request_c
     assert expiry_datetime == expected_expiry
 
 
-@then(parsers.parse("a POST to /vouchers will be made to update the users account with the voucher allocation"))
+@then(parse("a POST to /vouchers will be made to update the users account with the voucher allocation"))
 def check_voucher_created(polaris_db_session: "Session", request_context: dict) -> None:
     voucher = get_allocated_voucher(polaris_db_session, request_context["voucher_allocation_task_params"]["voucher_id"])
     assert voucher.account_holder_id == request_context["account_holder_uuid"]
@@ -109,12 +106,9 @@ def check_voucher_created(polaris_db_session: "Session", request_context: dict) 
     assert voucher.status == "ISSUED"
 
 
-@when(
-    parsers.parse(
-        "I perform a POST operation against the allocation endpoint for a {retailer_slug} account holder "
-        "with a {token} auth token"
-    )
-)
+# fmt: off
+@when(parse("I perform a POST operation against the allocation endpoint for a {retailer_slug} account holder with a {token} auth token"))  # noqa: E501
+# fmt: on
 def send_post_voucher_allocation_request(
     carina_db_session: "Session", retailer_slug: str, token: str, request_context: dict
 ) -> None:
@@ -137,12 +131,9 @@ def send_post_voucher_allocation_request(
     request_context["voucher_config"] = voucher_config
 
 
-@when(
-    parsers.parse(
-        "I perform a POST operation against the allocation endpoint for a {retailer_slug} account holder "
-        "with a malformed request"
-    )
-)
+# fmt: off
+@when(parse("I perform a POST operation against the allocation endpoint for a {retailer_slug} account holder with a malformed request"))  # noqa: E501
+# fmt: on
 def send_post_malformed_voucher_allocation_request(
     carina_db_session: "Session", retailer_slug: str, request_context: dict
 ) -> None:
@@ -156,12 +147,9 @@ def send_post_malformed_voucher_allocation_request(
     request_context["voucher_config"] = voucher_config
 
 
-@when(
-    parsers.parse(
-        "I allocate a specific voucher type to an account for {retailer_slug} with a voucher_type_slug that does not "
-        "exist in the Vouchers table"
-    )
-)
+# fmt: off
+@when(parse("I allocate a specific voucher type to an account for {retailer_slug} with a voucher_type_slug that does not exist in the Vouchers table"))  # noqa: E501
+# fmt: on
 def send_post_bad_voucher_allocation_request(
     carina_db_session: "Session", retailer_slug: str, request_context: dict
 ) -> None:
@@ -174,11 +162,9 @@ def send_post_bad_voucher_allocation_request(
     request_context["response"] = resp
 
 
-@when(
-    parsers.parse(
-        "I perform a POST operation against the allocation endpoint for an account holder with a non-existent retailer"
-    )
-)
+# fmt: off
+@when(parse("I perform a POST operation against the allocation endpoint for an account holder with a non-existent retailer"))  # noqa: E501
+# fmt: on
 def send_post_voucher_allocation_request_no_retailer(carina_db_session: "Session", request_context: dict) -> None:
     payload = get_voucher_allocation_payload(request_context)
 
@@ -189,7 +175,7 @@ def send_post_voucher_allocation_request_no_retailer(carina_db_session: "Session
     request_context["response"] = resp
 
 
-@then(parsers.parse("I get a {response_fixture} voucher allocation response body"))
+@then(parse("I get a {response_fixture} voucher allocation response body"))
 def check_voucher_allocation_response(response_fixture: str, request_context: dict) -> None:
     expected_response_body = voucher_allocation_responses.get_json(response_fixture)
     resp = request_context["response"]

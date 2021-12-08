@@ -5,7 +5,8 @@ import uuid
 from typing import TYPE_CHECKING
 
 from deepdiff import DeepDiff
-from pytest_bdd import parsers, then, when
+from pytest_bdd import then, when
+from pytest_bdd.parsers import parse
 
 from tests.customer_management_api.api_requests.accounts import (
     send_get_accounts,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 accounts_responses = AccountsResponses()
 
 
-@then(parsers.parse("I get a {response_fixture} accounts response body"))
+@then(parse("I get a {response_fixture} accounts response body"))
 def check_accounts_response(response_fixture: str, request_context: dict, polaris_db_session: "Session") -> None:
     resp = request_context["response"]
     diff = None
@@ -48,12 +49,9 @@ def check_accounts_response(response_fixture: str, request_context: dict, polari
         assert resp.json() == expected_response_body
 
 
-@when(
-    parsers.parse(
-        "I send a get /accounts request for a {retailer_slug} account holder by UUID "
-        "with an invalid authorisation token"
-    )
-)
+# fmt: off
+@when(parse("I send a get /accounts request for a {retailer_slug} account holder by UUID with an invalid authorisation token"))  # noqa: E501
+# fmt: on
 def get_invalid_token_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     resp = send_invalid_get_accounts(retailer_slug, str(uuid.uuid4()))
@@ -62,11 +60,7 @@ def get_invalid_token_request(retailer_slug: str, request_context: dict) -> None
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@when(
-    parsers.parse(
-        "I send a get /accounts request for a {retailer_slug} account holder by UUID without a channel header"
-    )
-)
+@when(parse("I send a get /accounts request for a {retailer_slug} account holder by UUID without a channel header"))
 def get_missing_channel_header_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     headers = get_headers()
@@ -77,9 +71,7 @@ def get_missing_channel_header_request(retailer_slug: str, request_context: dict
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@when(
-    parsers.parse("I send a get /accounts request for a {retailer_slug} account holder by UUID with a malformed UUID")
-)
+@when(parse("I send a get /accounts request for a {retailer_slug} account holder by UUID with a malformed UUID"))
 def get_malformed_uuid_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     resp = send_malformed_get_accounts(retailer_slug)

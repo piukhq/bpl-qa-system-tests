@@ -5,7 +5,8 @@ import uuid
 
 from typing import TYPE_CHECKING, Optional
 
-from pytest_bdd import given, parsers, when
+from pytest_bdd import given, when
+from pytest_bdd.parsers import parse
 from sqlalchemy.future import select
 
 from db.polaris.models import AccountHolderCampaignBalance
@@ -22,8 +23,8 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-@given(parsers.parse("I previously successfully enrolled a {retailer_slug} account holder"))
-@when(parsers.parse("I Enrol a {retailer_slug} account holder passing in all required and all optional fields"))
+@given(parse("I previously successfully enrolled a {retailer_slug} account holder"))
+@when(parse("I Enrol a {retailer_slug} account holder passing in all required and all optional fields"))
 def enrol_account_holder_with_all_fields(retailer_slug: str, request_context: dict) -> None:
     enrol_account_holder(retailer_slug, request_context)
 
@@ -43,7 +44,7 @@ def enrol_account_holder(
     request_context["response"] = resp
 
 
-@given(parsers.parse("The {retailer_slug} account holder I want to retrieve does not exists"))
+@given(parse("The {retailer_slug} account holder I want to retrieve does not exists"))
 def non_existent_account_holder(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     request_context["account_holder_exists"] = False

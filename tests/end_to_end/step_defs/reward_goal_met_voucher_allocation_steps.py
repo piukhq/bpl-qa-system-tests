@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING, List
 
 import requests
 
-from pytest_bdd import given, parsers, then, when
+from pytest_bdd import given, then, when
+from pytest_bdd.parsers import parse
 from sqlalchemy import select
 
 import settings
@@ -22,12 +23,9 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-@given(
-    parsers.parse(
-        "{retailer_slug} has an active campaign with the slug {campaign_slug} where the earn"
-        " increment {earn_inc_is_tx_value} the transaction value"
-    )
-)
+# fmt: off
+@given(parse("{retailer_slug} has an active campaign with the slug {campaign_slug} where the earn increment {earn_inc_is_tx_value} the transaction value"))  # noqa: E501
+# fmt: on
 def check_retailer_campaign(
     vela_db_session: "Session",
     request_context: dict,
@@ -53,12 +51,9 @@ def check_retailer_campaign(
     request_context["campaign"] = campaign
 
 
-@given(
-    parsers.parse(
-        "the campaign has an earn rule threshold and a reward goal with the same value for a voucher type"
-        " of {voucher_type_slug}"
-    )
-)
+# fmt: off
+@given(parse("the campaign has an earn rule threshold and a reward goal with the same value for a voucher type of {voucher_type_slug}"))  # noqa: E501
+# fmt: on
 def check_earn_reward_goal(vela_db_session: "Session", voucher_type_slug: str, request_context: dict) -> None:
     assert len(request_context["campaign"].earn_rule_collection) == 1
     earn_rule = request_context["campaign"].earn_rule_collection[0]
@@ -70,7 +65,7 @@ def check_earn_reward_goal(vela_db_session: "Session", voucher_type_slug: str, r
     request_context["voucher_type_slug"] = voucher_type_slug
 
 
-@given(parsers.parse("there are unallocated vouchers for the campaign for a voucher type of {voucher_type_slug}"))
+@given(parse("there are unallocated vouchers for the campaign for a voucher type of {voucher_type_slug}"))
 def check_or_make_unallocated_vouchers(
     carina_db_session: "Session", polaris_db_session: "Session", voucher_type_slug: str, request_context: dict
 ) -> None:

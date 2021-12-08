@@ -7,7 +7,8 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
-from pytest_bdd import given, parsers, then, when
+from pytest_bdd import given, then, when
+from pytest_bdd.parsers import parse
 
 from settings import POLARIS_BASE_URL
 from tests.customer_management_api.api_requests.accounts_vouchers import send_post_accounts_voucher
@@ -18,18 +19,10 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-@when(
-    parsers.parse(
-        "I POST a voucher expiring in the {past_or_future} for a {retailer_slug} account holder with a {token_validity}"
-        " auth token"
-    )
-)
-@given(
-    parsers.parse(
-        "I POST a voucher expiring in the {past_or_future} for a {retailer_slug} account holder with a {token_validity}"
-        " auth token"
-    )
-)
+# fmt: off
+@when(parse("I POST a voucher expiring in the {past_or_future} for a {retailer_slug} account holder with a {token_validity} auth token"))  # noqa: E501
+@given(parse("I POST a voucher expiring in the {past_or_future} for a {retailer_slug} account holder with a {token_validity} auth token"))  # noqa: E501
+# fmt: on
 def post_voucher(past_or_future: str, retailer_slug: str, token_validity: str, request_context: dict) -> None:
     if "account_holder" in request_context:
         account_holder_id = request_context["account_holder"].id
@@ -58,7 +51,7 @@ def post_voucher(past_or_future: str, retailer_slug: str, token_validity: str, r
     request_context["response"] = resp
 
 
-@then(parsers.parse("I get a {response_fixture} voucher response body"))
+@then(parse("I get a {response_fixture} voucher response body"))
 def check_voucher_response(response_fixture: str, request_context: dict) -> None:
     expected_response_body = VoucherResponses.get_json(response_fixture)
     resp = request_context["response"]
@@ -66,7 +59,7 @@ def check_voucher_response(response_fixture: str, request_context: dict) -> None
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@then(parsers.parse("the returned voucher's status is {status} and the voucher data is well formed"))
+@then(parse("the returned voucher's status is {status} and the voucher data is well formed"))
 def check_voucher_status(polaris_db_session: "Session", status: str, request_context: dict) -> None:
     correct_keys = ["voucher_code", "issued_date", "redeemed_date", "expiry_date", "status"]
     voucher_response = request_context["response"].json()

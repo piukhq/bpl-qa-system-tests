@@ -6,12 +6,13 @@ from typing import Literal, Union
 
 from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient
-from pytest_bdd import parsers, then
+from pytest_bdd import then
+from pytest_bdd.parsers import parse
 
 from settings import BLOB_ARCHIVE_CONTAINER, BLOB_ERROR_CONTAINER, BLOB_STORAGE_DSN
 
 
-@then(parsers.parse("the file is moved to the {container_type} container by the voucher importer"))
+@then(parse("the file is moved to the {container_type} container by the voucher importer"))
 def check_file_moved(
     container_type: Union[Literal["archive"], Literal["error"]],
     request_context: dict,

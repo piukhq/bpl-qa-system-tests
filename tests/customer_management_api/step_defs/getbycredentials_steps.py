@@ -4,7 +4,8 @@ import logging
 from typing import TYPE_CHECKING
 
 from deepdiff import DeepDiff
-from pytest_bdd import parsers, then, when
+from pytest_bdd import then, when
+from pytest_bdd.parsers import parse
 
 from tests.customer_management_api.api_requests.getbycredentials import (
     send_invalid_post_getbycredentials,
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 getbycredentials_responses = GetByCredentialsResponses
 
 
-@when(parsers.parse("I post getbycredentials a {retailer_slug} account holder passing in all required credentials"))
+@when(parse("I post getbycredentials a {retailer_slug} account holder passing in all required credentials"))
 def post_getbycredentials(polaris_db_session: "Session", retailer_slug: str, request_context: dict) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
@@ -60,7 +61,7 @@ def post_getbycredentials_invalid_retailer(request_context: dict) -> None:
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@when(parsers.parse("I getbycredentials a {retailer_slug} account holder with an malformed request"))
+@when(parse("I getbycredentials a {retailer_slug} account holder with an malformed request"))
 def post_malformed_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     request_body = malformed_request_body()
@@ -70,7 +71,7 @@ def post_malformed_request(retailer_slug: str, request_context: dict) -> None:
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@when(parsers.parse("I getbycredentials a {retailer_slug} account holder with a missing field in the request"))
+@when(parse("I getbycredentials a {retailer_slug} account holder with a missing field in the request"))
 def post_missing_field_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     request_body = missing_credentials_request_body()
@@ -80,7 +81,7 @@ def post_missing_field_request(retailer_slug: str, request_context: dict) -> Non
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@when(parsers.parse("I getbycredentials a {retailer_slug} account holder passing in fields that will fail validation"))
+@when(parse("I getbycredentials a {retailer_slug} account holder passing in fields that will fail validation"))
 def post_wrong_validation_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     request_body = wrong_validation_request_body()
@@ -90,7 +91,7 @@ def post_wrong_validation_request(retailer_slug: str, request_context: dict) -> 
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@when(parsers.parse("I getbycredentials a {retailer_slug} account holder with an invalid authorisation token"))
+@when(parse("I getbycredentials a {retailer_slug} account holder with an invalid authorisation token"))
 def post_invalid_token_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     request_body = all_required_credentials()
@@ -100,7 +101,7 @@ def post_invalid_token_request(retailer_slug: str, request_context: dict) -> Non
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@then(parsers.parse("I get a {response_fixture} getbycredentials response body"))
+@then(parse("I get a {response_fixture} getbycredentials response body"))
 def check_getbycredentials_response(
     response_fixture: str, request_context: dict, polaris_db_session: "Session"
 ) -> None:
