@@ -3,7 +3,8 @@ import logging
 
 from typing import TYPE_CHECKING
 
-from pytest_bdd import given, parsers, then, when
+from pytest_bdd import given, then, when
+from pytest_bdd.parsers import parse
 
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers, send_get_rrm_request
 from tests.rewards_rule_management_api.db_actions.campaigns import get_active_campaigns, get_non_active_campaigns
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 active_campaign_slug_responses = ActiveCampaignSlugsResponses
 
 
-@given(parsers.parse("{retailer_slug} has no campaigns"))
+@given(parse("{retailer_slug} has no campaigns"))
 def check_no_active_campaigns(vela_db_session: "Session", retailer_slug: str) -> None:
     active_campaigns = len(get_active_campaigns(vela_db_session, retailer_slug))
     non_active_campaigns = len(get_non_active_campaigns(vela_db_session, retailer_slug))
@@ -28,12 +29,9 @@ def check_no_active_campaigns(vela_db_session: "Session", retailer_slug: str) ->
     assert not non_active_campaigns
 
 
-@given(
-    parsers.parse(
-        "{retailer_slug} has at least {active_campaigns_total:d} active campaign(s) "
-        "and at least {non_active_campaigns_total:d} non-active campaign(s)"
-    )
-)
+# fmt: off
+@given(parse("{retailer_slug} has at least {active_campaigns_total:d} active campaign(s) and at least {non_active_campaigns_total:d} non-active campaign(s)"))  # noqa: E501
+# fmt: on
 def check_campaigns(
     vela_db_session: "Session", retailer_slug: str, active_campaigns_total: int, non_active_campaigns_total: int
 ) -> None:
@@ -52,7 +50,7 @@ def check_campaigns(
     assert actual_non_active_campaigns_total >= non_active_campaigns_total
 
 
-@when(parsers.parse("I send a get /{retailer_slug}/active-campaign-slugs request with the {token} auth token"))
+@when(parse("I send a get /{retailer_slug}/active-campaign-slugs request with the {token} auth token"))
 def get_active_campaign_slugs(request_context: dict, retailer_slug: str, token: str) -> None:
     if token != "correct":
         headers = get_rrm_headers(valid_token=False)
@@ -63,18 +61,14 @@ def get_active_campaign_slugs(request_context: dict, retailer_slug: str, token: 
     request_context["response"] = resp
 
 
-@then(parsers.parse("I receive a HTTP {status_code:d} status code response for my GET active-campaign-slugs request"))
+@then(parse("I receive a HTTP {status_code:d} status code response for my GET active-campaign-slugs request"))
 def check_response_status_code(status_code: int, request_context: dict) -> None:
     resp = request_context["response"]
     logging.info(f"GET active-campaign-slugs response HTTP status code: {resp.status_code}")
     assert resp.status_code == status_code
 
 
-@then(
-    parsers.parse(
-        "I get all the active campaign slugs for {retailer_slug} " "in my GET active_campaign_slugs response body"
-    )
-)
+@then(parse("I get all the active campaign slugs for {retailer_slug} " "in my GET active_campaign_slugs response body"))
 def check_active_campaign_slugs_response(vela_db_session: "Session", request_context: dict, retailer_slug: str) -> None:
     active_campaigns = get_active_campaigns(vela_db_session, retailer_slug)
     expected_response_body = [campaign.slug for campaign in active_campaigns]
@@ -87,7 +81,7 @@ def check_active_campaign_slugs_response(vela_db_session: "Session", request_con
     assert resp.json() == expected_response_body
 
 
-@then(parsers.parse("I get a {response_fixture} GET active-campaign-slugs response body"))
+@then(parse("I get a {response_fixture} GET active-campaign-slugs response body"))
 def check_active_campaign_slugs_error_response(
     vela_db_session: "Session", response_fixture: str, request_context: dict
 ) -> None:

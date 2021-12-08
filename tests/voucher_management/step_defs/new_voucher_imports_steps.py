@@ -4,7 +4,8 @@ import uuid
 from time import sleep
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from pytest_bdd import given, parsers, then
+from pytest_bdd import given, then
+from pytest_bdd.parsers import parse
 from sqlalchemy.future import select
 
 from db.carina.models import Voucher, VoucherConfig
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-@given(parsers.parse("{retailer_slug} has pre-existing vouchers for the {voucher_type_slug} voucher type"))
+@given(parse("{retailer_slug} has pre-existing vouchers for the {voucher_type_slug} voucher type"))
 def make_pre_existing_vouchers(
     retailer_slug: str,
     voucher_type_slug: str,
@@ -33,9 +34,7 @@ def make_pre_existing_vouchers(
     request_context["pre_existing_voucher_codes"] = [v.voucher_code for v in pre_existing_vouchers]
 
 
-@given(
-    parsers.parse("{retailer_slug} provides a csv file in the correct format for the {voucher_type_slug} voucher type")
-)
+@given(parse("{retailer_slug} provides a csv file in the correct format for the {voucher_type_slug} voucher type"))
 def put_new_vouchers_file(
     retailer_slug: str,
     voucher_type_slug: str,

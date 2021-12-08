@@ -299,3 +299,5 @@ dmypy.json
 
 # pytest-html reports
 report.html
+
+.dccache

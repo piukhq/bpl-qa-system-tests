@@ -4,7 +4,8 @@ import uuid
 
 from typing import TYPE_CHECKING, Callable, Union
 
-from pytest_bdd import given, parsers, then, when
+from pytest_bdd import given, then, when
+from pytest_bdd.parsers import parse
 from sqlalchemy.future import select
 
 from db.vela.models import Campaign, CampaignStatuses, RetailerRewards, RewardRule
@@ -28,7 +29,7 @@ def _change_campaign_status(vela_db_session: "Session", campaign: Campaign, requ
     vela_db_session.commit()
 
 
-@given(parsers.parse("a {retailer_slug} retailer exists"))
+@given(parse("a {retailer_slug} retailer exists"))
 def make_retailer_available_for_test(
     vela_db_session: "Session",
     create_mock_retailer: Callable,
@@ -44,7 +45,7 @@ def make_retailer_available_for_test(
     request_context["retailer_slug"] = retailer_slug
 
 
-@given(parsers.parse("{retailer_slug} has at least {campaigns_total:d} {status} campaign(s)"))
+@given(parse("{retailer_slug} has at least {campaigns_total:d} {status} campaign(s)"))
 def make_campaigns_available_for_test(
     vela_db_session: "Session",
     create_mock_campaign: Callable,
@@ -81,13 +82,9 @@ def make_campaigns_available_for_test(
     request_context["active_campaigns"] = mock_campaigns
 
 
-@when(
-    parsers.parse(
-        "I perform a POST operation against the status change endpoint with the {payload_type} payload for "
-        "a {status} status for a {retailer_slug} retailer "
-        "with a {token} auth token"
-    )
-)
+# fmt: off
+@when(parse("I perform a POST operation against the status change endpoint with the {payload_type} payload for a {status} status for a {retailer_slug} retailer with a {token} auth token"))  # noqa: E501
+# fmt: on
 def send_post_campaign_change_request(
     vela_db_session: "Session", payload_type: str, status: str, retailer_slug: str, token: str, request_context: dict
 ) -> None:
@@ -116,12 +113,9 @@ def send_post_campaign_change_request(
     request_context["response"] = resp
 
 
-@when(
-    parsers.parse(
-        "I perform a POST operation against the status change endpoint for a {status} status for a {campaign_slug} "
-        "campaign for a {retailer_slug} retailer"
-    )
-)
+# fmt: off
+@when(parse("I perform a POST operation against the status change endpoint for a {status} status for a {campaign_slug} campaign for a {retailer_slug} retailer"))  # noqa: E501
+# fmt: on
 def send_post_nonexistent_campaign_change_request(
     vela_db_session: "Session", status: str, campaign_slug: str, retailer_slug: str, request_context: dict
 ) -> None:
@@ -136,7 +130,7 @@ def send_post_nonexistent_campaign_change_request(
     request_context["campaign_slugs"] = payload["campaign_slugs"]
 
 
-@then(parsers.parse("the campaign status should be updated in Vela"))
+@then(parse("the campaign status should be updated in Vela"))
 def check_campaign_status(vela_db_session: "Session", request_context: dict) -> None:
     campaign = request_context["active_campaigns"][0]
     vela_db_session.refresh(campaign)
@@ -148,12 +142,9 @@ def check_campaign_status(vela_db_session: "Session", request_context: dict) -> 
     )
 
 
-@when(
-    parsers.parse(
-        "I perform a POST operation against the status change endpoint for a {retailer_slug} retailer with a "
-        "malformed request"
-    )
-)
+# fmt: off
+@when(parse("I perform a POST operation against the status change endpoint for a {retailer_slug} retailer with a malformed request"))  # noqa: E501
+# fmt: on
 def send_post_malformed_status_change_request(
     vela_db_session: "Session", retailer_slug: str, request_context: dict
 ) -> None:
@@ -165,7 +156,7 @@ def send_post_malformed_status_change_request(
     request_context["response"] = resp
 
 
-@then(parsers.parse("I get a {response_fixture} status change response body"))
+@then(parse("I get a {response_fixture} status change response body"))
 def check_status_change_response(response_fixture: str, request_context: dict) -> None:
     expected_response_body: Union[dict, list]
 
@@ -195,13 +186,13 @@ def check_status_change_response(response_fixture: str, request_context: dict) -
     assert resp.json() == expected_response_body
 
 
-@then(parsers.parse("the legal campaign state change(s) are applied"))
+@then(parse("the legal campaign state change(s) are applied"))
 def check_legal_campaign_state_changes(vela_db_session: "Session", retailer_slug: str, request_context: dict) -> None:
     vela_db_session.refresh(request_context["active_campaigns"][0])
     assert request_context["active_campaigns"][0].status == CampaignStatuses.CANCELLED  # i.e. changed
 
 
-@then(parsers.parse("the illegal campaign state change(s) are not made"))
+@then(parse("the illegal campaign state change(s) are not made"))
 def check_illegal_campaign_state_are_unchanged(vela_db_session: "Session", request_context: dict) -> None:
     active_campaigns = request_context["active_campaigns"]
 
@@ -214,7 +205,7 @@ def check_illegal_campaign_state_are_unchanged(vela_db_session: "Session", reque
     request_context["illegal_campaigns"] = [active_campaigns[1].slug, active_campaigns[2].slug]
 
 
-@then(parsers.parse("the campaigns still have the {status} status"))
+@then(parse("the campaigns still have the {status} status"))
 def check_campaign_statuses(vela_db_session: "Session", status: str, request_context: dict) -> None:
     expected_campaign_status = CampaignStatuses(status).name
     for campaign in request_context["active_campaigns"]:

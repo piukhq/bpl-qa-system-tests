@@ -63,12 +63,9 @@ def create_voucher_config_with_available_vouchers(
     logging.info(f"Active voucher type slug in Voucher config table:{request_context}")
 
 
-@when(
-    parse(
-        "I perform a PATCH operation against the {correct_incorrect} voucher type status endpoint instructing a "
-        "{new_status} status change"
-    )
-)
+# fmt: off
+@when(parse("I perform a PATCH operation against the {correct_incorrect} voucher type status endpoint instructing a {new_status} status change"))  # noqa: E501
+# fmt: on
 def patch_status(
     new_status: str, correct_incorrect: Union[Literal["correct"], Literal["incorrect"]], request_context: dict
 ) -> None:
@@ -80,12 +77,9 @@ def patch_status(
     request_context["response"] = response
 
 
-@when(
-    parse(
-        "I perform a PATCH operation with {invalid} token against the {correct_incorrect} voucher type status endpoint "
-        "instructing a {new_status} status change"
-    )
-)
+# fmt: off
+@when(parse("I perform a PATCH operation with {invalid} token against the {correct_incorrect} voucher type status endpoint instructing a {new_status} status change"))  # noqa: E501
+# fmt: on
 def patch_status_invalid_token(
     new_status: str,
     invalid: str,

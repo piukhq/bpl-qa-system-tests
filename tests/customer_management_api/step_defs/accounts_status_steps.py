@@ -5,7 +5,8 @@ import uuid
 from typing import TYPE_CHECKING
 
 from deepdiff import DeepDiff
-from pytest_bdd import parsers, then, when
+from pytest_bdd import then, when
+from pytest_bdd.parsers import parse
 
 from tests.customer_management_api.api_requests.accounts import (
     send_get_accounts_status,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 accounts_status_responses = AccountsStatusResponses()
 
 
-@when(parsers.parse("I send a get /accounts request for a {retailer_slug} account holder status by UUID"))
+@when(parse("I send a get /accounts request for a {retailer_slug} account holder status by UUID"))
 def get_account_status(polaris_db_session: "Session", request_context: dict, retailer_slug: str) -> None:
     request_body = json.loads(request_context["response"].request.body)
     email = request_body["credentials"]["email"]
@@ -43,7 +44,7 @@ def get_account_status(polaris_db_session: "Session", request_context: dict, ret
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
 
 
-@then(parsers.parse("I get a {response_fixture} accounts status response body"))
+@then(parse("I get a {response_fixture} accounts status response body"))
 def check_accounts_status_response(response_fixture: str, request_context: dict, polaris_db_session: "Session") -> None:
     resp = request_context["response"]
     diff = None
@@ -69,12 +70,9 @@ def check_accounts_status_response(response_fixture: str, request_context: dict,
         assert resp.json() == expected_response_body
 
 
-@when(
-    parsers.parse(
-        "I send a get /accounts request for a {retailer_slug} account holder status by UUID "
-        "with an invalid authorisation token"
-    )
-)
+# fmt: off
+@when(parse("I send a get /accounts request for a {retailer_slug} account holder status by UUID with an invalid authorisation token"))  # noqa: E501
+# fmt: on
 def get_accounts_status_invalid_token_request(retailer_slug: str, request_context: dict) -> None:
     request_context["retailer_slug"] = retailer_slug
     resp = send_invalid_get_accounts_status(retailer_slug, str(uuid.uuid4()))

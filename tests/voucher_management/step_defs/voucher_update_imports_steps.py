@@ -4,7 +4,8 @@ from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Callable, List, Optional
 
-from pytest_bdd import given, parsers, then
+from pytest_bdd import given, then
+from pytest_bdd.parsers import parse
 from sqlalchemy import Date
 from sqlalchemy.future import select
 
@@ -66,7 +67,7 @@ def _get_voucher_file_log(
     )
 
 
-@given(parsers.parse("The voucher code provider provides a bulk update file for {retailer_slug}"))
+@given(parse("The voucher code provider provides a bulk update file for {retailer_slug}"))
 def voucher_updates_upload(
     retailer_slug: str,
     get_voucher_config: Callable[[str, str], VoucherConfig],
@@ -95,7 +96,7 @@ def voucher_updates_upload(
     request_context["blob"] = blob
 
 
-@given(parsers.parse("The voucher code provider provides a bulk update file named {blob_name} for {retailer_slug}"))
+@given(parse("The voucher code provider provides a bulk update file named {blob_name} for {retailer_slug}"))
 def voucher_updates_upload_blob_name(
     blob_name: str,
     retailer_slug: str,
@@ -129,7 +130,7 @@ def voucher_updates_upload_blob_name(
     request_context["blob"] = blob
 
 
-@given(parsers.parse("a {file_agent_type} voucher file log record exists for the file name {file_name}"))
+@given(parse("a {file_agent_type} voucher file log record exists for the file name {file_name}"))
 def check_for_voucher_file_log(
     file_agent_type: str,
     file_name: str,
@@ -144,7 +145,7 @@ def check_for_voucher_file_log(
         create_mock_voucher_file_log(file_name=file_name, file_agent_type=FileAgentType(file_agent_type))
 
 
-@then(parsers.parse("the file for {retailer_slug} is imported by the voucher management system"))
+@then(parse("the file for {retailer_slug} is imported by the voucher management system"))
 def check_voucher_updates_import(
     retailer_slug: str,
     request_context: dict,
@@ -191,12 +192,9 @@ def check_voucher_updates_import(
     request_context["voucher_update_rows"] = voucher_update_rows
 
 
-@then(
-    parsers.parse(
-        "the unallocated voucher for {retailer_slug} is marked as deleted and is not imported "
-        "by the voucher management system"
-    )
-)
+# fmt: off
+@then(parse("the unallocated voucher for {retailer_slug} is marked as deleted and is not imported by the voucher management system"))  # noqa: E501
+# fmt: on
 def check_voucher_updates_are_soft_deleted(
     retailer_slug: str,
     request_context: dict,
