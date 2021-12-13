@@ -164,7 +164,7 @@ def check_account_holder_activated(polaris_db_session: "Session", request_contex
             break
     assert account_holder.status == "ACTIVE"
     assert account_holder.account_number is not None
-    assert len(account_holder.account_holder_campaign_balance_collection) == 2
+    assert len(account_holder.account_holder_campaign_balance_collection) == 1
 
 
 @then(parse("I get a {response_fixture} enrol response body"))

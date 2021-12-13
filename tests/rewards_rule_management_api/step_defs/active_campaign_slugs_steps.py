@@ -1,13 +1,19 @@
 import json
 import logging
+import uuid
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 
+from db.vela.models import RetailerRewards
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers, send_get_rrm_request
-from tests.rewards_rule_management_api.db_actions.campaigns import get_active_campaigns, get_non_active_campaigns
+from tests.rewards_rule_management_api.db_actions.campaigns import (
+    get_active_campaigns,
+    get_non_active_campaigns,
+    get_retailer_rewards,
+)
 from tests.rewards_rule_management_api.response_fixtures.active_campaign_slugs import ActiveCampaignSlugsResponses
 
 if TYPE_CHECKING:
@@ -33,8 +39,19 @@ def check_no_active_campaigns(vela_db_session: "Session", retailer_slug: str) ->
 @given(parse("{retailer_slug} has at least {active_campaigns_total:d} active campaign(s) and at least {non_active_campaigns_total:d} non-active campaign(s)"))  # noqa: E501
 # fmt: on
 def check_campaigns(
-    vela_db_session: "Session", retailer_slug: str, active_campaigns_total: int, non_active_campaigns_total: int
+    vela_db_session: "Session",
+    retailer_slug: str,
+    active_campaigns_total: int,
+    non_active_campaigns_total: int,
+    create_mock_campaign: Callable,
 ) -> None:
+    retailer: RetailerRewards = get_retailer_rewards(vela_db_session, retailer_slug)
+    create_mock_campaign(
+        retailer=retailer,
+        name=str(uuid.uuid4()),
+        slug=str(uuid.uuid4())[:32],
+    )
+
     actual_active_campaigns_total = len(get_active_campaigns(vela_db_session, retailer_slug))
     actual_non_active_campaigns_total = len(get_non_active_campaigns(vela_db_session, retailer_slug))
 

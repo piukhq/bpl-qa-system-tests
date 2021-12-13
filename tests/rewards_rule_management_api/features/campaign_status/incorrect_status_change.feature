@@ -1,7 +1,7 @@
 @bpl @campaign-status
 Feature: Campaign status change
-As a the BPL system I want campaign status changes to be handled by the relevant system area so that any
-associated entities are updated accordingly
+  As a the BPL system I want campaign status changes to be handled by the relevant system area so that any
+  associated entities are updated accordingly
 
   Scenario: Call the status change endpoint for a test-retailer with a malformed request
 
@@ -10,7 +10,7 @@ associated entities are updated accordingly
     Then I receive a HTTP 400 status code response
     And I get a malformed_request status change response body
 
-  
+
   Scenario: Call the status change endpoint where the retailer slug supplied does not exist
 
     Given test-retailer has at least 1 ACTIVE campaign(s)
@@ -49,11 +49,11 @@ associated entities are updated accordingly
     And test-retailer has at least 1 ENDED campaign(s)
     When I perform a POST operation against the status change endpoint with the correct payload for a Cancelled status for a test-retailer retailer with a valid auth token
     Then I receive a HTTP 409 status code response
-    And the legal campaign state change(s) are applied
-    And the illegal campaign state change(s) are not made
+    And the legal campaign state changes are applied
+    And the illegal campaign state changes are not made
     And I get a list invalid_status_requested status change response body
 
-    
+
   Scenario: Send a POST status change request and the retailer would be left with no active campaigns
 
     Given a automated-test-retailer retailer exists

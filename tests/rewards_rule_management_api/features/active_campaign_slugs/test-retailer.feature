@@ -10,7 +10,7 @@ Feature: Get test-retailer active campaign slugs
     When I send a get /test-retailer/active-campaign-slugs request with the correct auth token
     Then I receive a HTTP 200 status code response for my GET active-campaign-slugs request
     And I get all the active campaign slugs for test-retailer in my GET active_campaign_slugs response body
-  
+
   Scenario: Get test-retailer active campaign slugs using the wrong auth token
 
     When I send a get /test-retailer/active-campaign-slugs request with the incorrect auth token
