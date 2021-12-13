@@ -19,6 +19,7 @@ from tests.rewards_rule_management_api.payloads.campaign_status_change import (
     get_malformed_request_body,
 )
 from tests.rewards_rule_management_api.response_fixtures.campaign_status import CampaignStatusResponses
+from tests.shared_utils.utils import compare_unordered_complex_data
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -183,16 +184,16 @@ def check_status_change_response(response_fixture: str, request_context: dict) -
         f"POST campaign status change expected response: {json.dumps(expected_response_body, indent=4)}\n"
         f"POST campaign status change actual response: {json.dumps(resp.json(), indent=4)}"
     )
-    assert resp.json() == expected_response_body
+    assert compare_unordered_complex_data(resp.json(), expected_response_body)
 
 
-@then(parse("the legal campaign state change(s) are applied"))
+@then("the legal campaign state changes are applied")
 def check_legal_campaign_state_changes(vela_db_session: "Session", retailer_slug: str, request_context: dict) -> None:
     vela_db_session.refresh(request_context["active_campaigns"][0])
     assert request_context["active_campaigns"][0].status == CampaignStatuses.CANCELLED  # i.e. changed
 
 
-@then(parse("the illegal campaign state change(s) are not made"))
+@then("the illegal campaign state changes are not made")
 def check_illegal_campaign_state_are_unchanged(vela_db_session: "Session", request_context: dict) -> None:
     active_campaigns = request_context["active_campaigns"]
 

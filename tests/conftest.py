@@ -62,7 +62,7 @@ def vela_db_session() -> Generator:
 
 @pytest.fixture(scope="function")
 def create_mock_campaign(vela_db_session: "Session") -> Generator:
-    mock_campaign: Campaign = None
+    mock_campaigns_ids: list[int] = []
 
     mock_campaign_params = {
         "status": CampaignStatuses.ACTIVE,
@@ -78,18 +78,19 @@ def create_mock_campaign(vela_db_session: "Session") -> Generator:
         :param campaign_params: override any values for the campaign, from what the default dict provides
         :return: Callable function
         """
+        nonlocal mock_campaigns_ids
 
         mock_campaign_params.update(campaign_params)
-        nonlocal mock_campaign
         mock_campaign = Campaign(**mock_campaign_params, retailer_id=retailer.id)
         vela_db_session.add(mock_campaign)
         vela_db_session.commit()
 
+        mock_campaigns_ids.append(mock_campaign.id)
         return mock_campaign
 
     yield _create_mock_campaign
 
-    vela_db_session.delete(mock_campaign)
+    vela_db_session.execute(delete(Campaign).where(Campaign.id.in_(mock_campaigns_ids)))
     vela_db_session.commit()
 
 
