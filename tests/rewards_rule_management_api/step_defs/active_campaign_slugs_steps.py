@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Callable
 from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 
-from db.vela.models import RetailerRewards
+from db.vela.models import CampaignStatuses, RetailerRewards
 from tests.rewards_rule_management_api.api_requests.base import get_rrm_headers, send_get_rrm_request
 from tests.rewards_rule_management_api.db_actions.campaigns import (
     get_active_campaigns,
@@ -46,14 +46,28 @@ def check_campaigns(
     create_mock_campaign: Callable,
 ) -> None:
     retailer: RetailerRewards = get_retailer_rewards(vela_db_session, retailer_slug)
-    create_mock_campaign(
-        retailer=retailer,
-        name=str(uuid.uuid4()),
-        slug=str(uuid.uuid4())[:32],
-    )
-
     actual_active_campaigns_total = len(get_active_campaigns(vela_db_session, retailer_slug))
+    if actual_active_campaigns_total < active_campaigns_total:
+        for _ in range(active_campaigns_total - actual_active_campaigns_total):
+            create_mock_campaign(
+                retailer=retailer,
+                name=str(uuid.uuid4()),
+                slug=str(uuid.uuid4())[:32],
+            )
+
+        actual_active_campaigns_total = len(get_active_campaigns(vela_db_session, retailer_slug))
+
     actual_non_active_campaigns_total = len(get_non_active_campaigns(vela_db_session, retailer_slug))
+    if actual_non_active_campaigns_total < non_active_campaigns_total:
+        for _ in range(non_active_campaigns_total - actual_non_active_campaigns_total):
+            create_mock_campaign(
+                retailer=retailer,
+                name=str(uuid.uuid4()),
+                slug=str(uuid.uuid4())[:32],
+                status=CampaignStatuses.DRAFT,
+            )
+
+        actual_non_active_campaigns_total = len(get_non_active_campaigns(vela_db_session, retailer_slug))
 
     logging.info(
         f"checking retailer: {retailer_slug} has at least {active_campaigns_total} active campaigns, "
