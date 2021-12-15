@@ -89,7 +89,6 @@ def make_campaigns_available_for_test(
 def send_post_campaign_change_request(
     vela_db_session: "Session", payload_type: str, status: str, retailer_slug: str, token: str, request_context: dict
 ) -> None:
-    # request_context["active_campaigns"] = request_context["active_campaigns"][:1]  # only need the first one
 
     payload = {}
     if payload_type == "correct":
