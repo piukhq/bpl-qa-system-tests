@@ -16,7 +16,7 @@ default_headers = {
 
 def send_post_accounts_voucher(
     retailer_slug: str,
-    account_holder_id: str,
+    account_holder_uuid: str,
     request_body: Union[dict, str],
     token_validity: Literal["valid", "invalid"],
     headers: Optional[dict] = None,
@@ -27,5 +27,7 @@ def send_post_accounts_voucher(
     if token_validity == "invalid":
         headers = headers | {"Authorization": "WRONG TOKEN"}
     return retry_session().post(
-        f"{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_id}/vouchers", json=request_body, headers=headers
+        f"{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_uuid}/vouchers",
+        json=request_body,
+        headers=headers,
     )

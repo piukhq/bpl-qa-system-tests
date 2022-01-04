@@ -103,7 +103,7 @@ def check_account_holder_is_active(polaris_db_session: "Session", request_contex
     request_context["balance"] = (
         polaris_db_session.execute(
             select(AccountHolderCampaignBalance).where(
-                AccountHolderCampaignBalance.account_holder_id == str(account_holder.id),
+                AccountHolderCampaignBalance.account_holder_id == account_holder.id,
                 AccountHolderCampaignBalance.campaign_slug == "test-campaign-1",
             )
         )
@@ -117,7 +117,7 @@ def get_account(request_context: dict) -> None:
     account_holder = request_context.get("account_holder", None)
 
     if account_holder is not None:
-        account_holder_id = str(account_holder.id)
+        account_holder_id = str(account_holder.account_holder_uuid)
     else:
         account_holder_id = str(uuid.uuid4())
 

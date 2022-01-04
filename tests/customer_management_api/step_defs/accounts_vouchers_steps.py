@@ -25,9 +25,9 @@ if TYPE_CHECKING:
 # fmt: on
 def post_voucher(past_or_future: str, retailer_slug: str, token_validity: str, request_context: dict) -> None:
     if "account_holder" in request_context:
-        account_holder_id = request_context["account_holder"].id
+        account_holder_uuid = request_context["account_holder"].account_holder_uuid
     else:
-        account_holder_id = str(uuid.uuid4())
+        account_holder_uuid = str(uuid.uuid4())
 
     request_context["voucher_id"] = str(uuid.uuid4())
 
@@ -40,13 +40,13 @@ def post_voucher(past_or_future: str, retailer_slug: str, token_validity: str, r
     }
     resp = send_post_accounts_voucher(
         retailer_slug,
-        account_holder_id,
+        account_holder_uuid,
         payload,
         "valid" if token_validity == "valid" else "invalid",  # jump through mypy hoops
     )
     logging.info(
         f"POST Voucher Endpoint request body: {json.dumps(payload, indent=4)}\n"
-        f"Post Voucher URL:{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_id}/vouchers"
+        f"Post Voucher URL:{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_uuid}/vouchers"
     )
     request_context["response"] = resp
 

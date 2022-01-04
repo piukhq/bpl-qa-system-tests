@@ -153,7 +153,7 @@ def create_mock_vouchers(
 
             if voucher_params["allocated"]:
                 mock_account_holder_voucher = AccountHolderVoucher(
-                    account_holder_id=str(mock_account_holder.id),
+                    account_holder_id=mock_account_holder.id,
                     voucher_id=voucher_params["id"],
                     voucher_code=voucher_params["voucher_code"],
                     issued_date=now,

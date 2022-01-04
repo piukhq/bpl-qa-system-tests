@@ -1,6 +1,7 @@
 @bpl @endtoend
 Feature: Allocation of voucher once reward goal met
 
+
   Scenario: Successfully POST an awardable transaction that increases the balance above the reward goal for the active campaign
 
     Given test-retailer has an active campaign with the slug test-campaign-1 where the earn increment is not the transaction value

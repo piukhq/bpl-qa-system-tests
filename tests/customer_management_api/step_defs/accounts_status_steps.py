@@ -34,7 +34,7 @@ def get_account_status(polaris_db_session: "Session", request_context: dict, ret
         account_holder = get_active_account_holder(polaris_db_session, email, retailer)
         assert account_holder is not None
         request_context["account_holder"] = account_holder
-        account_holder_id = str(account_holder.id)
+        account_holder_id = str(account_holder.account_holder_uuid)
     else:
         account_holder_id = str(uuid.uuid4())
 

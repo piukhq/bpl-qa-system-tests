@@ -99,7 +99,7 @@ def check_voucher_allocation_expiry_date(carina_db_session: "Session", request_c
 @then(parse("a POST to /vouchers will be made to update the users account with the voucher allocation"))
 def check_voucher_created(polaris_db_session: "Session", request_context: dict) -> None:
     voucher = get_allocated_voucher(polaris_db_session, request_context["voucher_allocation_task_params"]["voucher_id"])
-    assert voucher.account_holder_id == request_context["account_holder_uuid"]
+    assert voucher.account_holder_id == request_context["account_holder"].id
     assert voucher.voucher_type_slug == request_context["voucher_config"].voucher_type_slug
     assert voucher.issued_date is not None
     assert voucher.expiry_date is not None
