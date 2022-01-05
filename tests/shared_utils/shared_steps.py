@@ -15,7 +15,7 @@ def _setup_balance_for_account_holder(
     balance = (
         polaris_db_session.execute(
             select(AccountHolderCampaignBalance).where(
-                AccountHolderCampaignBalance.account_holder_id == str(account_holder.id),
+                AccountHolderCampaignBalance.account_holder_id == account_holder.id,
                 AccountHolderCampaignBalance.campaign_slug == campaign_slug,
             )
         )
@@ -25,7 +25,7 @@ def _setup_balance_for_account_holder(
 
     if balance is None:
         balance = AccountHolderCampaignBalance(
-            account_holder_id=str(account_holder.id), campaign_slug=campaign_slug, balance=0
+            account_holder_id=account_holder.id, campaign_slug=campaign_slug, balance=0
         )
         polaris_db_session.add(balance)
     else:
@@ -70,14 +70,14 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
     balance = _setup_balance_for_account_holder(polaris_db_session, account_holder, campaign_slug)
     polaris_db_session.commit()
 
-    request_context["account_holder_uuid"] = str(account_holder.id)
+    request_context["account_holder_uuid"] = str(account_holder.account_holder_uuid)
     request_context["account_holder"] = account_holder
     request_context["retailer_id"] = retailer.id
     request_context["retailer_slug"] = retailer.slug
     request_context["start_balance"] = 0
     request_context["balance"] = balance
 
-    logging.info(f"Active account holder uuid:{account_holder.id}\n" f"Retailer slug: {retailer_slug}")
+    logging.info(f"Active account holder uuid:{account_holder.account_holder_uuid}\n" f"Retailer slug: {retailer_slug}")
 
 
 @given(parsers.parse("the previous response returned a HTTP {status_code:d} status code"))

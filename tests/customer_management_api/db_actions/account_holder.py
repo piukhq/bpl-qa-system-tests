@@ -65,7 +65,7 @@ def get_active_account_holder(
 
 
 def get_account_holder_profile(
-    polaris_db_session: "Session", account_holder_id: str
+    polaris_db_session: "Session", account_holder_id: int
 ) -> Union[AccountHolderProfile, None]:
     account_holder_profile = None
 

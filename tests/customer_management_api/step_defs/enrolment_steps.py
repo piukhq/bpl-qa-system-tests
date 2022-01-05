@@ -188,7 +188,7 @@ def check_all_fields_saved_in_db(polaris_db_session: "Session", request_context:
 
     account_holder = get_account_holder(polaris_db_session, email, retailer)
     assert account_holder is not None
-    account_holder_profile = get_account_holder_profile(polaris_db_session, str(account_holder.id))
+    account_holder_profile = get_account_holder_profile(polaris_db_session, account_holder.id)
     assert_enrol_request_body_with_account_holder_table(account_holder, request_body, retailer.id)
     assert_enrol_request_body_with_account_holder_profile_table(account_holder_profile, request_body)
 
@@ -216,7 +216,7 @@ def check_account_holder_is_saved_in_db(polaris_db_session: "Session", request_c
 def check_account_holder_activation_is_saved_in_db(polaris_db_session: "Session", request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.account_holder_uuid)
     assert callback_task is not None
     assert settings.MOCK_SERVICE_BASE_URL in callback_task.get_params()["callback_url"]
     assert callback_task.get_params()["third_party_identifier"] == "identifier"
@@ -226,7 +226,7 @@ def check_account_holder_activation_is_saved_in_db(polaris_db_session: "Session"
 def check_enrolment_callback_is_tried(polaris_db_session: "Session", request_context: dict) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.account_holder_uuid)
     for i in range(1, 18):  # 3 minute wait
         logging.info(
             f"Sleeping for 10 seconds while waiting for callback attempt "
@@ -269,7 +269,7 @@ def assert_task_status_transition(
 def check_enrolment_callback_status(polaris_db_session: "Session", request_context: dict, status: str) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.account_holder_uuid)
     assert_task_status_transition(polaris_db_session, callback_task, new_status=status.upper())
     request_context["callback_task"] = callback_task
 
@@ -306,7 +306,7 @@ def alter_callback_url(
 ) -> None:
     account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
     assert account_holder is not None
-    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.id)
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.account_holder_uuid)
     key_val = (
         polaris_db_session.execute(
             select(TaskTypeKeyValue)

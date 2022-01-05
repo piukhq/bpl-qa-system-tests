@@ -16,6 +16,9 @@ if TYPE_CHECKING:
 
 def _get_adjustment_account_holder_and_payload(request_context: dict) -> Tuple[str, dict]:
     balance = request_context["balance"]
+    assert balance.account_holder_id == request_context["account_holder"].id
+    account_holder_uuid = request_context["account_holder"].account_holder_uuid
+
     balance_change = randint(5, 5000)
     payload = {
         "balance_change": balance_change,
@@ -24,15 +27,15 @@ def _get_adjustment_account_holder_and_payload(request_context: dict) -> Tuple[s
     request_context["request_details"] = payload
     request_context["request_details"]["old_balance"] = balance.balance
 
-    return balance.account_holder_id, payload
+    return account_holder_uuid, payload
 
 
 @when(parse("I post the balance adjustment for a {retailer_slug} account holder with a {token} auth token"))
 def send_adjustment_request(retailer_slug: str, token: str, request_context: dict) -> None:
     if "balance" in request_context:
-        account_holder_id, payload = _get_adjustment_account_holder_and_payload(request_context)
+        account_holder_uuid, payload = _get_adjustment_account_holder_and_payload(request_context)
     else:
-        account_holder_id = str(uuid.uuid4())
+        account_holder_uuid = str(uuid.uuid4())
         payload = {
             "balance_change": 100,
             "campaign_slug": "campaign-slug",
@@ -45,7 +48,7 @@ def send_adjustment_request(retailer_slug: str, token: str, request_context: dic
     else:
         raise ValueError(f"{token} is an invalid value for token")
 
-    resp = send_post_accounts_adjustments(retailer_slug, account_holder_id, payload, auth=auth)
+    resp = send_post_accounts_adjustments(retailer_slug, account_holder_uuid, payload, auth=auth)
 
     request_context["response"] = resp
 

@@ -19,7 +19,7 @@ def setup_non_existent_account_holder(retailer_slug: str, request_context: dict,
         account_holder = (
             polaris_db_session.query(AccountHolder)
             .join(RetailerConfig)
-            .filter(AccountHolder.id == account_holder_uuid, RetailerConfig.slug == retailer_slug)
+            .filter(AccountHolder.account_holder_uuid == account_holder_uuid, RetailerConfig.slug == retailer_slug)
             .first()
         )
         if account_holder is None:
@@ -27,17 +27,10 @@ def setup_non_existent_account_holder(retailer_slug: str, request_context: dict,
             break
 
 
-@when(
-    parse(
-        "I send a POST transaction request with the {payload_type} payload for a {retailer_slug} with the {token} token"
-    )
-)
-@given(
-    parse(
-        "A POST transaction with the {payload_type} payload for a {retailer_slug} with the {token} "
-        "token was already sent"
-    )
-)
+# fmt: off
+@when(parse("I send a POST transaction request with the {payload_type} payload for a {retailer_slug} with the {token} token"))  # noqa: E501
+@given(parse("A POST transaction with the {payload_type} payload for a {retailer_slug} with the {token} token was already sent"))  # noqa: E501
+# fmt: on
 def send_transaction_request(payload_type: str, retailer_slug: str, token: str, request_context: dict) -> None:
     if "account_holder_uuid" in request_context:
         account_holder_uuid = request_context["account_holder_uuid"]

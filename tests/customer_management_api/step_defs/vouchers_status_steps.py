@@ -28,12 +28,12 @@ def setup_account_holder_voucher(voucher_status: str, request_context: dict, pol
 
     issued = datetime.utcnow()
     expiry = issued + timedelta(days=10)
-    account_holder_uuid = request_context["account_holder_uuid"]
+    account_holder_id = request_context["account_holder"].id
     voucher_code = "ATMTST123456"
     voucher = (
         polaris_db_session.query(AccountHolderVoucher)
         .filter_by(
-            account_holder_id=account_holder_uuid,
+            account_holder_id=account_holder_id,
             voucher_code=voucher_code,
             voucher_type_slug="test-voucher-type",
         )
@@ -47,7 +47,7 @@ def setup_account_holder_voucher(voucher_status: str, request_context: dict, pol
             issued_date=issued,
             expiry_date=expiry,
             voucher_type_slug="test-voucher-type",
-            account_holder_id=account_holder_uuid,
+            account_holder_id=account_holder_id,
             status=status,
             retailer_slug="test-retailer",
             idempotency_token=str(uuid4()),

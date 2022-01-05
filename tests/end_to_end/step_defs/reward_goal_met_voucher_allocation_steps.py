@@ -158,7 +158,7 @@ def check_voucher_allocated(polaris_db_session: "Session", request_context: dict
             # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved
             .filter(
                 AccountHolderVoucher.voucher_code.in_(request_context["unallocated_voucher_codes"]),
-                AccountHolderVoucher.account_holder_id == request_context["account_holder_uuid"],
+                AccountHolderVoucher.account_holder_id == request_context["account_holder"].id,
                 AccountHolderVoucher.voucher_type_slug == request_context["voucher_type_slug"],
             ).all()
         )
