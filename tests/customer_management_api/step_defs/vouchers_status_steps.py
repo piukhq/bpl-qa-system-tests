@@ -75,14 +75,14 @@ def send_voucher_status_change(new_status: str, retailer_slug: str, token_type: 
     request_context["requested_status"] = new_status
     request = {"status": new_status, "date": datetime.utcnow().timestamp()}
     request_context["resp"] = requests.patch(
-        f"{settings.POLARIS_BASE_URL}/{retailer_slug}/vouchers/{request_context['voucher'].voucher_id}/status",
+        f"{settings.POLARIS_BASE_URL}/{retailer_slug}/rewards/{request_context['voucher'].voucher_id}/status",
         json=request,
         headers={"Authorization": f"token {token}"},
     )
 
     logging.info(
         f"PATCH voucher URL:{settings.POLARIS_BASE_URL}/{retailer_slug}"
-        f"/vouchers/{request_context['voucher'].voucher_id}/status\n "
+        f"/rewards/{request_context['voucher'].voucher_id}/status\n "
         f"PATCH Voucher request body: {json.dumps(request, indent=4)}"
     )
 
