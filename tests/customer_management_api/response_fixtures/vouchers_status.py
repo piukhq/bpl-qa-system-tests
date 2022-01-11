@@ -7,7 +7,7 @@ class VoucherStatusResponses(BaseResponses):
         "code": "NO_VOUCHER_FOUND",
     }
     status_not_changed = {
-        "display_message": "Voucher status incorrect.",
+        "display_message": "Reward status incorrect.",
         "code": "STATUS_NOT_CHANGED",
     }
     invalid_status = {
