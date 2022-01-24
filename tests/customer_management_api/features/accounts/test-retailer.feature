@@ -4,7 +4,6 @@ Feature: Bink BPL - Ensure that as a channel user I can retrieve a test-retailer
   Using the GET /test-retailer/accounts/[AccountHolder.id] endpoint
   I can access the requested account holder details
 
-
   Scenario: Get an account holder for test-retailer by UUID
 
     Given I previously successfully enrolled a test-retailer account holder
@@ -13,7 +12,6 @@ Feature: Bink BPL - Ensure that as a channel user I can retrieve a test-retailer
     When I send a get /accounts request for the account holder by UUID
     Then I receive a HTTP 200 status code response
     And I get a success accounts response body
-
 
   Scenario: Get a non existent account holder for test-retailer by UUID
 
