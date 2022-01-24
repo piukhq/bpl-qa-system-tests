@@ -24,6 +24,6 @@ Base.prepare(engine, reflect=True)
 
 # get models from Base mapping
 AccountHolderProfile = Base.classes.account_holder_profile
-AccountHolderVoucher = Base.classes.account_holder_voucher
+AccountHolderVoucher = Base.classes.account_holder_reward
 AccountHolderCampaignBalance = Base.classes.account_holder_campaign_balance
 RetailerConfig = Base.classes.retailer_config

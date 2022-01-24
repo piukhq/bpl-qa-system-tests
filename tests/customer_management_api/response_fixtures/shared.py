@@ -20,7 +20,7 @@ def account_holder_details_response_body(polaris_db_session: "Session", account_
             for balance in account_holder.account_holder_campaign_balance_collection
         ],
         "transaction_history": [],
-        "vouchers": [],
+        "rewards": [],
     }
 
 
