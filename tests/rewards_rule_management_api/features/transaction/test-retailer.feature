@@ -12,7 +12,7 @@ Feature: Post a transaction for a test-retailer
     Then I get a HTTP 200 rrm awarded response
     And The transaction is not saved in the transaction database table
     And The transaction is saved in the processed_transaction database table
-    And The transaction's amount is enough to trigger a new voucher being issued
+    And The transaction's amount is enough to trigger a new reward being issued
     And The account holder's balance is updated
 
 

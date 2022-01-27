@@ -66,7 +66,7 @@ def setup_account_holder_reward(reward_status: str, request_context: dict, polar
 @when(parse("I PATCH a reward's status to {new_status} for a {retailer_slug} using a {token_type} auth token"))
 def send_reward_status_change(new_status: str, retailer_slug: str, token_type: str, request_context: dict) -> None:
     if token_type == "valid":
-        token = settings.CUSTOMER_MANAGEMENT_API_TOKEN
+        token = settings.POLARIS_API_AUTH_TOKEN
     elif token_type == "invalid":
         token = "INVALID-TOKEN"
     else:
@@ -96,9 +96,7 @@ def check_reward_status_response(status_code: int, request_context: dict) -> Non
 @then(parse("The account holders {expectation} have the reward's status updated in their account"))
 def check_account_holder_rewards(expectation: str, request_context: dict) -> None:
     resp = send_get_accounts(request_context["retailer_slug"], request_context["account_holder_uuid"])
-    reward = next(
-        (v for v in resp.json()["rewards"] if v["code"] == request_context["reward"].code), None
-    )
+    reward = next((v for v in resp.json()["rewards"] if v["code"] == request_context["reward"].code), None)
     if expectation == "will":
         assert reward["status"] == request_context["requested_status"]  # type: ignore
     elif expectation == "will not":

@@ -90,7 +90,7 @@ def check_transaction_in_db(
         raise ValueError(f"{expectation} is not a valid expectation")
 
 
-@then("The transaction's amount is enough to trigger a new voucher being issued")
+@then("The transaction's amount is enough to trigger a new reward being issued")
 def expected_new_balance_is_over_reward_goal(request_context: dict, vela_db_session: Session) -> None:
     campaign = (
         vela_db_session.query(Campaign)

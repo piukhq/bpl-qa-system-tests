@@ -39,9 +39,9 @@ VELA_DATABASE_URI = getenv("VELA_DATABASE_URI")
 
 VAULT_URL = getenv("VAULT_URL")
 vault = KeyVault(VAULT_URL)
-CUSTOMER_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-customer-mgmt-auth-token")
-REWARDS_RULE_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-reward-mgmt-auth-token")
-VOUCHER_MANAGEMENT_API_TOKEN = vault.get_secret("bpl-voucher-mgmt-auth-token")
+POLARIS_API_AUTH_TOKEN = vault.get_secret("bpl-polaris-api-auth-token")
+VELA_API_AUTH_TOKEN = vault.get_secret("bpl-vela-api-auth-token")
+CARINA_API_AUTH_TOKEN = vault.get_secret("bpl-carina-api-auth-token")
 
 LOCAL = getenv("LOCAL", default="False", conv=boolconv)
 

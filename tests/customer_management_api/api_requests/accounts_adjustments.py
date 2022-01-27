@@ -1,14 +1,14 @@
 from typing import TYPE_CHECKING, Union
 from uuid import uuid4
 
-from settings import CUSTOMER_MANAGEMENT_API_TOKEN, POLARIS_BASE_URL
+from settings import POLARIS_API_AUTH_TOKEN, POLARIS_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
     from requests import Response
 
 default_headers = {
-    "Authorization": f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}",
+    "Authorization": f"Token {POLARIS_API_AUTH_TOKEN}",
     "idempotency-token": str(uuid4()),
 }
 

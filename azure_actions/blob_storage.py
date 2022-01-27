@@ -28,22 +28,22 @@ def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> Bl
     return blob
 
 
-def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Rewards], blob_name: str) -> BlobClient:
-    blob_path = os.path.join(retailer_slug, "voucher-updates", blob_name)
+def put_new_reward_updates_file(retailer_slug: str, rewards: List[Rewards], blob_name: str) -> BlobClient:
+    blob_path = os.path.join(retailer_slug, "reward-updates", blob_name)
     today_date = datetime.now().strftime("%Y-%m-%d")
-    content = "\n".join([f"{voucher.voucher_code},{today_date},redeemed" for voucher in vouchers])
+    content = "\n".join([f"{reward.code},{today_date},redeemed" for reward in rewards])
     return upload_blob(blob_path, content)
 
 
-def put_new_available_vouchers_file(
-    retailer_slug: str, voucher_codes: List[str], voucher_type_slug: Optional[str] = None
+def put_new_available_rewards_file(
+    retailer_slug: str, codes: List[str], reward_slug: Optional[str] = None
 ) -> BlobClient:
     blob_name = f"test_import_{uuid.uuid4()}.csv"
-    path_elems = [retailer_slug, "available-vouchers", blob_name]
-    if voucher_type_slug:
-        path_elems.insert(2, voucher_type_slug)
+    path_elems = [retailer_slug, "available-rewards", blob_name]
+    if reward_slug:
+        path_elems.insert(2, reward_slug)
     blob_path = os.path.join(*path_elems)
-    content = "\n".join([voucher_code for voucher_code in voucher_codes])
+    content = "\n".join([code for code in codes])
     logging.info(f"content of csv file upload: {content}")
     return upload_blob(blob_path, content)
 

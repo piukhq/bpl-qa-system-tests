@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import requests
 
-from settings import REWARDS_RULE_MANAGEMENT_API_TOKEN, VELA_BASE_URL
+from settings import VELA_API_AUTH_TOKEN, VELA_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 def get_rrm_headers(valid_token: bool = True) -> dict:
     if valid_token:
-        token = REWARDS_RULE_MANAGEMENT_API_TOKEN
+        token = VELA_API_AUTH_TOKEN
     else:
         token = "wrong-token"
 

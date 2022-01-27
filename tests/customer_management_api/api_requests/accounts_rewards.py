@@ -3,14 +3,14 @@ import uuid
 
 from typing import TYPE_CHECKING, Literal, Optional, Union
 
-from settings import CUSTOMER_MANAGEMENT_API_TOKEN, POLARIS_BASE_URL
+from settings import POLARIS_API_AUTH_TOKEN, POLARIS_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
     from requests import Response
 
 default_headers = {
-    "Authorization": f"Token {CUSTOMER_MANAGEMENT_API_TOKEN}",
+    "Authorization": f"Token {POLARIS_API_AUTH_TOKEN}",
 }
 
 

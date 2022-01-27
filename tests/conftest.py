@@ -95,46 +95,46 @@ def create_mock_campaign(vela_db_session: "Session") -> Generator:
 
 
 @pytest.fixture(scope="function")
-def create_config_and_vouchers(carina_db_session: "Session") -> Generator:
-    voucher_config: Optional[RewardConfig] = None
+def create_config_and_rewards(carina_db_session: "Session") -> Generator:
+    reward_config: Optional[RewardConfig] = None
 
     def fn(
-        retailer_slug: str, voucher_type_slug: str, status: Optional[str] = "ACTIVE", num_vouchers: int = 5
+        retailer_slug: str, reward_slug: str, status: Optional[str] = "ACTIVE", num_rewards: int = 5
     ) -> RewardConfig:
-        nonlocal voucher_config
-        voucher_config = RewardConfig(
+        nonlocal reward_config
+        reward_config = RewardConfig(
             retailer_slug=retailer_slug,
-            voucher_type_slug=voucher_type_slug,
+            reward_slug=reward_slug,
             validity_days=1,
             fetch_type="PRE_LOADED",
             status=status,
         )
-        carina_db_session.add(voucher_config)
+        carina_db_session.add(reward_config)
         carina_db_session.commit()
 
-        voucher_ids = [str(uuid.uuid4()) for i in range(num_vouchers)]
+        reward_uuids = [str(uuid.uuid4()) for i in range(num_rewards)]
         carina_db_session.add_all(
             [
                 Rewards(
-                    id=voucher_id,
+                    id=reward_uuid,
                     retailer_slug=retailer_slug,
-                    voucher_config_id=voucher_config.id,
-                    voucher_code=str(voucher_id),
+                    reward_config_id=reward_config.id,
+                    code=str(reward_uuid),
                     allocated=False,
                     deleted=False,
                 )
-                for voucher_id in voucher_ids
+                for reward_uuid in reward_uuids
             ]
         )
         carina_db_session.commit()
 
-        return voucher_config, voucher_ids
+        return reward_config, reward_uuids
 
     yield fn
 
-    if voucher_config:
-        carina_db_session.execute(delete(Rewards).where(Rewards.voucher_config_id == voucher_config.id))
-        carina_db_session.delete(voucher_config)
+    if reward_config:
+        carina_db_session.execute(delete(Rewards).where(Rewards.reward_config_id == reward_config.id))
+        carina_db_session.delete(reward_config)
         carina_db_session.commit()
 
 
@@ -171,15 +171,13 @@ def create_mock_retailer(vela_db_session: "Session") -> Generator:
 def create_mock_reward_rule(vela_db_session: "Session") -> Generator:
     mock_reward_rule: RewardRule = None
 
-    def _create_mock_reward_rule(voucher_type_slug: str, campaign_id: int, reward_goal: int = 5) -> RewardRule:
+    def _create_mock_reward_rule(reward_slug: str, campaign_id: int, reward_goal: int = 5) -> RewardRule:
         """
         Create a reward rule in the test DB
         :return: Callable function
         """
         nonlocal mock_reward_rule
-        mock_reward_rule = RewardRule(
-            reward_goal=reward_goal, voucher_type_slug=voucher_type_slug, campaign_id=campaign_id
-        )
+        mock_reward_rule = RewardRule(reward_goal=reward_goal, reward_slug=reward_slug, campaign_id=campaign_id)
         vela_db_session.add(mock_reward_rule)
         vela_db_session.commit()
         return mock_reward_rule
