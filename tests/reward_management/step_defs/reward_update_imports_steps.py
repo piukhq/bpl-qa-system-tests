@@ -9,7 +9,7 @@ from pytest_bdd.parsers import parse
 from sqlalchemy import Date
 from sqlalchemy.future import select
 
-from db.carina.models import Rewards, RewardConfig, RewardFileLog, RewardUpdate
+from db.carina.models import Reward, RewardConfig, RewardFileLog, RewardUpdate
 from db.polaris.models import AccountHolderReward
 from enums import FileAgentType
 
@@ -24,9 +24,9 @@ def _get_reward_update_rows(carina_db_session: "Session", codes: List[str], req_
     reward_update_rows = (
         carina_db_session.execute(
             select(RewardUpdate)
-            .join(Rewards)
+            .join(Reward)
             .where(
-                Rewards.code.in_(codes),
+                Reward.code.in_(codes),
                 RewardUpdate.updated_at.cast(Date) == req_date,
             )
         )
@@ -37,13 +37,13 @@ def _get_reward_update_rows(carina_db_session: "Session", codes: List[str], req_
     return reward_update_rows
 
 
-def _get_reward_row(carina_db_session: "Session", code: str, req_date: str, deleted: bool) -> Rewards:
+def _get_reward_row(carina_db_session: "Session", code: str, req_date: str, deleted: bool) -> Reward:
     return (
         carina_db_session.execute(
-            select(Rewards).where(
-                Rewards.code == code,
-                Rewards.updated_at.cast(Date) == req_date,
-                Rewards.deleted.is_(deleted),
+            select(Reward).where(
+                Reward.code == code,
+                Reward.updated_at.cast(Date) == req_date,
+                Reward.deleted.is_(deleted),
             )
         )
         .scalars()
@@ -79,7 +79,7 @@ def reward_updates_upload(
     for today's date.
     """
     # GIVEN
-    mock_rewards: List[Rewards] = create_mock_rewards(
+    mock_rewards: List[Reward] = create_mock_rewards(
         reward_config=get_reward_config(retailer_slug, "10percentoff"),
         n_rewards=3,
         reward_overrides=[
@@ -109,7 +109,7 @@ def reward_updates_upload_blob_name(
     for today's date.
     """
     # GIVEN
-    mock_rewards: List[Rewards] = create_mock_rewards(
+    mock_rewards: List[Reward] = create_mock_rewards(
         reward_config=get_reward_config(retailer_slug, "10percentoff"),
         n_rewards=3,
         reward_overrides=[

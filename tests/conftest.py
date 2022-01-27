@@ -8,7 +8,7 @@ import pytest
 
 from sqlalchemy import delete
 
-from db.carina.models import Rewards, RewardConfig
+from db.carina.models import Reward, RewardConfig
 from db.carina.session import CarinaSessionMaker
 from db.polaris.session import PolarisSessionMaker
 from db.vela.models import Campaign, CampaignStatuses, RetailerRewards, RewardRule
@@ -115,7 +115,7 @@ def create_config_and_rewards(carina_db_session: "Session") -> Generator:
         reward_uuids = [str(uuid.uuid4()) for i in range(num_rewards)]
         carina_db_session.add_all(
             [
-                Rewards(
+                Reward(
                     id=reward_uuid,
                     retailer_slug=retailer_slug,
                     reward_config_id=reward_config.id,
@@ -133,7 +133,7 @@ def create_config_and_rewards(carina_db_session: "Session") -> Generator:
     yield fn
 
     if reward_config:
-        carina_db_session.execute(delete(Rewards).where(Rewards.reward_config_id == reward_config.id))
+        carina_db_session.execute(delete(Reward).where(Reward.reward_config_id == reward_config.id))
         carina_db_session.delete(reward_config)
         carina_db_session.commit()
 

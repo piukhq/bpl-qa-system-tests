@@ -14,7 +14,7 @@ from sqlalchemy import select
 
 import settings
 
-from db.carina.models import Rewards, RewardConfig
+from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolderReward
 from tests.rewards_rule_management_api.api_requests.base import post_transaction_request
 from tests.rewards_rule_management_api.db_actions.campaigns import get_active_campaigns, get_retailer_rewards
@@ -81,11 +81,11 @@ def check_or_make_unallocated_rewards(
     )
     existing_rewards = (
         carina_db_session.execute(
-            select(Rewards)
+            select(Reward)
             .join(RewardConfig)
-            .where(Rewards.retailer_slug == retailer_slug)
-            .where(Rewards.reward_config == reward_config)
-            .where(Rewards.allocated.is_(False))
+            .where(Reward.retailer_slug == retailer_slug)
+            .where(Reward.reward_config == reward_config)
+            .where(Reward.allocated.is_(False))
         )
         .scalars()
         .all()
@@ -116,11 +116,11 @@ def check_or_make_unallocated_rewards(
 
 def make_spare_rewards(
     carina_db_session: "Session", how_many: int, retailer_slug: str, reward_config: RewardConfig
-) -> List[Rewards]:
+) -> List[Reward]:
     rewards = []
     for _ in range(how_many):
         rewards.append(
-            Rewards(
+            Reward(
                 id=str(uuid.uuid4()),
                 code=str(uuid.uuid4()),
                 reward_config_id=reward_config.id,

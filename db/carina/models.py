@@ -6,7 +6,7 @@ Base = automap_base()
 Base.prepare(engine, reflect=True)
 
 # get models from Base mapping
-Rewards = Base.classes.reward
+Reward = Base.classes.reward
 RewardConfig = Base.classes.reward_config
 RewardUpdate = Base.classes.reward_update
 RewardFileLog = Base.classes.reward_file_log

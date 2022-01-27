@@ -9,7 +9,7 @@ from sqlalchemy import delete
 from sqlalchemy.future import select
 
 from azure_actions.blob_storage import put_new_available_rewards_file, put_new_reward_updates_file
-from db.carina.models import Rewards, RewardConfig, RewardFileLog
+from db.carina.models import Reward, RewardConfig, RewardFileLog
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from enums import FileAgentType
 from settings import BLOB_STORAGE_DSN, logger
@@ -25,7 +25,7 @@ def cleanup_imported_rewards(carina_db_session: "Session", request_context: dict
 
     if reward_codes := request_context.get("import_file_new_reward_codes", []):
         logger.info("Deleting newly imported Rewards...")
-        carina_db_session.execute(delete(Rewards).where(Rewards.id.in_(reward_codes)))
+        carina_db_session.execute(delete(Reward).where(Reward.id.in_(reward_codes)))
         carina_db_session.commit()
 
 
@@ -51,7 +51,7 @@ def upload_available_rewards_to_blob_storage() -> Callable:
 
 @pytest.fixture(scope="function")
 def upload_reward_updates_to_blob_storage() -> Callable:
-    def func(retailer_slug: str, rewards: List[Rewards], blob_name: str = None) -> Optional[str]:
+    def func(retailer_slug: str, rewards: List[Reward], blob_name: str = None) -> Optional[str]:
         """Upload some reward updates to blob storage to test end-to-end import"""
         blob = None
         if blob_name is None:
@@ -120,11 +120,11 @@ def mock_account_holder(polaris_db_session: "Session") -> AccountHolder:
 def create_mock_rewards(
     carina_db_session: "Session", polaris_db_session: "Session", mock_account_holder: AccountHolder
 ) -> Generator:
-    mock_rewards: List[Rewards] = []
+    mock_rewards: List[Reward] = []
     mock_account_holder_rewards: List[AccountHolderReward] = []
     now = datetime.utcnow()
 
-    def func(reward_config: RewardConfig, n_rewards: int, reward_overrides: List[Dict]) -> Rewards:
+    def func(reward_config: RewardConfig, n_rewards: int, reward_overrides: List[Dict]) -> Reward:
         """
         Create a reward in carina's test DB
         :param reward_config: the RewardConfig to link the rewards to
@@ -146,7 +146,7 @@ def create_mock_rewards(
             }
 
             reward_params.update(reward_overrides[idx])
-            mock_reward = Rewards(**reward_params)
+            mock_reward = Reward(**reward_params)
             carina_db_session.add(mock_reward)
             mock_rewards.append(mock_reward)
 

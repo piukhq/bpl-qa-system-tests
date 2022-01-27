@@ -8,7 +8,7 @@ from pytest_bdd import given, then
 from pytest_bdd.parsers import parse
 from sqlalchemy.future import select
 
-from db.carina.models import Rewards, RewardConfig
+from db.carina.models import Reward, RewardConfig
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ def make_pre_existing_rewards(
     create_mock_rewards: Callable,
     request_context: dict,
 ) -> None:
-    pre_existing_rewards: List[Rewards] = create_mock_rewards(
+    pre_existing_rewards: List[Reward] = create_mock_rewards(
         reward_config=get_reward_config(retailer_slug, reward_slug),
         n_rewards=3,
         reward_overrides=[
@@ -55,12 +55,12 @@ def put_new_rewards_file(
 def check_new_rewards_imported(request_context: dict, carina_db_session: "Session") -> None:
     new_codes = request_context["import_file_new_reward_codes"]
     pre_existing_codes = request_context["pre_existing_reward_codes"]
-    rewards: Optional[List[Rewards]] = None
+    rewards: Optional[List[Reward]] = None
     for i in range(7):
         logging.info("Sleeping for 10 seconds...")
         sleep(10)
         rewards = (
-            carina_db_session.execute(select(Rewards).where(Rewards.code.in_(new_codes + pre_existing_codes)))
+            carina_db_session.execute(select(Reward).where(Reward.code.in_(new_codes + pre_existing_codes)))
             .scalars()
             .all()
         )
@@ -81,7 +81,7 @@ def check_new_rewards_imported(request_context: dict, carina_db_session: "Sessio
 def check_rewards_not_imported(carina_db_session: "Session", request_context: dict) -> None:
     rewards = (
         carina_db_session.execute(
-            select(Rewards).where(Rewards.code.in_(request_context["import_file_new_reward_codes"]))
+            select(Reward).where(Reward.code.in_(request_context["import_file_new_reward_codes"]))
         )
         .scalars()
         .all()

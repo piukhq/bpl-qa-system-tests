@@ -6,7 +6,7 @@ from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue
 from sqlalchemy.future import select
 from sqlalchemy.sql.functions import count
 
-from db.carina.models import Rewards, RewardConfig
+from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolderReward
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 def get_count_unallocated_rewards_by_reward_config(carina_db_session: "Session", reward_configs_ids: list[int]) -> int:
     return carina_db_session.scalar(
-        select(count(Rewards.id)).where(Rewards.reward_config_id.in_(reward_configs_ids), Rewards.allocated.is_(False))
+        select(count(Reward.id)).where(Reward.reward_config_id.in_(reward_configs_ids), Reward.allocated.is_(False))
     )
 
 
@@ -40,8 +40,8 @@ def get_reward_config_with_available_rewards(carina_db_session: "Session", retai
         carina_db_session.execute(
             select(RewardConfig).where(
                 RewardConfig.retailer_slug == retailer_slug,
-                Rewards.reward_config_id == RewardConfig.id,
-                Rewards.allocated.is_(False),
+                Reward.reward_config_id == RewardConfig.id,
+                Reward.allocated.is_(False),
             )
         )
         .scalars()

@@ -9,7 +9,7 @@ from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 from retry_tasks_lib.enums import RetryTaskStatuses
 
-from db.carina.models import Rewards, RewardConfig
+from db.carina.models import Reward, RewardConfig
 from tests.reward_management_api.api_requests.reward_allocation import (
     send_post_malformed_reward_allocation,
     send_post_reward_allocation,
@@ -71,7 +71,7 @@ def check_async_reward_allocation(carina_db_session: "Session", request_context:
     assert reward_allocation_task != RetryTaskStatuses.WAITING
 
     reward = (
-        carina_db_session.query(Rewards).filter_by(reward_uuid=reward_allocation_task.get_params()["reward_uuid"]).one()
+        carina_db_session.query(Reward).filter_by(reward_uuid=reward_allocation_task.get_params()["reward_uuid"]).one()
     )
     assert reward.allocated
     assert reward.id
