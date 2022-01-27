@@ -8,7 +8,7 @@ from pytest_bdd import given, then
 from pytest_bdd.parsers import parse
 from sqlalchemy.future import select
 
-from db.carina.models import Voucher, VoucherConfig
+from db.carina.models import Rewards, RewardConfig
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -18,11 +18,11 @@ if TYPE_CHECKING:
 def make_pre_existing_vouchers(
     retailer_slug: str,
     voucher_type_slug: str,
-    get_voucher_config: Callable[[str, str], VoucherConfig],
+    get_voucher_config: Callable[[str, str], RewardConfig],
     create_mock_vouchers: Callable,
     request_context: dict,
 ) -> None:
-    pre_existing_vouchers: List[Voucher] = create_mock_vouchers(
+    pre_existing_vouchers: List[Rewards] = create_mock_vouchers(
         voucher_config=get_voucher_config(retailer_slug, voucher_type_slug),
         n_vouchers=3,
         voucher_overrides=[
@@ -55,12 +55,12 @@ def put_new_vouchers_file(
 def check_new_vouchers_imported(request_context: dict, carina_db_session: "Session") -> None:
     new_codes = request_context["import_file_new_voucher_codes"]
     pre_existing_codes = request_context["pre_existing_voucher_codes"]
-    vouchers: Optional[List[Voucher]] = None
+    vouchers: Optional[List[Rewards]] = None
     for i in range(7):
         logging.info("Sleeping for 10 seconds...")
         sleep(10)
         vouchers = (
-            carina_db_session.execute(select(Voucher).where(Voucher.voucher_code.in_(new_codes + pre_existing_codes)))
+            carina_db_session.execute(select(Rewards).where(Rewards.voucher_code.in_(new_codes + pre_existing_codes)))
             .scalars()
             .all()
         )
@@ -81,7 +81,7 @@ def check_new_vouchers_imported(request_context: dict, carina_db_session: "Sessi
 def check_vouchers_not_imported(carina_db_session: "Session", request_context: dict) -> None:
     vouchers = (
         carina_db_session.execute(
-            select(Voucher).where(Voucher.voucher_code.in_(request_context["import_file_new_voucher_codes"]))
+            select(Rewards).where(Rewards.voucher_code.in_(request_context["import_file_new_voucher_codes"]))
         )
         .scalars()
         .all()

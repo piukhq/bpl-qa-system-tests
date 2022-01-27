@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 
-from db.polaris.models import AccountHolder, AccountHolderProfile, AccountHolderVoucher, RetailerConfig
+from db.polaris.models import AccountHolder, AccountHolderProfile, AccountHolderReward, RetailerConfig
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -122,9 +122,9 @@ def assert_enrol_request_body_with_account_holder_profile_table(
 
 def get_account_holder_voucher(
     polaris_db_session: "Session", voucher_code: str, retailer_slug: str
-) -> AccountHolderVoucher:
+) -> AccountHolderReward:
     voucher = (
-        polaris_db_session.query(AccountHolderVoucher)
+        polaris_db_session.query(AccountHolderReward)
         .filter_by(
             # FIXME: BPL-190 will add a unique constraint across voucher_code and retailer at which point this query
             # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved

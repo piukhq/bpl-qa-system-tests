@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 import settings
 
-from db.polaris.models import AccountHolderVoucher
+from db.polaris.models import AccountHolderReward
 from tests.customer_management_api.api_requests.accounts import send_get_accounts
 from tests.customer_management_api.response_fixtures.vouchers_status import VoucherStatusResponses
 
@@ -31,7 +31,7 @@ def setup_account_holder_voucher(voucher_status: str, request_context: dict, pol
     account_holder_id = request_context["account_holder"].id
     voucher_code = "ATMTST123456"
     voucher = (
-        polaris_db_session.query(AccountHolderVoucher)
+        polaris_db_session.query(AccountHolderReward)
         .filter_by(
             account_holder_id=account_holder_id,
             voucher_code=voucher_code,
@@ -41,7 +41,7 @@ def setup_account_holder_voucher(voucher_status: str, request_context: dict, pol
     )
 
     if voucher is None:
-        voucher = AccountHolderVoucher(
+        voucher = AccountHolderReward(
             voucher_id=str(uuid4()),
             voucher_code=voucher_code,
             issued_date=issued,

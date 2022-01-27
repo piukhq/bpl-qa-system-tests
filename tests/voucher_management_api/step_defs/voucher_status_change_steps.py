@@ -8,7 +8,7 @@ from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 from sqlalchemy.future import select
 
-from db.carina.models import VoucherConfig
+from db.carina.models import RewardConfig
 from settings import CARINA_BASE_URL, VOUCHER_MANAGEMENT_API_TOKEN
 from tests.retry_requests import retry_session
 
@@ -98,7 +98,7 @@ def patch_status_invalid_token(
 @then(parse("the status of the voucher config is {new_status}"))
 def check_voucher_config_status(carina_db_session: "Session", new_status: str, request_context: dict) -> None:
     voucher_config_status = carina_db_session.execute(
-        select(VoucherConfig.status).where(VoucherConfig.id == request_context["voucher_config_id"])
+        select(RewardConfig.status).where(RewardConfig.id == request_context["voucher_config_id"])
     ).scalar()
     assert voucher_config_status == new_status, f"{voucher_config_status} != {new_status}"
 

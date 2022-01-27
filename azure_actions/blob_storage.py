@@ -8,7 +8,7 @@ from typing import List, Optional
 from azure.core.exceptions import HttpResponseError
 from azure.storage.blob import BlobClient, BlobType, ContentSettings
 
-from db.carina.models import Voucher
+from db.carina.models import Rewards
 from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, LOCAL, REPORT_CONTAINER, REPORT_DIRECTORY, logger
 
 
@@ -28,7 +28,7 @@ def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> Bl
     return blob
 
 
-def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Voucher], blob_name: str) -> BlobClient:
+def put_new_voucher_updates_file(retailer_slug: str, vouchers: List[Rewards], blob_name: str) -> BlobClient:
     blob_path = os.path.join(retailer_slug, "voucher-updates", blob_name)
     today_date = datetime.now().strftime("%Y-%m-%d")
     content = "\n".join([f"{voucher.voucher_code},{today_date},redeemed" for voucher in vouchers])

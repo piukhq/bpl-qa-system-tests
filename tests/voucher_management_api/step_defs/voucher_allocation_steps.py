@@ -9,7 +9,7 @@ from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 from retry_tasks_lib.enums import RetryTaskStatuses
 
-from db.carina.models import Voucher, VoucherConfig
+from db.carina.models import Rewards, RewardConfig
 from tests.voucher_management_api.api_requests.voucher_allocation import (
     send_post_malformed_voucher_allocation,
     send_post_voucher_allocation,
@@ -70,7 +70,7 @@ def check_async_voucher_allocation(carina_db_session: "Session", request_context
 
     assert voucher_allocation_task != RetryTaskStatuses.WAITING
 
-    voucher = carina_db_session.query(Voucher).filter_by(id=voucher_allocation_task.get_params()["voucher_id"]).one()
+    voucher = carina_db_session.query(Rewards).filter_by(id=voucher_allocation_task.get_params()["voucher_id"]).one()
     assert voucher.allocated
     assert voucher.id
 
@@ -112,7 +112,7 @@ def check_voucher_created(polaris_db_session: "Session", request_context: dict) 
 def send_post_voucher_allocation_request(
     carina_db_session: "Session", retailer_slug: str, token: str, request_context: dict
 ) -> None:
-    voucher_config: VoucherConfig = get_voucher_config_with_available_vouchers(
+    voucher_config: RewardConfig = get_voucher_config_with_available_vouchers(
         carina_db_session=carina_db_session, retailer_slug=retailer_slug
     )
     payload = get_voucher_allocation_payload(request_context)
@@ -138,7 +138,7 @@ def send_post_malformed_voucher_allocation_request(
     carina_db_session: "Session", retailer_slug: str, request_context: dict
 ) -> None:
     payload = get_malformed_request_body()
-    voucher_config: VoucherConfig = get_voucher_config(carina_db_session=carina_db_session, retailer_slug=retailer_slug)
+    voucher_config: RewardConfig = get_voucher_config(carina_db_session=carina_db_session, retailer_slug=retailer_slug)
     resp = send_post_malformed_voucher_allocation(
         retailer_slug=retailer_slug, voucher_type_slug=voucher_config.voucher_type_slug, request_body=payload
     )
