@@ -14,7 +14,7 @@ default_headers = {
 }
 
 
-def send_post_accounts_voucher(
+def send_post_accounts_reward(
     retailer_slug: str,
     account_holder_uuid: str,
     request_body: Union[dict, str],
@@ -23,11 +23,11 @@ def send_post_accounts_voucher(
 ) -> "Response":
     headers = headers or default_headers.copy()
     headers["Idempotency-Token"] = str(uuid.uuid4())
-    logging.info(f"Headers for POST Vouchers API : {headers}")
+    logging.info(f"Headers for POST Rewards API : {headers}")
     if token_validity == "invalid":
         headers = headers | {"Authorization": "WRONG TOKEN"}
     return retry_session().post(
-        f"{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_uuid}/vouchers",
+        f"{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_uuid}/rewards",
         json=request_body,
         headers=headers,
     )

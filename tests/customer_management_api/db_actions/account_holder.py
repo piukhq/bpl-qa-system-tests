@@ -120,16 +120,14 @@ def assert_enrol_request_body_with_account_holder_profile_table(
         ), f"Failed to match field {field} to {request_value}"
 
 
-def get_account_holder_voucher(
-    polaris_db_session: "Session", voucher_code: str, retailer_slug: str
-) -> AccountHolderReward:
-    voucher = (
-        polaris_db_session.query(AccountHolderReward)
-        .filter_by(
-            # FIXME: BPL-190 will add a unique constraint across voucher_code and retailer at which point this query
-            # should probably be updated to filter by retailer too to ensure the correct voucher is retrieved
-            voucher_code=voucher_code
+def get_account_holder_reward(polaris_db_session: "Session", code: str, retailer_slug: str) -> AccountHolderReward:
+    reward = (
+        polaris_db_session.execute(
+            select(AccountHolderReward).where(
+                AccountHolderReward.code == code, AccountHolderReward.retailer_slug == retailer_slug
+            )
         )
+        .scalars()
         .first()
     )
-    return voucher
+    return reward

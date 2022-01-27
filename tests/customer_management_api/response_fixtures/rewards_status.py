@@ -1,10 +1,10 @@
 from tests.shared_utils.response_fixtures.base import BaseResponses
 
 
-class VoucherStatusResponses(BaseResponses):
-    no_voucher_found = {
-        "display_message": "Voucher not found.",
-        "code": "NO_VOUCHER_FOUND",
+class RewardStatusResponses(BaseResponses):
+    no_reward_found = {
+        "display_message": "Reward not found.",
+        "code": "NO_REWARD_FOUND",
     }
     status_not_changed = {
         "display_message": "Reward status incorrect.",

@@ -4,9 +4,9 @@ from pytest_bdd import scenarios
 from tests.shared_utils.shared_steps import *  # noqa
 
 # noinspection PyUnresolvedReferences
-from .step_defs.shared_steps import *  # noqa
+from .step_defs.accounts_rewards_steps import *  # noqa
 
 # noinspection PyUnresolvedReferences
-from .step_defs.vouchers_status_steps import *  # noqa
+from .step_defs.shared_steps import *  # noqa
 
-scenarios("./features/vouchers_status")
+scenarios("./features/accounts_rewards")
