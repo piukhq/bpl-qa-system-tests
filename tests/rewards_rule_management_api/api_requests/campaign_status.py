@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Union
 
-from settings import REWARDS_RULE_MANAGEMENT_API_TOKEN, VELA_BASE_URL
+from settings import VELA_API_AUTH_TOKEN, VELA_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
     from requests import Response
 
-default_headers = {"Authorization": f"Token {REWARDS_RULE_MANAGEMENT_API_TOKEN}", "Bpl-User-Channel": "channel"}
+default_headers = {"Authorization": f"Token {VELA_API_AUTH_TOKEN}", "Bpl-User-Channel": "channel"}
 
 
 def _send_post_campaign_status_change(retailer_slug: str, request_body: Union[dict, str], headers: dict) -> "Response":
@@ -29,7 +29,7 @@ def send_post_malformed_campaign_status_change(retailer_slug: str, request_body:
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "Authorization": f"Token {REWARDS_RULE_MANAGEMENT_API_TOKEN}",
+        "Authorization": f"Token {VELA_API_AUTH_TOKEN}",
     }
     return retry_session().post(
         f"{VELA_BASE_URL}/{retailer_slug}/campaigns/status_change",

@@ -52,7 +52,7 @@ def only_required_credentials() -> dict:
     del credentials["city"]
     payload = {
         "credentials": credentials,
-        "marketing_preferences": [],
+        "marketing_preferences": [{"key": "marketing_pref", "value": True}],
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
         "third_party_identifier": "identifier",
     }
@@ -73,7 +73,7 @@ def static_request_info() -> dict:
             "postcode": "1FA 1KE",
             "city": "Fake city",
         },
-        "marketing_preferences": [],
+        "marketing_preferences": [{"key": "marketing_pref", "value": True}],
         "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
         "third_party_identifier": "identifier",
     }

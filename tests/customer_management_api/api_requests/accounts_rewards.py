@@ -1,0 +1,33 @@
+import logging
+import uuid
+
+from typing import TYPE_CHECKING, Literal, Optional, Union
+
+from settings import POLARIS_API_AUTH_TOKEN, POLARIS_BASE_URL
+from tests.retry_requests import retry_session
+
+if TYPE_CHECKING:
+    from requests import Response
+
+default_headers = {
+    "Authorization": f"Token {POLARIS_API_AUTH_TOKEN}",
+}
+
+
+def send_post_accounts_reward(
+    retailer_slug: str,
+    account_holder_uuid: str,
+    request_body: Union[dict, str],
+    token_validity: Literal["valid", "invalid"],
+    headers: Optional[dict] = None,
+) -> "Response":
+    headers = headers or default_headers.copy()
+    headers["Idempotency-Token"] = str(uuid.uuid4())
+    logging.info(f"Headers for POST Rewards API : {headers}")
+    if token_validity == "invalid":
+        headers = headers | {"Authorization": "WRONG TOKEN"}
+    return retry_session().post(
+        f"{POLARIS_BASE_URL}/{retailer_slug}/accounts/{account_holder_uuid}/rewards",
+        json=request_body,
+        headers=headers,
+    )

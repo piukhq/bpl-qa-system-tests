@@ -4,7 +4,7 @@ import logging
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from settings import CUSTOMER_MANAGEMENT_API_TOKEN, POLARIS_BASE_URL
+from settings import POLARIS_API_AUTH_TOKEN, POLARIS_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
@@ -23,7 +23,7 @@ class Endpoints(str, Enum):
 
 def get_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
     if valid_token:
-        auth_token = CUSTOMER_MANAGEMENT_API_TOKEN
+        auth_token = POLARIS_API_AUTH_TOKEN
     else:
         auth_token = "incorrect-token"
 

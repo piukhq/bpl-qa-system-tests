@@ -77,7 +77,7 @@ def make_campaigns_available_for_test(
             .first()
         )
         if not reward_rule:
-            create_mock_reward_rule(voucher_type_slug=str(uuid.uuid4())[:32], campaign_id=mock_campaign.id)
+            create_mock_reward_rule(reward_slug=str(uuid.uuid4())[:32], campaign_id=mock_campaign.id)
 
     request_context["retailer_slug"] = retailer_slug
     request_context["active_campaigns"] = mock_campaigns
