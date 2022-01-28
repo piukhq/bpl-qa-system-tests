@@ -9,7 +9,7 @@ from pytest_bdd.parsers import parse
 from sqlalchemy.future import select
 
 from db.carina.models import RewardConfig
-from settings import CARINA_BASE_URL, CARINA_API_AUTH_TOKEN
+from settings import CARINA_API_AUTH_TOKEN, CARINA_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
@@ -114,7 +114,7 @@ def check_response(request_context: dict, response_type: str) -> None:
 response_types = {
     "invalid_token": {"display_message": "Supplied token is invalid.", "code": "INVALID_TOKEN"},
     "invalid_retailer": {"display_message": "Requested retailer is invalid.", "code": "INVALID_RETAILER"},
-    "unknown_reward_type": {"display_message": "Reward Slug does not exist.", "code": "UNKNOWN_REWARD_TYPE"},
+    "unknown_reward_slug": {"display_message": "Reward Slug does not exist.", "code": "UNKNOWN_REWARD_SLUG"},
     "update_failed": {"display_message": "Status could not be updated as requested", "code": "STATUS_UPDATE_FAILED"},
     "failed_validation": {
         "display_message": "Submitted fields are missing or invalid.",

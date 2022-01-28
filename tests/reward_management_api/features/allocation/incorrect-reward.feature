@@ -23,7 +23,7 @@ Feature: Allocate a specific reward type to an account
     And there are rewards that can be allocated for the existing reward configs
     When I allocate a specific reward type to an account for test-retailer with a reward_slug that does not exist in the reward table
     Then I receive a HTTP 404 status code response
-    And I get a unknown_reward_type reward allocation response body
+    And I get a unknown_reward_slug reward allocation response body
 
 
   Scenario: Allocate a specific reward type to an account where the retailer slug supplied does not exist

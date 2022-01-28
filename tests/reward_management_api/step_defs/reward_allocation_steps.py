@@ -70,9 +70,7 @@ def check_async_reward_allocation(carina_db_session: "Session", request_context:
 
     assert reward_allocation_task != RetryTaskStatuses.WAITING
 
-    reward = (
-        carina_db_session.query(Reward).filter_by(reward_uuid=reward_allocation_task.get_params()["reward_uuid"]).one()
-    )
+    reward = carina_db_session.query(Reward).filter_by(id=reward_allocation_task.get_params()["reward_uuid"]).one()
     assert reward.allocated
     assert reward.id
 

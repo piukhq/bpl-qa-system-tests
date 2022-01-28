@@ -31,7 +31,7 @@ Feature: Cancel a reward type for a retailer
     When I perform a PATCH operation against the incorrect reward slug status endpoint instructing a cancelled status change
     Then I receive a HTTP 404 status code response
     And the status of the reward config is ACTIVE
-    And I get a unknown_reward_type status response body
+    And I get a unknown_reward_slug status response body
 
   Scenario: Cancel reward type for retailer (incorrect status transition)
 
