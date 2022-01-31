@@ -186,3 +186,29 @@ def create_mock_reward_rule(vela_db_session: "Session") -> Generator:
 
     vela_db_session.delete(mock_reward_rule)
     vela_db_session.commit()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def configure_html_report_env(request, env, channel):
+    """Delete existing data in the test report and add bpl execution details"""
+    for ele in list(request.config._metadata.keys()):
+        del request.config._metadata[ele]
+    # if re.search(r'^(GITLAB_|CI_)', k): for git lab related extra table contents
+    request.config._metadata.update({"Test Environment": env.upper(), "Channel": channel})
+
+
+def pytest_addoption(parser):
+    parser.addoption("--env", action="store", default="staging", help="env : can be dev or staging or prod")
+    parser.addoption("--channel", action="store", default="user-channel", help="env : can be dev or staging or prod")
+
+
+@pytest.fixture(scope="session")
+def env(pytestconfig):
+    """Returns current environment"""
+    return pytestconfig.getoption("env")
+
+
+@pytest.fixture(scope="session")
+def channel(pytestconfig):
+    """Returns current environment"""
+    return pytestconfig.getoption("channel")
