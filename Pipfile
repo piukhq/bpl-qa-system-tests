@@ -24,12 +24,13 @@ deepdiff = "*"
 retry-tasks-lib = {version=">=1.10.2", index="pypi-cloud"}
 
 [dev-packages]
-black = "==21.11b1"
+black = "*"
 flake8 = "*"
 mypy = "*"
 isort = "*"
 xenon = "*"
 types-requests = "*"
+ptpython = "*"
 
 [requires]
 python_version = "3.9"
