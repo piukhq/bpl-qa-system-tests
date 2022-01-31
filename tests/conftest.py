@@ -189,7 +189,7 @@ def create_mock_reward_rule(vela_db_session: "Session") -> Generator:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def configure_html_report_env(request, env, channel) -> None:
+def configure_html_report_env(request: dict, env: str, channel: str) -> None:
     """Delete existing data in the test report and add bpl execution details"""
     for ele in list(request.config._metadata.keys()):
         del request.config._metadata[ele]
