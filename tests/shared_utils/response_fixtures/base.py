@@ -1,10 +1,10 @@
 from tests.shared_utils.response_fixtures.errors import (
     INVALID_RETAILER,
+    INVALID_STATUS_REQUESTED,
     INVALID_TOKEN,
     MALFORMED_REQUEST,
     MISSING_CHANNEL_HEADER,
     NO_ACCOUNT_FOUND,
-    INVALID_STATUS_REQUESTED,
     NO_CAMPAIGN_FOUND,
 )
 

@@ -69,9 +69,7 @@ def check_reward_status(polaris_db_session: "Session", status: str, request_cont
     assert list(reward_list[0].keys()) == correct_keys
     code = reward_list[0].get("code")
     assert bool(code) is True
-    account_holder_reward = get_account_holder_reward(
-        polaris_db_session, code, request_context["retailer_slug"]
-    )
+    account_holder_reward = get_account_holder_reward(polaris_db_session, code, request_context["retailer_slug"])
     assert reward_list[0]["issued_date"] == int(
         account_holder_reward.issued_date.replace(tzinfo=timezone.utc).timestamp()
     )
