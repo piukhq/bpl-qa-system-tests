@@ -189,7 +189,7 @@ def create_mock_reward_rule(vela_db_session: "Session") -> Generator:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def configure_html_report_env(request, env, channel):
+def configure_html_report_env(request, env, channel) -> None:
     """Delete existing data in the test report and add bpl execution details"""
     for ele in list(request.config._metadata.keys()):
         del request.config._metadata[ele]
@@ -197,18 +197,18 @@ def configure_html_report_env(request, env, channel):
     request.config._metadata.update({"Test Environment": env.upper(), "Channel": channel})
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser) -> None:
     parser.addoption("--env", action="store", default="staging", help="env : can be dev or staging or prod")
     parser.addoption("--channel", action="store", default="user-channel", help="env : can be dev or staging or prod")
 
 
 @pytest.fixture(scope="session")
-def env(pytestconfig):
+def env(pytestconfig) -> Generator:
     """Returns current environment"""
     return pytestconfig.getoption("env")
 
 
 @pytest.fixture(scope="session")
-def channel(pytestconfig):
+def channel(pytestconfig) -> Generator:
     """Returns current environment"""
     return pytestconfig.getoption("channel")
