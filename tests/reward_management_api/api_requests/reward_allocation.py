@@ -1,7 +1,8 @@
 import uuid
+
 from typing import TYPE_CHECKING, Union
 
-from settings import CARINA_BASE_URL, CARINA_API_AUTH_TOKEN
+from settings import CARINA_API_AUTH_TOKEN, CARINA_BASE_URL
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
