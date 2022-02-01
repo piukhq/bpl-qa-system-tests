@@ -15,6 +15,9 @@ from db.vela.models import Campaign, CampaignStatuses, RetailerRewards, RewardRu
 from db.vela.session import VelaSessionMaker
 
 if TYPE_CHECKING:
+    from _pytest.config import Config
+    from _pytest.config.argparsing import Parser
+    from _pytest.fixtures import SubRequest
     from sqlalchemy.orm import Session
 
 
@@ -189,26 +192,29 @@ def create_mock_reward_rule(vela_db_session: "Session") -> Generator:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def configure_html_report_env(request: dict, env: str, channel: str) -> None:
+def configure_html_report_env(request: "SubRequest", env: str, channel: str) -> None:
     """Delete existing data in the test report and add bpl execution details"""
-    for ele in list(request.config._metadata.keys()):
-        del request.config._metadata[ele]
+
+    metadata: dict = getattr(request.config, "_metadata")
+
+    for ele in list(metadata.keys()):
+        del metadata[ele]
     # if re.search(r'^(GITLAB_|CI_)', k): for git lab related extra table contents
-    request.config._metadata.update({"Test Environment": env.upper(), "Channel": channel})
+    metadata.update({"Test Environment": env.upper(), "Channel": channel})
 
 
-def pytest_addoption(parser) -> None:
+def pytest_addoption(parser: "Parser") -> None:
     parser.addoption("--env", action="store", default="staging", help="env : can be dev or staging or prod")
     parser.addoption("--channel", action="store", default="user-channel", help="env : can be dev or staging or prod")
 
 
 @pytest.fixture(scope="session")
-def env(pytestconfig) -> Generator:
+def env(pytestconfig: "Config") -> Generator:
     """Returns current environment"""
     return pytestconfig.getoption("env")
 
 
 @pytest.fixture(scope="session")
-def channel(pytestconfig) -> Generator:
+def channel(pytestconfig: "Config") -> Generator:
     """Returns current environment"""
     return pytestconfig.getoption("channel")
