@@ -6,7 +6,8 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from db.polaris.models import AccountHolder, AccountHolderCampaignBalance, RetailerConfig
-from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
+
+# from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 
 
 def _setup_balance_for_account_holder(
@@ -88,10 +89,10 @@ def check_response_status_code(status_code: int, request_context: dict) -> None:
     assert resp.status_code == status_code
 
 
-@then(parsers.parse("I get a HTTP {status_code:d} rrm {payload_type} response"))
-def check_transaction_response_status(status_code: int, payload_type: str, request_context: dict) -> None:
-    payload = TransactionResponses.get_json(payload_type)
+# @then(parsers.parse("I get a HTTP {status_code:d} rrm {payload_type} response"))
+# def check_transaction_response_status(status_code: int, payload_type: str, request_context: dict) -> None:
+#     payload = TransactionResponses.get_json(payload_type)
 
-    assert request_context["resp"].status_code == status_code
-    if payload:
-        assert request_context["resp"].json() == payload
+#     assert request_context["resp"].status_code == status_code
+#     if payload:
+#         assert request_context["resp"].json() == payload
