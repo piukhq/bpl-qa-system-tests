@@ -1,4 +1,4 @@
-@trenette
+@trenette @bpl
 Feature: Enrol with Trenette loyalty
 
     Scenario: Successful enrolment

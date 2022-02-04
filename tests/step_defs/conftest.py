@@ -23,7 +23,7 @@ from settings import (
     VELA_DATABASE_URI,
     VELA_TEMPLATE_DB_NAME,
 )
-from tests.retailer_data import RETAILER_DATA
+from tests.shared_utils.fixture_loader import load_fixture
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -72,7 +72,7 @@ def carina_db_session() -> Generator:
 
 @pytest.fixture
 def retailer_data() -> dict:
-    return RETAILER_DATA
+    return load_fixture("polaris", "retailer_config")
 
 
 # This is the only way I could get the cucumber plugin to work
@@ -86,16 +86,7 @@ def retailer_data() -> dict:
 def retailer(
     polaris_db_session: "Session", vela_db_session: "Session", retailer_slug: str, retailer_data: dict
 ) -> RetailerConfig:
-    retailer_config = RetailerConfig(
-        slug=retailer_slug,
-        name=retailer_data[retailer_slug]["name"],
-        account_number_prefix=retailer_data[retailer_slug]["account_number_prefix"],
-        profile_config=retailer_data[retailer_slug]["profile_config"],
-        marketing_preference_config=retailer_data[retailer_slug]["marketing_preference_config"],
-        loyalty_name=retailer_data[retailer_slug]["loyalty_name"],
-        welcome_email_from="potato@potato.com",
-        welcome_email_subject="potato",
-    )
+    retailer_config = RetailerConfig(**retailer_data[retailer_slug])
     polaris_db_session.add(retailer_config)
     retailer_rewards = RetailerRewards(slug=retailer_slug)
     vela_db_session.add(retailer_rewards)

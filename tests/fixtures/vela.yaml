@@ -1,0 +1,20 @@
+campaign:
+  trenette:
+    slug: "trenette-campaign"
+    name: "Trenette campaign"
+    status: "ACTIVE"
+    earn_inc_is_tx_value: true
+    start_date: 
+      !utc_now 
+      timedelta: -5
+    end_date: Null
+
+earn_rules:
+  trenette-campaign:
+    threshold: 500
+    increment_multiplier: 1.25
+
+reward_rules:
+  trenette-campaign:
+    reward_goal: 10000
+    reward_slug: "trenette-campaign"

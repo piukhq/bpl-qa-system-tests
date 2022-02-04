@@ -22,6 +22,7 @@ faker = "*"
 python-dotenv = "*"
 deepdiff = "*"
 retry-tasks-lib = {version=">=1.10.2", index="pypi-cloud"}
+sqlalchemy-utils = "*"
 
 [dev-packages]
 black = "*"
