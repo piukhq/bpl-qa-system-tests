@@ -1,220 +1,154 @@
-# import logging
-# import uuid
+import logging
+import uuid
 
-# from datetime import datetime, timedelta
-# from typing import TYPE_CHECKING, Any, Generator, Optional
+from typing import TYPE_CHECKING, Generator
 
-# import pytest
+import pytest
 
-# from sqlalchemy import delete
+from pytest_bdd import given, parsers
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
+from sqlalchemy_utils import create_database, database_exists, drop_database
 
-# from db.carina.models import Reward, RewardConfig
-# from db.carina.session import CarinaSessionMaker
-# from db.polaris.session import PolarisSessionMaker
-# from db.vela.models import Campaign, CampaignStatuses, RetailerRewards, RewardRule
-# from db.vela.session import VelaSessionMaker
+from db.carina.models import Base as CarinaModelBase
+from db.carina.models import Reward, RewardConfig
+from db.polaris.models import Base as PolarisModelBase
+from db.polaris.models import RetailerConfig
+from db.vela.models import Base as VelaModelBase
+from db.vela.models import Campaign, EarnRule, RetailerRewards, RewardRule
+from settings import (
+    CARINA_DATABASE_URI,
+    CARINA_TEMPLATE_DB_NAME,
+    POLARIS_DATABASE_URI,
+    POLARIS_TEMPLATE_DB_NAME,
+    VELA_DATABASE_URI,
+    VELA_TEMPLATE_DB_NAME,
+)
+from tests.shared_utils.fixture_loader import load_fixture
 
-# if TYPE_CHECKING:
-#     from _pytest.config import Config
-#     from _pytest.config.argparsing import Parser
-#     from _pytest.fixtures import SubRequest
-#     from sqlalchemy.orm import Session
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-
-# # Hooks
-# def pytest_bdd_step_error(
-#     request: Any,
-#     feature: Any,
-#     scenario: Any,
-#     step: Any,
-#     step_func: Any,
-#     step_func_args: Any,
-#     exception: Any,
-# ) -> None:
-#     """This function will log the failed BDD-Step at the end of logs"""
-#     logging.info(f"Step failed: {step}")
+logger = logging.getLogger(__name__)
 
 
-# def pytest_html_report_title(report: Any) -> None:
-#     """Customized title for html report"""
-#     report.title = "BPL Test Automation Results"
+@pytest.fixture(autouse=True)
+def polaris_db_session() -> Generator:
+    if database_exists(POLARIS_DATABASE_URI):
+        logger.info("Dropping Polaris database")
+        drop_database(POLARIS_DATABASE_URI)
+    logger.info("Creating Polaris database")
+    create_database(POLARIS_DATABASE_URI, template=POLARIS_TEMPLATE_DB_NAME)
+    engine = create_engine(POLARIS_DATABASE_URI, poolclass=NullPool, echo=False)
+    PolarisModelBase.prepare(engine, reflect=True)
+    with sessionmaker(bind=engine)() as db_session:
+        yield db_session
 
 
-# @pytest.fixture(scope="function")
-# def request_context() -> dict:
-#     return {}
+@pytest.fixture(autouse=True)
+def vela_db_session() -> Generator:
+    if database_exists(VELA_DATABASE_URI):
+        logger.info("Dropping Vela database")
+        drop_database(VELA_DATABASE_URI)
+    logger.info("Creating Vela database")
+    create_database(VELA_DATABASE_URI, template=VELA_TEMPLATE_DB_NAME)
+    engine = create_engine(VELA_DATABASE_URI, poolclass=NullPool, echo=False)
+    VelaModelBase.prepare(engine, reflect=True)
+    with sessionmaker(bind=engine)() as db_session:
+        yield db_session
 
 
-# @pytest.fixture(scope="function")
-# def carina_db_session() -> Generator:
-#     with CarinaSessionMaker() as db_session:
-#         yield db_session
+@pytest.fixture(autouse=True)
+def carina_db_session() -> Generator:
+    if database_exists(CARINA_DATABASE_URI):
+        logger.info("Dropping Carina database")
+        drop_database(CARINA_DATABASE_URI)
+    logger.info("Creating Carina database")
+    create_database(CARINA_DATABASE_URI, template=CARINA_TEMPLATE_DB_NAME)
+    engine = create_engine(CARINA_DATABASE_URI, poolclass=NullPool, echo=False)
+    CarinaModelBase.prepare(engine, reflect=True)
+    with sessionmaker(bind=engine)() as db_session:
+        yield db_session
 
 
-# @pytest.fixture(scope="function")
-# def polaris_db_session() -> Generator:
-#     with PolarisSessionMaker() as db_session:
-#         yield db_session
+# This is the only way I could get the cucumber plugin to work
+# in vscode with target_fixture and play nice with flake8
+# https://github.com/alexkrechik/VSCucumberAutoComplete/issues/373
+# fmt: off
+@given(parsers.parse("the {retailer_slug} retailer exists"),
+       target_fixture="retailer_config",
+       )
+# fmt: on
+def retailer(polaris_db_session: "Session", vela_db_session: "Session", retailer_slug: str) -> RetailerConfig:
+    fixture_data = load_fixture(retailer_slug)
+    retailer_config = RetailerConfig(**fixture_data.retailer_config)
+    polaris_db_session.add(retailer_config)
+    retailer_rewards = RetailerRewards(slug=retailer_slug)
+    vela_db_session.add(retailer_rewards)
+    polaris_db_session.commit()
+    vela_db_session.commit()
+    return retailer_config
 
 
-# @pytest.fixture(scope="function")
-# def vela_db_session() -> Generator:
-#     with VelaSessionMaker() as db_session:
-#         yield db_session
+# fmt: off
+@given("has the standard campaigns configured",
+       target_fixture="standard_campaigns",
+       )
+# fmt: on
+def standard_campaigns_and_reward_slugs(vela_db_session: "Session", retailer_config: RetailerConfig) -> list[Campaign]:
+    fixture_data = load_fixture(retailer_config.slug)
+    campaigns: list = []
+    for campaign_data in fixture_data.campaign:
+        campaign = Campaign(retailer_id=retailer_config.id, **campaign_data)
+        vela_db_session.add(campaign)
+        vela_db_session.flush()
+        campaigns.append(campaign)
+
+        vela_db_session.add_all(
+            EarnRule(campaign_id=campaign.id, **earn_rule_data)
+            for earn_rule_data in fixture_data.earn_rule.get(campaign.slug, [])
+        )
+
+        vela_db_session.add_all(
+            RewardRule(campaign_id=campaign.id, **reward_rule_data)
+            for reward_rule_data in fixture_data.reward_rule.get(campaign.slug, [])
+        )
+
+    vela_db_session.commit()
+    return campaigns
 
 
-# @pytest.fixture(scope="function")
-# def create_mock_campaign(vela_db_session: "Session") -> Generator:
-#     mock_campaigns_ids: list[int] = []
+# fmt: off
+@given(parsers.parse("has the standard reward config configured with {reward_n:d} allocable rewards"),
+       target_fixture="standard_reward_configs",
+       )
+# fmt: on
+def standard_reward_and_reward_config(
+    carina_db_session: "Session", reward_n: int, retailer_config: RetailerConfig
+) -> list[RewardConfig]:
+    fixture_data = load_fixture(retailer_config.slug)
+    reward_configs: list = []
 
-#     mock_campaign_params = {
-#         "status": CampaignStatuses.ACTIVE,
-#         "name": "testcampaign",
-#         "slug": "test-campaign",
-#         "start_date": datetime.utcnow() - timedelta(minutes=5),
-#         "earn_inc_is_tx_value": True,
-#     }
+    for reward_config_data in fixture_data.reward_config:
+        reward_config = RewardConfig(**reward_config_data)
+        carina_db_session.add(reward_config)
+        reward_configs.append(reward_config)
 
-#     def _create_mock_campaign(retailer: RetailerRewards, **campaign_params: dict) -> Campaign:
-#         """
-#         Create a campaign in the DB
-#         :param campaign_params: override any values for the campaign, from what the default dict provides
-#         :return: Callable function
-#         """
-#         nonlocal mock_campaigns_ids
+    if reward_n > 0:
+        carina_db_session.flush()
+        for config in reward_configs:
+            carina_db_session.add_all(
+                Reward(
+                    id=str(uuid.uuid4()),
+                    code=f"{config.reward_slug}/{i}",
+                    allocated=False,
+                    deleted=False,
+                    reward_config_id=config.id,
+                    retailer_slug=retailer_config.slug,
+                )
+                for i in range(1, reward_n + 1)
+            )
 
-#         mock_campaign_params.update(campaign_params)
-#         mock_campaign = Campaign(**mock_campaign_params, retailer_id=retailer.id)
-#         vela_db_session.add(mock_campaign)
-#         vela_db_session.commit()
-
-#         mock_campaigns_ids.append(mock_campaign.id)
-#         return mock_campaign
-
-#     yield _create_mock_campaign
-
-#     vela_db_session.execute(delete(Campaign).where(Campaign.id.in_(mock_campaigns_ids)))
-#     vela_db_session.commit()
-
-
-# @pytest.fixture(scope="function")
-# def create_config_and_rewards(carina_db_session: "Session") -> Generator:
-#     reward_config: Optional[RewardConfig] = None
-
-#     def fn(
-#         retailer_slug: str, reward_slug: str, status: Optional[str] = "ACTIVE", num_rewards: int = 5
-#     ) -> RewardConfig:
-#         nonlocal reward_config
-#         reward_config = RewardConfig(
-#             retailer_slug=retailer_slug,
-#             reward_slug=reward_slug,
-#             validity_days=1,
-#             fetch_type="PRE_LOADED",
-#             status=status,
-#         )
-#         carina_db_session.add(reward_config)
-#         carina_db_session.commit()
-
-#         reward_uuids = [str(uuid.uuid4()) for i in range(num_rewards)]
-#         carina_db_session.add_all(
-#             [
-#                 Reward(
-#                     id=reward_uuid,
-#                     retailer_slug=retailer_slug,
-#                     reward_config_id=reward_config.id,
-#                     code=str(reward_uuid),
-#                     allocated=False,
-#                     deleted=False,
-#                 )
-#                 for reward_uuid in reward_uuids
-#             ]
-#         )
-#         carina_db_session.commit()
-
-#         return reward_config, reward_uuids
-
-#     yield fn
-
-#     if reward_config:
-#         carina_db_session.execute(delete(Reward).where(Reward.reward_config_id == reward_config.id))
-#         carina_db_session.delete(reward_config)
-#         carina_db_session.commit()
-
-
-# @pytest.fixture(scope="function")
-# def create_mock_retailer(vela_db_session: "Session") -> Generator:
-#     mock_retailer: RetailerRewards = None
-
-#     mock_retailer_params = {
-#         "slug": "automated-test-retailer",
-#     }
-
-#     def _create_mock_retailer(**retailer_params: dict) -> RetailerRewards:
-#         """
-#         Create a retailer in the Vela DB
-#         :param retailer_params: override any values for the retailer, from what the default dict provides
-#         :return: Callable function
-#         """
-
-#         mock_retailer_params.update(retailer_params)  # type: ignore
-#         nonlocal mock_retailer
-#         mock_retailer = RetailerRewards(**mock_retailer_params)
-#         vela_db_session.add(mock_retailer)
-#         vela_db_session.commit()
-
-#         return mock_retailer
-
-#     yield _create_mock_retailer
-
-#     vela_db_session.delete(mock_retailer)
-#     vela_db_session.commit()
-
-
-# @pytest.fixture(scope="function")
-# def create_mock_reward_rule(vela_db_session: "Session") -> Generator:
-#     mock_reward_rule: RewardRule = None
-
-#     def _create_mock_reward_rule(reward_slug: str, campaign_id: int, reward_goal: int = 5) -> RewardRule:
-#         """
-#         Create a reward rule in the test DB
-#         :return: Callable function
-#         """
-#         nonlocal mock_reward_rule
-#         mock_reward_rule = RewardRule(reward_goal=reward_goal, reward_slug=reward_slug, campaign_id=campaign_id)
-#         vela_db_session.add(mock_reward_rule)
-#         vela_db_session.commit()
-#         return mock_reward_rule
-
-#     yield _create_mock_reward_rule
-
-#     vela_db_session.delete(mock_reward_rule)
-#     vela_db_session.commit()
-
-
-# @pytest.fixture(scope="session", autouse=True)
-# def configure_html_report_env(request: "SubRequest", env: str, channel: str) -> None:
-#     """Delete existing data in the test report and add bpl execution details"""
-
-#     metadata: dict = getattr(request.config, "_metadata")
-
-#     for ele in list(metadata.keys()):
-#         del metadata[ele]
-#     # if re.search(r'^(GITLAB_|CI_)', k): for git lab related extra table contents
-#     metadata.update({"Test Environment": env.upper(), "Channel": channel})
-
-
-# def pytest_addoption(parser: "Parser") -> None:
-#     parser.addoption("--env", action="store", default="staging", help="env : can be dev or staging or prod")
-#     parser.addoption("--channel", action="store", default="user-channel", help="env : can be dev or staging or prod")
-
-
-# @pytest.fixture(scope="session")
-# def env(pytestconfig: "Config") -> Generator:
-#     """Returns current environment"""
-#     return pytestconfig.getoption("env")
-
-
-# @pytest.fixture(scope="session")
-# def channel(pytestconfig: "Config") -> Generator:
-#     """Returns current environment"""
-#     return pytestconfig.getoption("channel")
+    carina_db_session.commit()
+    return reward_configs
