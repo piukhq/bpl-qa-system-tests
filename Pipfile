@@ -22,6 +22,8 @@ faker = "*"
 python-dotenv = "*"
 deepdiff = "*"
 retry-tasks-lib = {version=">=1.10.2", index="pypi-cloud"}
+sqlalchemy-utils = "*"
+pydantic = "*"
 
 [dev-packages]
 black = "*"
@@ -31,6 +33,8 @@ isort = "*"
 xenon = "*"
 types-requests = "*"
 ptpython = "*"
+install = "*"
+types-pyyaml = "*"
 
 [requires]
 python_version = "3.9"

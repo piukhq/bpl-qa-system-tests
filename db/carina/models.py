@@ -1,12 +1,20 @@
-from sqlalchemy.ext.automap import automap_base
+from sqlalchemy import MetaData
+from sqlalchemy.ext.automap import AutomapBase, automap_base
 
-from db.carina.session import engine
+Base: AutomapBase = automap_base(metadata=MetaData())
 
-Base = automap_base()
-Base.prepare(engine, reflect=True)
 
-# get models from Base mapping
-Reward = Base.classes.reward
-RewardConfig = Base.classes.reward_config
-RewardUpdate = Base.classes.reward_update
-RewardFileLog = Base.classes.reward_file_log
+class Reward(Base):
+    __tablename__ = "reward"
+
+
+class RewardConfig(Base):
+    __tablename__ = "reward_config"
+
+
+class RewardUpdate(Base):
+    __tablename__ = "reward_update"
+
+
+class RewardFileLog(Base):
+    __tablename__ = "reward_file_log"

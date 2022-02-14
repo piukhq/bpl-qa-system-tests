@@ -1,19 +1,33 @@
 from enum import Enum
 
-from sqlalchemy.ext.automap import automap_base
+from sqlalchemy import MetaData
+from sqlalchemy.ext.automap import AutomapBase, automap_base
 
-from db.vela.session import engine
+Base: AutomapBase = automap_base(metadata=MetaData())
 
-Base = automap_base()
-Base.prepare(engine, reflect=True)
 
-# get models from Base mapping
-RetailerRewards = Base.classes.retailer_rewards
-Campaign = Base.classes.campaign
-EarnRule = Base.classes.earn_rule
-Transaction = Base.classes.transaction
-ProcessedTransaction = Base.classes.processed_transaction
-RewardRule = Base.classes.reward_rule
+class RetailerRewards(Base):
+    __tablename__ = "retailer_rewards"
+
+
+class Campaign(Base):
+    __tablename__ = "campaign"
+
+
+class EarnRule(Base):
+    __tablename__ = "earn_rule"
+
+
+class Transaction(Base):
+    __tablename__ = "transaction"
+
+
+class ProcessedTransaction(Base):
+    __tablename__ = "processed_transaction"
+
+
+class RewardRule(Base):
+    __tablename__ = "reward_rule"
 
 
 class CampaignStatuses(str, Enum):
