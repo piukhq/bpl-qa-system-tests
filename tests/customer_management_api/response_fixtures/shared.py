@@ -21,6 +21,7 @@ def account_holder_details_response_body(polaris_db_session: "Session", account_
         ],
         "transaction_history": [],
         "rewards": [],
+        "pending_rewards": [],
     }
 
 
