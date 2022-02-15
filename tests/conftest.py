@@ -1,7 +1,7 @@
 import logging
 import uuid
 
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Generator, Any
 
 import pytest
 
@@ -28,6 +28,9 @@ from settings import (
 from tests.shared_utils.fixture_loader import load_fixture
 
 if TYPE_CHECKING:
+    from _pytest.config import Config
+    from _pytest.config.argparsing import Parser
+    from _pytest.fixtures import SubRequest
     from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -152,3 +155,58 @@ def standard_reward_and_reward_config(
 
     carina_db_session.commit()
     return reward_configs
+
+
+# Hooks
+def pytest_bdd_step_error(
+    request: Any,
+    feature: Any,
+    scenario: Any,
+    step: Any,
+    step_func: Any,
+    step_func_args: Any,
+    exception: Any,
+) -> None:
+    """This function will log the failed BDD-Step at the end of logs"""
+    logging.info(f"Step failed: {step}")
+
+
+def pytest_html_report_title(report: Any) -> None:
+    """Customized title for html report"""
+    report.title = "BPL QA System Automation Results"
+
+
+@pytest.fixture(scope="function")
+def request_context() -> dict:
+    return {}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def configure_html_report_env(request: "SubRequest", env: str, channel:str) -> None:
+    """Delete existing data in the test report and add bpl execution details"""
+
+    metadata: dict = getattr(request.config, "_metadata")
+
+    for ele in list(metadata.keys()):
+        del metadata[ele]
+    # if re.search(r'^(GITLAB_|CI_)', k): for git lab related extra table contents
+    metadata.update({"Test Environment": env.upper(), "Channel": channel})
+
+
+def pytest_addoption(parser: "Parser") -> None:
+    parser.addoption("--env", action="store", default="staging", help="env : can be dev or staging or prod")
+    parser.addoption("--channel", action="store", default="user-channel", help="env : can be dev or staging or prod")
+
+
+@pytest.fixture(scope="session")
+def env(pytestconfig: "Config") -> Generator:
+    """Returns current environment"""
+    return pytestconfig.getoption("env")
+
+
+@pytest.fixture(scope="session")
+def channel(pytestconfig: "Config") -> Generator:
+    """Returns current environment"""
+    return pytestconfig.getoption("channel")
+
+
