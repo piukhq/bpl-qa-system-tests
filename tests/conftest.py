@@ -1,7 +1,7 @@
 import logging
 import uuid
 
-from typing import TYPE_CHECKING, Generator, Any
+from typing import TYPE_CHECKING, Any, Generator
 
 import pytest
 
@@ -182,7 +182,7 @@ def request_context() -> dict:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def configure_html_report_env(request: "SubRequest", env: str, channel:str) -> None:
+def configure_html_report_env(request: "SubRequest", env: str, channel: str) -> None:
     """Delete existing data in the test report and add bpl execution details"""
 
     metadata: dict = getattr(request.config, "_metadata")
