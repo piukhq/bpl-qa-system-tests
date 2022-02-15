@@ -1,4 +1,4 @@
-# BPL Automation Tests
+#  BPL System level Intergrated Automation Tests
 
 BDD style automated tests for testing BPL in isolation.
 
@@ -16,9 +16,9 @@ pipenv install --dev
 ```
 
 ##### .env setup
-Copy the .env.example file which should have everything you need 
-for local development
+Everything you need for local development
 ```
+# LOCAL
 cp .env.example .env
 ```
 
