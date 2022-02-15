@@ -1,4 +1,4 @@
-# BPL Automation Tests
+#  BPL System level Intergrated Automation Tests
 
 BDD style automated tests for testing BPL in isolation.
 
@@ -16,10 +16,27 @@ pipenv install --dev
 ```
 
 ##### .env setup
-Copy the .env.example file which should have everything you need 
-for local development
+Everything you need for local development
 ```
-cp .env.example .env
+# LOCAL
+LOCAL=True
+SCHEDULE="*/15 * * * *"
+MOCK_SERVICE_BASE_URL=http://127.0.0.1:9000
+VAULT_URL=https://bink-uksouth-dev-com.vault.azure.net/
+FRIENDLY_NAME="Local - Customer Management API - BPL"
+ALERT_ON_SUCCESS=False
+ALERT_ON_FAILURE=False
+POLARIS_TEMPLATE_DB_NAME=polaris_template
+VELA_TEMPLATE_DB_NAME=vela_template
+CARINA_TEMPLATE_DB_NAME=carina_template
+POLARIS_DATABASE_URI=postgresql://postgres:pass@localhost:5555/polaris_auto
+POLARIS_ENV_BASE_URL=http://127.0.0.1:8000/bpl/loyalty
+VELA_DATABASE_URI=postgresql://postgres:pass@localhost:5555/vela_auto
+VELA_ENV_BASE_URL=http://127.0.0.1:8001/bpl/rewards
+CARINA_DATABASE_URI=postgresql://postgres:pass@localhost:5555/carina_auto
+CARINA_ENV_BASE_URL=http://127.0.0.1:8002/bpl/vouchers
+BLOB_STORAGE_DSN=DefaultEndpointsProtocol=https;AccountName=binkuksouthdev;AccountKey=L/xU6NZswZAJbFhKjIGr0feakhY8QsCw4oUuj6bXNfxhWQv2caNkDo8czIu05DBcaZbSL7vfpYGP7OZsbpXuhw==;EndpointSuffix=core.windows.net
+BLOB_IMPORT_CONTAINER=carina-imports-smpCollapse
 ```
 
 ##### Azure setup
