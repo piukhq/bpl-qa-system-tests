@@ -2,25 +2,31 @@
 set -x
 
 # This script aims to set up and run everything required in order to develop BPL
-# automated tests
+# automated tests. Note that it will install virtual environments in the project
+# direcories.
 #
 # Variables:
-# ROOT_DIR:           Ensure this is set CORRECTLY
+# ROOT_DIR:           The root installation directory
 # DB_USERNAME:        Postgres username
 # DB_PASSWORD:        Postgres password
 # DB_PORT:            Port on which postgres is listening
 # BLOB_STORAGE_DSN:   DSN for accessing Azure blob storage services
 
+# IMPORTANT: Put these in a file called bpl_auto_test.env in your $HOME directory
+#
+# Note:
 # Kill the tmux session in a different terminal with:
 # tmux kill-session -t bpl
 
-########## set me correctly #############
-ROOT_DIR=$HOME/CHANGEME
-DB_USERNAME=changeme
-DB_PASSWORD=changeme
-DB_PORT=changeme
-BLOB_STORAGE_DSN='changeme'
-######### /set me correctly #############
+########## example bpl_auto_test.env #############
+# export ROOT_DIR=$HOME/CHANGEME
+# export DB_USERNAME=changeme
+# export DB_PASSWORD=changeme
+# export DB_PORT=changeme
+# export BLOB_STORAGE_DSN='changeme'
+######### /example bpl_auto_test.env #############
+
+source ~/bpl_auto_test.env
 
 TMUX_SESSION_NAME=bpl
 BASE_DB_URI="postgresql://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT"
@@ -136,4 +142,4 @@ tmux select-pane -t 7
 tmux send-keys "cd $ROOT_DIR/carina && pipenv run python -m app.imports.agents.file_agent reward-import-agent" C-m
 tmux select-pane -t 8
 tmux send-keys "cd $ROOT_DIR/carina && pipenv run python -m app.imports.agents.file_agent reward-updates-agent" C-m
-tmux attach-session -t bpl
+tmux attach-session -t $TMUX_SESSION_NAME
