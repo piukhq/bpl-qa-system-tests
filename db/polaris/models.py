@@ -32,3 +32,7 @@ class AccountHolderCampaignBalance(Base):
 
 class RetailerConfig(Base):
     __tablename__ = "retailer_config"
+
+
+class RetryTask(Base):
+    __tablename__ = "retry_task"

@@ -1,7 +1,7 @@
-@trenette @bpl
+@trenette
 Feature: Enrol with Trenette loyalty
 
-    Scenario: Successful enrolment
+    Scenario: Successful adding retailer
 
         Given the trenette retailer exists
         And has the standard campaigns configured

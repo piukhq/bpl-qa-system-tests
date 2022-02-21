@@ -26,7 +26,7 @@ campaign:
   - slug: "trenette-stmp-campaign-1"
     name: "Trenette Stamps Campaign 1"
     status: "ACTIVE"
-    earn_inc_is_tx_value: false
+    loyalty_type: STAMPS
     start_date: 
       !utc_now 
       timedelta: -5
@@ -34,7 +34,7 @@ campaign:
   - slug: "trenette-acc-campaign-1"
     name: "Trenette Accumulator Campaign 1"
     status: "DRAFT"
-    earn_inc_is_tx_value: true
+    loyalty_type: ACCUMULATOR
     start_date: 
       !utc_now 
       timedelta: -5

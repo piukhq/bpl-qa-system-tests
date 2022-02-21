@@ -91,6 +91,7 @@ def retailer(polaris_db_session: "Session", vela_db_session: "Session", retailer
     vela_db_session.add(retailer_rewards)
     polaris_db_session.commit()
     vela_db_session.commit()
+    logging.info(retailer_config)
     return retailer_config
 
 

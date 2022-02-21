@@ -81,18 +81,12 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
     logging.info(f"Active account holder uuid:{account_holder.account_holder_uuid}\n" f"Retailer slug: {retailer_slug}")
 
 
-@given(parsers.parse("the previous response returned a HTTP {status_code:d} status code"))
-@then(parsers.parse("I receive a HTTP {status_code:d} status code response"))
-def check_response_status_code(status_code: int, request_context: dict) -> None:
-    resp = request_context["response"]
-    logging.info(f"Response HTTP status code: {resp.status_code} Response status: {json.dumps(resp.json(), indent=4)}")
-    assert resp.status_code == status_code
 
 
 # @then(parsers.parse("I get a HTTP {status_code:d} rrm {payload_type} response"))
 # def check_transaction_response_status(status_code: int, payload_type: str, request_context: dict) -> None:
 #     payload = TransactionResponses.get_json(payload_type)
-
+#
 #     assert request_context["resp"].status_code == status_code
 #     if payload:
 #         assert request_context["resp"].json() == payload
