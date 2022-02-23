@@ -53,6 +53,8 @@ VELA_HOST=http://localhost:8001
 REDIS_URL=redis://localhost:6379/0
 TASK_RETRY_BACKOFF_BASE="0.2"
 PENDING_REWARDS_SCHEDULE=* * * * *
+POLARIS_PUBLIC_URL=http://localhost:8000
+SEND_EMAIL=false
 EOF
 )
 
@@ -127,7 +129,7 @@ done
 tmux select-pane -t 0
 tmux send-keys "cd $ROOT_DIR/polaris && pipenv run uvicorn asgi:app --port 8000" C-m
 tmux select-pane -t 3
-tmux send-keys "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.tasks.worker worker" C-m
+tmux send-keys "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli task-worker" C-m
 tmux select-pane -t 1
 tmux send-keys "cd $ROOT_DIR/vela && pipenv run uvicorn asgi:app --port 8001" C-m
 tmux select-pane -t 4
