@@ -3,8 +3,12 @@ from enum import Enum
 from sqlalchemy import MetaData
 from sqlalchemy.ext.automap import AutomapBase, automap_base
 
-Base: AutomapBase = automap_base(metadata=MetaData())
+from retry_tasks_lib.db.models import load_models_to_metadata
 
+
+
+Base: AutomapBase = automap_base(metadata=MetaData())
+load_models_to_metadata(Base.metadata)
 
 class RetailerRewards(Base):
     __tablename__ = "retailer_rewards"

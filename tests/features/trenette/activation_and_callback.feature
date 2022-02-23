@@ -12,6 +12,6 @@ Feature: Bink BPL - Ensure a customer can enrol succesfully and that activation 
     When I Enrol a trenette account holder passing in all required and all optional fields
     Then I receive a HTTP 202 status code response
     And the account holder is activated
-    And an enrolment callback task is saved in the database
+#    And an enrolment callback task is saved in the database
 #    And the enrolment callback task status is SUCCESS
 

@@ -3,8 +3,12 @@ import uuid
 from sqlalchemy import Boolean, Column, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.automap import AutomapBase, automap_base
+from retry_tasks_lib.db.models import load_models_to_metadata
+
 
 Base: AutomapBase = automap_base()
+load_models_to_metadata(Base.metadata)
+
 utc_timestamp_sql = text("TIMEZONE('utc', CURRENT_TIMESTAMP)")
 
 
