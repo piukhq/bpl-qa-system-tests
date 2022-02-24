@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING
 
 from db.polaris.models import RetailerConfig
 
-
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 

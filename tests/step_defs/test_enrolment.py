@@ -1,6 +1,8 @@
 import json
 import logging
+
 from time import sleep
+from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from faker import Faker
@@ -8,12 +10,10 @@ from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
 
 import settings
+
 from db.carina.models import RewardConfig
-from db.polaris.models import RetailerConfig, AccountHolder
+from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Campaign
-
-from typing import TYPE_CHECKING, Optional
-
 from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.account_holder import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
