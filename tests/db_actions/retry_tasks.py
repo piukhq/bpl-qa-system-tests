@@ -5,8 +5,6 @@ from uuid import UUID
 from retry_tasks_lib.db.models import RetryTask, TaskType, TaskTypeKey, TaskTypeKeyValue
 from sqlalchemy import select
 
-from db.polaris.models import RetryTask
-
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 

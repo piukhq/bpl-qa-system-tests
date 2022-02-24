@@ -1,13 +1,10 @@
-import json
 import logging
 
-from pytest_bdd import given, parsers, then
+from pytest_bdd import given, parsers
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
 from db.polaris.models import AccountHolder, AccountHolderCampaignBalance, RetailerConfig
-
-# from tests.rewards_rule_management_api.response_fixtures.transaction import TransactionResponses
 
 
 def _setup_balance_for_account_holder(
@@ -79,14 +76,3 @@ def setup_account_holder(status: str, retailer_slug: str, request_context: dict,
     request_context["balance"] = balance
 
     logging.info(f"Active account holder uuid:{account_holder.account_holder_uuid}\n" f"Retailer slug: {retailer_slug}")
-
-
-
-
-# @then(parsers.parse("I get a HTTP {status_code:d} rrm {payload_type} response"))
-# def check_transaction_response_status(status_code: int, payload_type: str, request_context: dict) -> None:
-#     payload = TransactionResponses.get_json(payload_type)
-#
-#     assert request_context["resp"].status_code == status_code
-#     if payload:
-#         assert request_context["resp"].json() == payload

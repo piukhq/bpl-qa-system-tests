@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from tests.customer_management_api.api_requests.base import send_post_request, Endpoints
+from tests.api.base import send_post_request, Endpoints
 
 if TYPE_CHECKING:
     from requests import Response
