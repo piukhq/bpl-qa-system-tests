@@ -1,5 +1,5 @@
 # Created by rupalpatel at 16/02/2022
-@enrol @test @bpl
+@enrol @bpl
 Feature: Bink BPL - Ensure a customer can enrol succesfully and that activation and callback is completed
   As a customer
   I want to utilise POST enrol enodpoint
@@ -8,7 +8,7 @@ Feature: Bink BPL - Ensure a customer can enrol succesfully and that activation 
   Scenario: Enrol account holder successfull with callback
 
     Given the trenette retailer exists
-    And has the standard campaigns configured
+    And That retailer has the standard campaigns configured
     When I Enrol a trenette account holder passing in all required and all optional fields
     Then I receive a HTTP 202 status code response
     And the account holder is activated

@@ -19,7 +19,8 @@ class FixtureData(BaseModel):
     campaign: list[dict]
     earn_rule: dict[str, list[dict]]
     reward_rule: dict[str, list[dict]]
-    reward_config: list[dict]
+    reward_config: dict[str, list[dict]]
+    retailer_fetch_type: dict[str, list[dict]]
 
     class Config:
         extra = "forbid"

@@ -7,12 +7,13 @@ import pytest
 
 from pytest_bdd import given, parsers
 from sqlalchemy import create_engine
+from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from db.carina.models import Base as CarinaModelBase
-from db.carina.models import Reward, RewardConfig
+from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
 from db.polaris.models import Base as PolarisModelBase
 from db.polaris.models import RetailerConfig
 from db.vela.models import Base as VelaModelBase
@@ -83,20 +84,30 @@ def carina_db_session() -> Generator:
        target_fixture="retailer_config",
        )
 # fmt: on
-def retailer(polaris_db_session: "Session", vela_db_session: "Session", retailer_slug: str) -> RetailerConfig:
+def retailer(
+    polaris_db_session: "Session",
+    vela_db_session: "Session",
+    carina_db_session: "Session",
+    retailer_slug: str,
+    request_context: dict,
+) -> RetailerConfig:
     fixture_data = load_fixture(retailer_slug)
     retailer_config = RetailerConfig(**fixture_data.retailer_config)
     polaris_db_session.add(retailer_config)
     retailer_rewards = RetailerRewards(slug=retailer_slug)
     vela_db_session.add(retailer_rewards)
+    retailer = Retailer(slug=retailer_slug)
+    carina_db_session.add(retailer)
     polaris_db_session.commit()
     vela_db_session.commit()
+    carina_db_session.commit()
     logging.info(retailer_config)
+    request_context["carina_retailer_id"] = retailer.id
     return retailer_config
 
 
 # fmt: off
-@given("has the standard campaigns configured",
+@given("That retailer has the standard campaigns configured",
        target_fixture="standard_campaigns",
        )
 # fmt: on
@@ -124,20 +135,27 @@ def standard_campaigns_and_reward_slugs(vela_db_session: "Session", retailer_con
 
 
 # fmt: off
-@given(parsers.parse("has the standard reward config configured with {reward_n:d} allocable rewards"),
+@given(parsers.parse("That campaign has the standard reward config configured with {reward_n:d} allocable rewards"),
        target_fixture="standard_reward_configs",
        )
 # fmt: on
 def standard_reward_and_reward_config(
-    carina_db_session: "Session", reward_n: int, retailer_config: RetailerConfig
+    carina_db_session: "Session",
+    reward_n: int,
+    retailer_config: RetailerConfig,
+    request_context: dict,
+    fetch_types: list[FetchType],
 ) -> list[RewardConfig]:
     fixture_data = load_fixture(retailer_config.slug)
     reward_configs: list = []
+    for fetch_type in fetch_types:
 
-    for reward_config_data in fixture_data.reward_config:
-        reward_config = RewardConfig(**reward_config_data)
-        carina_db_session.add(reward_config)
-        reward_configs.append(reward_config)
+        for reward_config_data in fixture_data.reward_config.get(fetch_type.name, []):
+            reward_config = RewardConfig(
+                retailer_id=request_context["carina_retailer_id"], fetch_type_id=fetch_type.id, **reward_config_data
+            )
+            carina_db_session.add(reward_config)
+            reward_configs.append(reward_config)
 
     if reward_n > 0:
         carina_db_session.flush()
@@ -149,13 +167,34 @@ def standard_reward_and_reward_config(
                     allocated=False,
                     deleted=False,
                     reward_config_id=config.id,
-                    retailer_slug=retailer_config.slug,
+                    retailer_id=request_context["carina_retailer_id"],
                 )
                 for i in range(1, reward_n + 1)
             )
 
     carina_db_session.commit()
     return reward_configs
+
+
+# fmt: off
+@given(parsers.parse("and i setup the fetch type"),
+       target_fixture="fetch_types"
+       )
+# fmt: on
+def get_fetch_type(
+    carina_db_session: "Session", retailer_config: RetailerConfig, request_context: dict
+) -> list[FetchType]:
+    fixture_data = load_fixture(retailer_config.slug)
+    retailer_id = request_context["carina_retailer_id"]
+    fetch_types = carina_db_session.execute(select(FetchType)).scalars().all()
+    for fetch_type in fetch_types:
+        carina_db_session.add_all(
+            RetailerFetchType(retailer_id=retailer_id, fetch_type_id=fetch_type.id, **retailer_fetch_type_data)
+            for retailer_fetch_type_data in fixture_data.retailer_fetch_type.get(fetch_type.name, [])
+        )
+
+    carina_db_session.commit()
+    return fetch_types
 
 
 # Hooks

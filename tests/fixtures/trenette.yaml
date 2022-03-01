@@ -42,8 +42,8 @@ campaign:
 
 earn_rule:
   trenette-stmp-campaign-1:
-    - threshold: 200
-      increment: 50
+    - threshold: 500
+      increment: 100
       increment_multiplier: 1
   trenette-acc-campaign-1:
     - threshold: 1
@@ -51,20 +51,25 @@ earn_rule:
 
 reward_rule:
   trenette-stmp-campaign-1:
-    - reward_goal: 400
+    - reward_goal: 700
       reward_slug: "free-item"
+      allocation_window: 0
   trenette-acc-campaign-1:
     - reward_goal: 200
       reward_slug: "10percentoff"
+      allocation_window: 1
 
 reward_config:
-  - reward_slug: "free-item"
-    validity_days: 30  
-    retailer_slug: "trenette"
-    fetch_type: "PRE_LOADED"
-    status: "ACTIVE"
-  - reward_slug: "10percentoff"
-    validity_days: 30  
-    retailer_slug: "trenette"
-    fetch_type: "PRE_LOADED"
-    status: "ACTIVE"
+  PRE_LOADED:
+    - reward_slug: "free-item"
+      required_fields_values: "validity_days: 30"
+      status: "ACTIVE"
+    - reward_slug: "10percentoff"
+      required_fields_values: "validity_days: 30"
+      status: "ACTIVE"
+
+retailer_fetch_type:
+  PRE_LOADED:
+    - agent_config: null
+
+

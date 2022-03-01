@@ -1,6 +1,9 @@
 import json
 import logging
+import time
+import uuid
 
+from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
@@ -8,6 +11,7 @@ from uuid import uuid4
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
+from sqlalchemy.future import select
 
 import settings
 
@@ -15,9 +19,13 @@ from db.carina.models import RewardConfig
 from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Campaign
 from settings import MOCK_SERVICE_BASE_URL
-from tests.db_actions.account_holder import get_account_holder
+from tests.db_actions.polaris import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
 from tests.requests.enrolment import send_post_enrolment
+from tests.requests.transaction import post_transaction_request
+from tests.shared_utils.fixture_loader import load_fixture
+from tests.shared_utils.response_fixtures.errors import TransactionResponses
+from tests.shared_utils.shared_steps import _fetch_balance_for_account_holder
 
 scenarios("../features")
 
@@ -37,8 +45,11 @@ def enrolment(
 
 
 @when(parse("I Enrol a {retailer_slug} account holder passing in all required and all optional fields"))
-def enorl_accountholder_with_all_required_fields(retailer_config: RetailerConfig, request_context: dict) -> None:
-    enrol_account_holder(retailer_config, request_context)
+@when(parse("The account holder enrol to {retailer_slug} retailer with all required and all optional fields"))
+def enrol_accountholder_with_all_required_fields(
+    retailer_slug: str, retailer_config: RetailerConfig, request_context: dict, polaris_db_session: "Session"
+) -> None:
+    return enrol_account_holder(retailer_config, request_context)
 
 
 def enrol_account_holder(
@@ -54,6 +65,8 @@ def enrol_account_holder(
         request_body = only_required_credentials()
 
     resp = send_post_enrolment(request_context["retailer_slug"], request_body)
+    time.sleep(3)
+    request_context["email"] = request_body["credentials"]["email"]
     request_context["response"] = resp
     request_context["status_code"] = resp.status_code
     logging.info(f"Response : {request_context}")
@@ -71,16 +84,8 @@ def all_required_and_all_optional_credentials(callback_url: Optional[str] = None
 
 
 def _get_credentials() -> dict:
-    # phone_prefix = "0" if random.randint(0, 1) else "+44"
-    # address = fake.street_address().split("\n")
-    # address_1 = address[0]
-    # if len(address) > 1:
-    #     address_2 = address[1]
-    # else:
-    #     address_2 = fake.street_name()
-
     return {
-        "email": f"qa_pytest{uuid4()}@bink.com",
+        "email": f"qa_pytest_{uuid4()}@bink.com",
         "first_name": fake.first_name(),
         "last_name": fake.last_name(),
     }
@@ -143,3 +148,111 @@ def verify_callback_task_saved_in_db(polaris_db_session: "Session", request_cont
     assert settings.MOCK_SERVICE_BASE_URL in callback_task.get_params()["callback_url"]
     assert callback_task.get_params()["third_party_identifier"] == "identifier"
     assert callback_task.get_params()["account_holder_uuid"] == str(account_holder.account_holder_uuid)
+
+
+@when(parse("The account holder POST transaction request for {retailer_slug} retailer with {amount_1:d}"))
+def the_account_holder_transaction_request(retailer_slug: str, amount_1: int, request_context: dict):
+    account_holder_uuid = request_context["account_holder_uuid"]
+
+    payload = request_context.get("request_payload", None)
+    if payload is None:
+        payload = {
+            "id": str(uuid.uuid4()),
+            "transaction_total": amount_1,
+            "datetime": int(datetime.utcnow().timestamp()),
+            "MID": "12432432",
+            "loyalty_id": str(account_holder_uuid),
+        }
+    logging.info(json.dumps(payload))
+    post_transaction_request(payload, retailer_slug, request_context)
+
+
+@when(parse("A {status} account holder exists for {retailer_slug}"))
+def setup_account_holder(status: str, retailer_slug: str, request_context: dict, polaris_db_session: "Session") -> None:
+    email = request_context["email"]
+    retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
+    if retailer is None:
+        raise ValueError(f"a retailer with slug '{retailer_slug}' was not found in the db.")
+
+    account_status = {"active": "ACTIVE"}.get(status, "PENDING")
+    if "campaign" in request_context:
+        campaign_slug = request_context["campaign"].slug
+    else:
+        campaign_slug = "trenette-stmp-campaign-1"
+
+    account_holder = (
+        polaris_db_session.execute(
+            select(AccountHolder).where(AccountHolder.email == email, AccountHolder.retailer_id == retailer.id)
+        )
+        .scalars()
+        .first()
+    )
+
+    account_holder.status = account_status
+
+    balance = _fetch_balance_for_account_holder(polaris_db_session, account_holder, campaign_slug)
+
+    request_context["campaign_slug"] = campaign_slug
+    request_context["account_holder_uuid"] = str(account_holder.account_holder_uuid)
+    request_context["account_holder"] = account_holder
+    request_context["retailer_id"] = retailer.id
+    request_context["retailer_slug"] = retailer.slug
+    request_context["start_balance"] = 0
+    request_context["balance"] = balance
+
+    logging.info(f"Active account holder uuid:{account_holder.account_holder_uuid}\n" f"Retailer slug: {retailer_slug}")
+
+
+@then(parse("The account holder get a HTTP {status_code:d} with {response_type} response"))
+def the_account_holder_get_response(status_code: int, response_type: str, request_context: dict):
+
+    assert request_context["resp"].status_code == status_code
+    assert request_context["resp"].json() == TransactionResponses.get_json(response_type)
+
+
+@then("The account holder's balance is updated")
+def check_account_holder_balance_is_updated(
+    request_context: dict, polaris_db_session: "Session", vela_db_session: "Session"
+) -> None:
+    fixture_data = load_fixture(request_context["retailer_slug"])
+    balance = request_context["balance"]
+
+    earn_rule_increment = fixture_data.earn_rule[request_context["campaign_slug"]][0]["increment"]
+    earn_rule_increment_multiplier = fixture_data.earn_rule[request_context["campaign_slug"]][0]["increment_multiplier"]
+    # if request_context["balance"] != 0:
+    #     request_context["balance"] =  request_context["balance"] + (earn_rule_increment * earn_rule_increment_multiplier)
+
+    expected_balance = request_context["balance"] + (earn_rule_increment * earn_rule_increment_multiplier)
+
+    logging.info(f"Expected Balance : {expected_balance}")
+
+    for i in range(5):
+        sleep(i + 2)
+        polaris_db_session.refresh(balance)
+
+        if balance == expected_balance:
+            break
+
+    logging.info(balance)
+    assert balance == expected_balance
+
+    # request_context["start_balance"] = request_context["start_balance"] + (
+    #             earn_rule_increment * earn_rule_increment_multiplier)
+
+
+# @when(parse("The account holder again POST transaction request for {retailer_slug} retailer with {amount:d}"))
+# def post_transaction_again(retailer_slug: str, amount: int, request_context: dict):
+#
+#     account_holder_uuid = request_context["account_holder_uuid"]
+#
+#     payload = request_context.get("request_payload", None)
+#     if payload is None:
+#         payload = {
+#             "id": str(uuid.uuid4()),
+#             "transaction_total": amount,
+#             "datetime": int(datetime.utcnow().timestamp()),
+#             "MID": "12432432",
+#             "loyalty_id": str(account_holder_uuid),
+#         }
+#         logging.info(json.dumps(payload))
+#     post_transaction_request(payload, retailer_slug, request_context)
