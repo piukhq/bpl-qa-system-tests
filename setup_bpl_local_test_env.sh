@@ -140,15 +140,15 @@ tmux send-keys "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=91
 tmux select-pane -t 1
 tmux send-keys "cd $ROOT_DIR/vela && pipenv run uvicorn asgi:app --port 8001" C-m
 tmux select-pane -t 4
-tmux send-keys "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.tasks.worker worker" C-m
+tmux send-keys "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.core.cli task-worker" C-m
 tmux select-pane -t 2
 tmux send-keys "cd $ROOT_DIR/carina && pipenv run uvicorn asgi:app --port 8002" C-m
 tmux select-pane -t 5
-tmux send-keys "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.tasks.worker worker" C-m
+tmux send-keys "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli task-worker" C-m
 tmux select-pane -t 6
-tmux send-keys "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
+tmux send-keys "cd $ROOT_DIR/polaris && pipenv run python -m app.core.cli cron-scheduler" C-m
 tmux select-pane -t 7
-tmux send-keys "cd $ROOT_DIR/carina && pipenv run python -m app.imports.agents.file_agent reward-import-agent" C-m
+tmux send-keys "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
 tmux select-pane -t 8
-tmux send-keys "cd $ROOT_DIR/carina && pipenv run python -m app.imports.agents.file_agent reward-updates-agent" C-m
+tmux send-keys "cd $ROOT_DIR/carina && pipenv run python -m app.core.cli cron-scheduler" C-m
 tmux attach-session -t $TMUX_SESSION_NAME
