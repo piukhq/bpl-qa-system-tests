@@ -177,7 +177,7 @@ def standard_reward_and_reward_config(
 
 
 # fmt: off
-@given(parsers.parse("and i setup the fetch type"),
+@given(parsers.parse("Retailer setup the fetch type"),
        target_fixture="fetch_types"
        )
 # fmt: on

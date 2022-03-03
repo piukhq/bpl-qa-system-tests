@@ -56,5 +56,5 @@ Defaults to `True`
 * `POLARIS_BASE_URL`: Base URL for the customer management api 
   e.g. `https://api.dev.gb.bink.com/bpl/loyalty`  
 * `VELA_BASE_URL`: Base URL for the rewards rule management api 
-  e.g. `https://api.dev.gb.bink.com/bpl/rewards`  
+  e.g. `https://api.dev.gb.bink.com/bpl/retailers`  
 * `MOCK_SERVICE_BASE_URL`: URL to send for the `callback_url` during enrolment requests  
