@@ -29,11 +29,13 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
     Then The account holder's balance is updated
     When The account holder send GET accounts request by UUID
     Then The account holder issued reward
+    And The account holder's balance got adjusted
+    And status code <status_code> appeared
 #    And The account holder's balance is updated
 
     Examples:
-      | amount_1 | amount_2 | amount_3 | amount_4 | amount_5 | amount_6 | amount_7 | response_type |
-      | 600      | 570      | 690      | 505      | 610      | 615      | 550      | Awarded       |
+      | amount_1 | amount_2 | amount_3 | amount_4 | amount_5 | amount_6 | amount_7 | response_type | status_code |
+      | 600      | 570      | 690      | 505      | 610      | 615      | 550      | Awarded       | 200         |
 
   #      | amount_1 | response_type |
 #      | 600      | Awarded       |

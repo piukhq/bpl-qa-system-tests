@@ -244,11 +244,26 @@ def send_get_request_to_account_holder(request_context: dict) -> None:
     account_holder_uuid = request_context["account_holder_uuid"]
 
     resp = send_get_accounts(request_context["retailer_slug"], account_holder_uuid)
-    request_context["response"] = resp
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(f"Response Body: {json.dumps(resp.json(), indent=4)}")
+    request_context["reward_code"] = resp.json()["rewards"][0]["code"]
+    request_context["UUID"] = resp.json()["UUID"]
+    request_context["email"] = resp.json()["email"]
+    request_context["current_balance"] = resp.json()["current_balances"][0]["value"]
+    request_context["status"] = resp.json()["status"]
+
 
 
 @then("The account holder issued reward")
 def issued_reward(request_context: dict) -> None:
-    assert request_context["email"] == request_context["response"].get("email")
+    assert request_context["reward_code"] is not None
+
+
+@then(parse("status code {status_code:d} appeared"))
+def status_code_appeared(status_code: int, request_context: dict) -> None:
+    assert status_code == request_context["status"]
+
+
+@then("The account holder's balance got adjusted")
+def the_account_holder_balance_got_adjusted(request_context:dict) -> None:
+    assert request_context["account_holder_campaign_balance"] == request_context["current_balance"]
