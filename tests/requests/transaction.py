@@ -1,13 +1,8 @@
 import json
 import logging
 
-from typing import TYPE_CHECKING
-
 from tests.api.base import Endpoints, get_vela_headers, get_vela_url
 from tests.retry_requests import retry_session
-
-if TYPE_CHECKING:
-    from requests import Response
 
 
 def post_transaction_request(request_body: dict, retailer_slug: str, request_context: dict) -> None:
