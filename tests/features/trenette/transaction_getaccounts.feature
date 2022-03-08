@@ -9,7 +9,7 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
     Given The trenette retailer exists
     And That retailer has the standard campaigns configured
     And Retailer setup the fetch type
-    And That campaign has the standard reward config configured with 4 allocable rewards
+    And That campaign has the standard reward config configured with 1 allocable rewards
     When The account holder enrol to trenette retailer with all required and all optional fields
     And A active account holder exists for trenette
     And The account holder POST transaction request for trenette retailer with <amount_1>
@@ -29,31 +29,10 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
     Then The account holder's balance is updated
     When The account holder send GET accounts request by UUID
     Then The account holder issued reward
+    And The account holder's UUID and account number appearing correct
     And The account holder's balance got adjusted
-    And status code <status_code> appeared
-#    And The account holder's balance is updated
+    And status <status> appeared
 
     Examples:
-      | amount_1 | amount_2 | amount_3 | amount_4 | amount_5 | amount_6 | amount_7 | response_type | status_code |
-      | 600      | 570      | 690      | 505      | 610      | 615      | 550      | Awarded       | 200         |
-
-  #      | amount_1 | response_type |
-#      | 600      | Awarded       |
-
-#  @getaccount
-#  Scenario Outline: GET on account shows issued reward for campaign
-#    Given The trenette retailer exists
-#    And That retailer has the standard campaigns configured
-#    And That retailer has the standard reward config configured with 4 allocable rewards
-#    And The active campaign has an active account holder with a balance of <balance>
-#    When The account holder send a POST transaction request with <amount>
-#    Then The account holder get a HTTP 200 response
-#    When The account holder send GET account_id
-#    Then The issued reward is displayed
-#    And The account holder's balance is updated
-#
-#    Examples:
-#      | balance | amount |
-#      | 6       | 600    |
-
-
+      | amount_1 | amount_2 | amount_3 | amount_4 | amount_5 | amount_6 | amount_7 | response_type | status |
+      | 600      | 570      | 690      | 505      | 610      | 615      | 550      | Awarded       | active |
