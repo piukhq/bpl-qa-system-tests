@@ -153,7 +153,7 @@ def verify_callback_task_saved_in_db(polaris_db_session: "Session", request_cont
 
 
 @when(parse("The account holder POST transaction request for {retailer_slug} retailer with {amount:d}"))
-def the_account_holder_transaction_request(retailer_slug: str, amount: int, request_context: dict):
+def the_account_holder_transaction_request(retailer_slug: str, amount: int, request_context: dict) -> None:
     account_holder_uuid = request_context["account_holder_uuid"]
 
     payload = {
@@ -246,7 +246,7 @@ def check_account_holder_balance_is_updated(
 
 
 @when("The account holder send GET accounts request by UUID", target_fixture="get_account_response")
-def send_get_request_to_account_holder(request_context: dict) -> None:
+def send_get_request_to_account_holder(request_context: dict) -> "Response":
     resp = send_get_accounts(request_context["retailer_slug"], request_context["account_holder_uuid"])
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(

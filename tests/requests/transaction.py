@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from requests import Response
 
 
-def post_transaction_request(request_body: dict, retailer_slug: str, request_context: dict) -> "Response":
+def post_transaction_request(request_body: dict, retailer_slug: str, request_context: dict) -> None:
 
     headers = get_vela_headers()
     url = get_vela_url(retailer_slug, Endpoints.TRANSACTION)
