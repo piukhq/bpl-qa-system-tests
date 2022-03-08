@@ -28,7 +28,7 @@ from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
 from tests.shared_utils.shared_steps import _fetch_balance_for_account_holder
 
-scenarios("../features")
+scenarios("../features/trenette")
 
 if TYPE_CHECKING:
     from requests import Response
@@ -247,13 +247,13 @@ def check_account_holder_balance_is_updated(
 
 @when("The account holder send GET accounts request by UUID", target_fixture="get_account_response")
 def send_get_request_to_account_holder(request_context: dict) -> "Response":
+    time.sleep(3)
     resp = send_get_accounts(request_context["retailer_slug"], request_context["account_holder_uuid"])
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(
-        f"Response of GET/{Endpoints.ACCOUNTS}"
+        f"Response of GET{settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
         f"{request_context['account_holder_uuid']}: {json.dumps(resp.json(), indent=4)}"
     )
-    time.sleep(3)
     return resp
 
 
