@@ -168,13 +168,13 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
     post_transaction_request(payload, retailer_slug, request_context)
 
 
-@when(parse("A {status} account holder exists for {retailer_slug}"))
+@when(parse("An {status} account holder exists for {retailer_slug}"))
 def setup_account_holder(
     status: str,
     retailer_slug: str,
     request_context: dict,
     polaris_db_session: "Session",
-    standard_campaigns: "Response",
+    standard_campaigns: list[Campaign],
 ) -> None:
     email = request_context["email"]
     retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
