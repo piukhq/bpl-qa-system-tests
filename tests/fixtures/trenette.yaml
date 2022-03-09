@@ -70,6 +70,4 @@ reward_config:
 
 retailer_fetch_type:
   PRE_LOADED:
-    - agent_config: null
-
-
+    agent_config: null

@@ -8,9 +8,9 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
   Scenario Outline: Transaction meets earn threshold
     Given The trenette retailer exists
     And That retailer has the standard campaigns configured
-    And Retailer setup the fetch type
+    And Required fetch type are configured for the current retailer
     And That campaign has the standard reward config configured with 1 allocable rewards
-    When The account holder enrol to trenette retailer with all required and all optional fields
+    When The account holder enrol to retailer with all required and all optional fields
     And A active account holder exists for trenette
     And The account holder POST transaction request for trenette retailer with <amount_1>
     Then The account holder get a HTTP 200 with <response_type> response

@@ -80,7 +80,7 @@ def carina_db_session() -> Generator:
 # in vscode with target_fixture and play nice with flake8
 # https://github.com/alexkrechik/VSCucumberAutoComplete/issues/373
 # fmt: off
-@given(parsers.parse("the {retailer_slug} retailer exists"),
+@given(parsers.parse("The {retailer_slug} retailer exists"),
        target_fixture="retailer_config",
        )
 # fmt: on
@@ -177,7 +177,7 @@ def standard_reward_and_reward_config(
 
 
 # fmt: off
-@given(parsers.parse("Retailer setup the fetch type"),
+@given(parsers.parse("Required fetch type are configured for the current retailer"),
        target_fixture="fetch_types"
        )
 # fmt: on
@@ -188,10 +188,14 @@ def get_fetch_type(
     retailer_id = request_context["carina_retailer_id"]
     fetch_types = carina_db_session.execute(select(FetchType)).scalars().all()
     for fetch_type in fetch_types:
-        carina_db_session.add_all(
-            RetailerFetchType(retailer_id=retailer_id, fetch_type_id=fetch_type.id, **retailer_fetch_type_data)
-            for retailer_fetch_type_data in fixture_data.retailer_fetch_type.get(fetch_type.name, [])
-        )
+        if fetch_type.name in fixture_data.retailer_fetch_type:
+            carina_db_session.add(
+                RetailerFetchType(
+                    retailer_id=retailer_id,
+                    fetch_type_id=fetch_type.id,
+                    **fixture_data.retailer_fetch_type[fetch_type.name],
+                )
+            )
 
     carina_db_session.commit()
     return fetch_types

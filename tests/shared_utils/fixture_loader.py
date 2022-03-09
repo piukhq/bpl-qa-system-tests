@@ -20,7 +20,7 @@ class FixtureData(BaseModel):
     earn_rule: dict[str, list[dict]]
     reward_rule: dict[str, list[dict]]
     reward_config: dict[str, list[dict]]
-    retailer_fetch_type: dict[str, list[dict]]
+    retailer_fetch_type: dict
 
     class Config:
         extra = "forbid"

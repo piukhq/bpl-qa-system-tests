@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from db.polaris.models import AccountHolder, AccountHolderCampaignBalance
 
 
-def _fetch_balance_for_account_holder(
+def fetch_balance_for_account_holder(
     polaris_db_session: Session, account_holder: AccountHolder, campaign_slug: str
 ) -> AccountHolderCampaignBalance:
     account_holder_campaign_balance = (
