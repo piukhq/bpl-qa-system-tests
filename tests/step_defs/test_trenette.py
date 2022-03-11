@@ -46,8 +46,8 @@ def enrolment(
     assert standard_reward_configs
 
 
-@when(parse("I Enrol a account holder passing in all required and all optional fields"))
-@when(parse("The account holder enrol to retailer with all required and all optional fields"))
+@when(parse("i Enrol a account holder passing in all required and all optional fields"))
+@when(parse("the account holder enrol to retailer with all required and all optional fields"))
 def enrol_accountholder_with_all_required_fields(
     retailer_config: RetailerConfig, request_context: dict, polaris_db_session: "Session"
 ) -> None:
@@ -135,7 +135,7 @@ def get_account_holder_from_request_data(
     return get_account_holder(polaris_db_session, email, retailer.id)
 
 
-@then(parse("I receive a HTTP {status_code:d} status code response"))
+@then(parse("i receive a HTTP {status_code:d} status code response"))
 def check_response_status_code(status_code: int, request_context: dict) -> None:
     resp = request_context["response"]
     logging.info(f"Response HTTP status code: {resp.status_code} Response status: {json.dumps(resp.json(), indent=4)}")
@@ -153,7 +153,7 @@ def verify_callback_task_saved_in_db(polaris_db_session: "Session", request_cont
     assert callback_task.get_params()["account_holder_uuid"] == str(account_holder.account_holder_uuid)
 
 
-@when(parse("The account holder POST transaction request for {retailer_slug} retailer with {amount:d}"))
+@when(parse("the account holder POST transaction request for {retailer_slug} retailer with {amount:d}"))
 def the_account_holder_transaction_request(retailer_slug: str, amount: int, request_context: dict) -> None:
     account_holder_uuid = request_context["account_holder_uuid"]
 
@@ -168,7 +168,7 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
     post_transaction_request(payload, retailer_slug, request_context)
 
 
-@when(parse("An {status} account holder exists for {retailer_slug}"))
+@when(parse("an {status} account holder exists for {retailer_slug}"))
 def setup_account_holder(
     status: str,
     retailer_slug: str,
@@ -195,7 +195,7 @@ def setup_account_holder(
         .first()
     )
 
-    account_holder.status = account_status
+    assert account_holder.status == account_status
 
     account_holder_campaign_balance = fetch_balance_for_account_holder(
         polaris_db_session, account_holder, campaign_slug
@@ -213,13 +213,14 @@ def setup_account_holder(
     logging.info(f"Active account holder uuid:{account_holder.account_holder_uuid}\n" f"Retailer slug: {retailer_slug}")
 
 
-@then(parse("The account holder get a HTTP {status_code:d} with {response_type} response"))
+@then(parse("the account holder get a HTTP {status_code:d} with {response_type} response"))
 def the_account_holder_get_response(status_code: int, response_type: str, request_context: dict) -> None:
+    time.sleep(20)
     assert request_context["resp"].status_code == status_code
     assert request_context["resp"].json() == TransactionResponses.get_json(response_type)
 
 
-@then("The account holder's balance is updated")
+@then("the account holder's balance is updated")
 def check_account_holder_balance_is_updated(
     request_context: dict, polaris_db_session: "Session", vela_db_session: "Session"
 ) -> None:
@@ -247,7 +248,7 @@ def check_account_holder_balance_is_updated(
     request_context["account_holder_campaign_balance"] = account_holder_campaign_balance
 
 
-@when("The account holder send GET accounts request by UUID", target_fixture="get_account_response_by_uuid")
+@when("the account holder send GET accounts request by UUID", target_fixture="get_account_response_by_uuid")
 def send_get_request_to_account_holder(request_context: dict) -> "Response":
     time.sleep(3)
     resp = send_get_accounts(request_context["retailer_slug"], request_context["account_holder_uuid"])
@@ -259,7 +260,7 @@ def send_get_request_to_account_holder(request_context: dict) -> "Response":
     return resp
 
 
-@then(parse("The account holder {issued} reward"))
+@then(parse("the account holder {issued} reward"))
 def issued_reward(issued: str, get_account_response_by_uuid: "Response") -> None:
     assert get_account_response_by_uuid is not None
     assert issued == get_account_response_by_uuid.json()["rewards"][0]["status"]
@@ -270,7 +271,7 @@ def status_code_appeared(status: str, get_account_response_by_uuid: "Response") 
     assert status == get_account_response_by_uuid.json()["status"]
 
 
-@then("The account holder's balance got adjusted")
+@then("the account holder's balance got adjusted")
 def the_account_holder_balance_got_adjusted(request_context: dict, get_account_response_by_uuid: "Response") -> None:
     assert (
         request_context["account_holder_campaign_balance"].balance
@@ -278,7 +279,7 @@ def the_account_holder_balance_got_adjusted(request_context: dict, get_account_r
     )
 
 
-@then("The account holder's UUID and account number appearing correct")
+@then("the account holder's UUID and account number appearing correct")
 def verify_uuid_and_account(request_context: dict, get_account_response_by_uuid: "Response") -> None:
     assert request_context["account_holder_uuid"] == get_account_response_by_uuid.json()["UUID"]
     assert request_context["account_number"] == get_account_response_by_uuid.json()["account_number"]

@@ -8,8 +8,8 @@ Feature: Bink BPL - Ensure a customer can enrol succesfully and that activation 
   Scenario: Enrol account holder successfull with callback
 
     Given the trenette retailer exists
-    And That retailer has the standard campaigns configured
-    When I Enrol a account holder passing in all required and all optional fields
-    Then I receive a HTTP 202 status code response
+    And that retailer has the standard campaigns configured
+    When i Enrol a account holder passing in all required and all optional fields
+    Then i receive a HTTP 202 status code response
     And the account holder is activated
     And an enrolment callback task is saved in the database

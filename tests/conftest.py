@@ -80,7 +80,7 @@ def carina_db_session() -> Generator:
 # in vscode with target_fixture and play nice with flake8
 # https://github.com/alexkrechik/VSCucumberAutoComplete/issues/373
 # fmt: off
-@given(parsers.parse("The {retailer_slug} retailer exists"),
+@given(parsers.parse("the {retailer_slug} retailer exists"),
        target_fixture="retailer_config",
        )
 # fmt: on
@@ -107,7 +107,7 @@ def retailer(
 
 
 # fmt: off
-@given("That retailer has the standard campaigns configured",
+@given("that retailer has the standard campaigns configured",
        target_fixture="standard_campaigns",
        )
 # fmt: on
@@ -135,7 +135,7 @@ def standard_campaigns_and_reward_slugs(vela_db_session: "Session", retailer_con
 
 
 # fmt: off
-@given(parsers.parse("That campaign has the standard reward config configured with {reward_n:d} allocable rewards"),
+@given(parsers.parse("that campaign has the standard reward config configured with {reward_n:d} allocable rewards"),
        target_fixture="standard_reward_configs",
        )
 # fmt: on
@@ -177,7 +177,7 @@ def standard_reward_and_reward_config(
 
 
 # fmt: off
-@given(parsers.parse("Required fetch type are configured for the current retailer"),
+@given(parsers.parse("required fetch type are configured for the current retailer"),
        target_fixture="fetch_types"
        )
 # fmt: on
