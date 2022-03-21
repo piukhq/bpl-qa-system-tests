@@ -4,7 +4,7 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
   I want to transact some amount
   So I make sure that balance get increase and reward goal meet
 
-  @transaction @test
+  @transaction
   Scenario Outline: Transaction meets earn threshold
     Given the trenette retailer exists
     And that retailer has the standard campaigns configured
@@ -12,22 +12,22 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
     And that campaign has the standard reward config configured with 1 allocable rewards
     Then Retailer, Campaigns, and RewardConfigs are successfully created in the database
     When the account holder enrol to retailer with all required and all optional fields
-    And an active account holder exists for trenette
+    And an active account holder exists for trenette with the campaign trenette-stmp-campaign-1 
     And the account holder POST transaction request for trenette retailer with <amount_1>
     Then the account holder get a HTTP 200 with <response_type> response
-    And the account holder's balance is updated
+    And the account holder's balance is updated for trenette-stmp-campaign-1
     When the account holder POST transaction request for trenette retailer with <amount_2>
-    Then the account holder's balance is updated
+    Then the account holder's balance is updated for trenette-stmp-campaign-1
     When the account holder POST transaction request for trenette retailer with <amount_3>
-    Then the account holder's balance is updated
+    Then the account holder's balance is updated for trenette-stmp-campaign-1
     When the account holder POST transaction request for trenette retailer with <amount_4>
-    Then the account holder's balance is updated
+    Then the account holder's balance is updated for trenette-stmp-campaign-1
     When the account holder POST transaction request for trenette retailer with <amount_5>
-    Then the account holder's balance is updated
+    Then the account holder's balance is updated for trenette-stmp-campaign-1
     When the account holder POST transaction request for trenette retailer with <amount_6>
-    Then the account holder's balance is updated
+    Then the account holder's balance is updated for trenette-stmp-campaign-1
     When the account holder POST transaction request for trenette retailer with <amount_7>
-    Then the account holder's balance is updated
+    Then the account holder's balance is updated for trenette-stmp-campaign-1
     When the account holder send GET accounts request by UUID
     Then the account holder issued reward
     And the account holder's UUID and account number appearing correct

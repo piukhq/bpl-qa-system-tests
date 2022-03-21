@@ -39,6 +39,14 @@ campaign:
       !utc_now 
       timedelta: -5
     end_date: null
+  - slug: "trenette-stmp-campaign-2"
+    name: "Trenette Stamps Campaign 2"
+    status: "ACTIVE"
+    loyalty_type: STAMPS
+    start_date: 
+      !utc_now 
+      timedelta: -5
+    end_date: null
 
 earn_rule:
   trenette-stmp-campaign-1:
@@ -47,6 +55,10 @@ earn_rule:
       increment_multiplier: 1
   trenette-acc-campaign-1:
     - threshold: 1
+      increment_multiplier: 1
+  trenette-stmp-campaign-2:
+    - threshold: 500
+      increment: 100
       increment_multiplier: 1
 
 reward_rule:
@@ -58,6 +70,10 @@ reward_rule:
     - reward_goal: 200
       reward_slug: "10percentoff"
       allocation_window: 1
+  trenette-stmp-campaign-2:
+    - reward_goal: 700
+      reward_slug: "free-item-2"
+      allocation_window: 0
 
 reward_config:
   PRE_LOADED:
@@ -65,6 +81,9 @@ reward_config:
       required_fields_values: "validity_days: 30"
       status: "ACTIVE"
     - reward_slug: "10percentoff"
+      required_fields_values: "validity_days: 30"
+      status: "ACTIVE"
+    - reward_slug: "free-item-2"
       required_fields_values: "validity_days: 30"
       status: "ACTIVE"
 

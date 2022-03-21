@@ -23,7 +23,7 @@ from tests.api.base import Endpoints
 from tests.db_actions.polaris import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
 from tests.requests.enrolment import send_get_accounts, send_post_enrolment
-from tests.requests.transaction import post_transaction_request
+from tests.requests.transaction import post_transaction_request, post_adjustments_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
 from tests.shared_utils.shared_steps import fetch_balance_for_account_holder
@@ -168,13 +168,14 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
     post_transaction_request(payload, retailer_slug, request_context)
 
 
-@when(parse("an {status} account holder exists for {retailer_slug}"))
+@when(parse("an {status} account holder exists for {retailer_slug} with the campaign {campaign_slug}"))
 def setup_account_holder(
     status: str,
+    campaign_slug: str,
     retailer_slug: str,
     request_context: dict,
     polaris_db_session: "Session",
-    standard_campaigns: list[Campaign],
+    # standard_campaigns: list[Campaign],
 ) -> None:
     email = request_context["email"]
     retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
@@ -182,10 +183,10 @@ def setup_account_holder(
         raise ValueError(f"a retailer with slug '{retailer_slug}' was not found in the db.")
 
     account_status = {"active": "ACTIVE"}.get(status, "PENDING")
-    if "campaign" in request_context:
-        campaign_slug = request_context["campaign"].slug
-    else:
-        campaign_slug = standard_campaigns[0].slug
+    # if "campaign" in request_context:
+    #     campaign_slug = request_context["campaign"].slug
+    # else:
+    #     campaign_slug = standard_campaigns[0].slug
 
     account_holder = (
         polaris_db_session.execute(
@@ -201,7 +202,7 @@ def setup_account_holder(
         polaris_db_session, account_holder, campaign_slug
     )
 
-    request_context["campaign_slug"] = campaign_slug
+    # request_context["campaign_slug"] = campaign_slug
     request_context["account_holder_uuid"] = str(account_holder.account_holder_uuid)
     request_context["account_number"] = account_holder.account_number
     request_context["account_holder"] = account_holder
@@ -220,17 +221,23 @@ def the_account_holder_get_response(status_code: int, response_type: str, reques
     assert request_context["resp"].json() == TransactionResponses.get_json(response_type)
 
 
-@then("the account holder's balance is updated")
+@then(parse("the account holder's balance is updated for {campaign_slugs}"))
 def check_account_holder_balance_is_updated(
-    request_context: dict, polaris_db_session: "Session", vela_db_session: "Session"
+    request_context: dict, campaign_slugs: str, polaris_db_session: "Session", vela_db_session: "Session"
 ) -> None:
     fixture_data = load_fixture(request_context["retailer_slug"])
     account_holder_campaign_balance = request_context["account_holder_campaign_balance"]
-    earn_rule_increment = fixture_data.earn_rule[request_context["campaign_slug"]][0]["increment"]
-    earn_rule_increment_multiplier = fixture_data.earn_rule[request_context["campaign_slug"]][0]["increment_multiplier"]
-    reward_goal = fixture_data.reward_rule[request_context["campaign_slug"]][0]["reward_goal"]
-
-    expected_balance = account_holder_campaign_balance.balance + (earn_rule_increment * earn_rule_increment_multiplier)
+    if len(list(campaign_slugs.split(","))) == 1:
+        earn_rule_increment = fixture_data.earn_rule[campaign_slugs[0]][0]["increment"]
+        earn_rule_increment_multiplier = fixture_data.earn_rule[campaign_slugs[0]][0]["increment_multiplier"]
+        reward_goal = fixture_data.reward_rule[campaign_slugs[0]][0]["reward_goal"]
+        expected_balance = account_holder_campaign_balance.balance + (earn_rule_increment * earn_rule_increment_multiplier)
+    else:
+        for slug in list(campaign_slugs.split(",")):
+            earn_rule_increment = fixture_data.earn_rule[slug][0]["increment"]
+            earn_rule_increment_multiplier = fixture_data.earn_rule[slug][0]["increment_multiplier"]
+            reward_goal = fixture_data.reward_rule[slug][0]["reward_goal"]
+            expected_balance = account_holder_campaign_balance.balance + (earn_rule_increment * earn_rule_increment_multiplier)
     if expected_balance >= reward_goal:
         expected_balance -= reward_goal
     logging.info(f"Expected Balance : {expected_balance}")
@@ -283,3 +290,22 @@ def the_account_holder_balance_got_adjusted(request_context: dict, get_account_r
 def verify_uuid_and_account(request_context: dict, get_account_response_by_uuid: "Response") -> None:
     assert request_context["account_holder_uuid"] == get_account_response_by_uuid.json()["UUID"]
     assert request_context["account_number"] == get_account_response_by_uuid.json()["account_number"]
+
+
+@then(parse("post the balance adjustment for a {retailer_slug} account holder with a {token} auth token for {campaign_slugs}"))
+def the_account_holder_transaction_request(retailer_slug: str, token: str, campaign_slugs: str, amount: int, request_context: dict) -> None:
+    account_holder_uuid = request_context["account_holder_uuid"]
+    campaign_slugs = list(campaign_slugs.split(","))
+    payload = {
+        "balance_change": request_context["bala"],
+        "campaign_slug": "campaign-slug",
+    }
+    if token == "valid":
+        auth = True
+    elif token == "invalid":
+        auth = False
+    else:
+        raise ValueError(f"{token} is an invalid value for token")
+
+    logging.info(f"Payload of transaction : {json.dumps(payload)}")
+    post_adjustments_request(payload, retailer_slug, request_context, auth=auth)

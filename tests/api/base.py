@@ -2,6 +2,7 @@ import json
 import logging
 
 from enum import Enum
+from typing import Any
 
 from settings import POLARIS_API_AUTH_TOKEN, POLARIS_BASE_URL, VELA_API_AUTH_TOKEN, VELA_BASE_URL
 
@@ -11,6 +12,7 @@ class Endpoints(str, Enum):
     GETBYCREDENTIALS = "/accounts/getbycredentials"
     ACCOUNTS = "/accounts/"
     TRANSACTION = "/transaction"
+    ADJUSTMENTS = "/accounts/{account_holder_uuid}/adjustments"
 
     @property
     def endpoint(self) -> str:
@@ -35,7 +37,9 @@ def get_polaris_headers(channel_header: bool = True, valid_token: bool = True) -
     return headers
 
 
-def get_polaris_url(retailer_slug: str, endpoint: Endpoints) -> str:
+def get_polaris_url(retailer_slug: str, endpoint: Endpoints, **kwargs: Any) -> str:
+    if kwargs:
+        endpoint = endpoint.format(**kwargs)
     return f"{POLARIS_BASE_URL}/{retailer_slug}" + endpoint
 
 
