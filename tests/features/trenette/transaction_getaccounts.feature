@@ -7,7 +7,7 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
   @transaction @test
   Scenario Outline: Account holder is rewarded when reward threshold is met
     Given the trenette retailer exists
-    And that retailer has the trenette-stmp-campaign-1 campaigns configured
+    And that retailer has the trenette-stmp-campaign-1 campaign configured
     And required fetch type are configured for the current retailer
     And that campaign has the standard reward config configured with 1 allocable rewards
     And an active account holder exists for the retailer

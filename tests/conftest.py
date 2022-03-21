@@ -117,7 +117,7 @@ def retailer(
 
 
 # fmt: off
-@given(parsers.parse("that retailer has the {campaign_slug} campaigns configured"),
+@given(parsers.parse("that retailer has the {campaign_slug} campaign configured"),
        target_fixture="standard_campaigns",
        )
 # fmt: on
