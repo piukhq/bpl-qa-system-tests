@@ -1,10 +1,10 @@
 import json
 import logging
 import time
-import uuid
 
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Generator
+from uuid import uuid4
 
 import pytest
 
@@ -117,28 +117,32 @@ def retailer(
 
 
 # fmt: off
-@given("that retailer has the standard campaigns configured",
+@given(parsers.parse("that retailer has the {campaign_slug} campaigns configured"),
        target_fixture="standard_campaigns",
        )
 # fmt: on
-def standard_campaigns_and_reward_slugs(vela_db_session: "Session", retailer_config: RetailerConfig) -> list[Campaign]:
+def standard_campaigns_and_reward_slugs(
+    campaign_slug: str, vela_db_session: "Session", retailer_config: RetailerConfig
+) -> list[Campaign]:
     fixture_data = load_fixture(retailer_config.slug)
     campaigns: list = []
+
     for campaign_data in fixture_data.campaign:
-        campaign = Campaign(retailer_id=retailer_config.id, **campaign_data)
-        vela_db_session.add(campaign)
-        vela_db_session.flush()
-        campaigns.append(campaign)
+        if campaign_data.get("slug") == campaign_slug:
+            campaign = Campaign(retailer_id=retailer_config.id, **campaign_data)
+            vela_db_session.add(campaign)
+            vela_db_session.flush()
+            campaigns.append(campaign)
 
-        vela_db_session.add_all(
-            EarnRule(campaign_id=campaign.id, **earn_rule_data)
-            for earn_rule_data in fixture_data.earn_rule.get(campaign.slug, [])
-        )
+            vela_db_session.add_all(
+                EarnRule(campaign_id=campaign.id, **earn_rule_data)
+                for earn_rule_data in fixture_data.earn_rule.get(campaign.slug, [])
+            )
 
-        vela_db_session.add_all(
-            RewardRule(campaign_id=campaign.id, **reward_rule_data)
-            for reward_rule_data in fixture_data.reward_rule.get(campaign.slug, [])
-        )
+            vela_db_session.add_all(
+                RewardRule(campaign_id=campaign.id, **reward_rule_data)
+                for reward_rule_data in fixture_data.reward_rule.get(campaign.slug, [])
+            )
 
     vela_db_session.commit()
     return campaigns
@@ -172,7 +176,7 @@ def standard_reward_and_reward_config(
         for config in reward_configs:
             carina_db_session.add_all(
                 Reward(
-                    id=str(uuid.uuid4()),
+                    id=str(uuid4()),
                     code=f"{config.reward_slug}/{i}",
                     allocated=False,
                     deleted=False,
@@ -265,14 +269,13 @@ def channel(pytestconfig: "Config") -> Generator:
 
 
 # fmt: off
-@given(parsers.parse("an {status} account holder exists with the email address {email_address} for the retailer"),
+@given(parsers.parse("an {status} account holder exists for the retailer"),
        target_fixture="account_holder",
        )
 # fmt: on
 def setup_account_holder(
     status: str,
     retailer_config: RetailerConfig,
-    email_address: str,
     standard_campaigns: list[AccountHolderCampaignBalance],
     polaris_db_session: "Session",
 ) -> AccountHolder:
@@ -280,12 +283,12 @@ def setup_account_holder(
     account_status = {"active": "ACTIVE", "pending": "PENDING", "inactive": "INACTIVE"}.get(status, "PENDING")
 
     account_holder = AccountHolder(
-        email=email_address,
+        email=f"pytest+{uuid4()}@bink.com",
         status=account_status,
         account_number="1234567890",
         retailer_id=retailer_config.id,
-        account_holder_uuid=str(uuid.uuid4()),
-        opt_out_token=str(uuid.uuid4()),
+        account_holder_uuid=str(uuid4()),
+        opt_out_token=str(uuid4()),
     )
     polaris_db_session.add(account_holder)
     polaris_db_session.flush()
@@ -306,7 +309,7 @@ def the_account_holder_transaction_request(
 ) -> None:
 
     payload = {
-        "id": str(uuid.uuid4()),
+        "id": str(uuid4()),
         "transaction_total": amount,
         "datetime": int(datetime.utcnow().timestamp()),
         "MID": "12432432",

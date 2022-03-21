@@ -1,8 +1,5 @@
-import uuid
-
 from retry_tasks_lib.db.models import load_models_to_metadata
-from sqlalchemy import Boolean, Column, DateTime, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import text
 from sqlalchemy.ext.automap import AutomapBase, automap_base
 
 Base: AutomapBase = automap_base()

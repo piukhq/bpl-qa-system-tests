@@ -11,7 +11,6 @@ from uuid import uuid4
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
-from sqlalchemy.future import select
 
 import settings
 
@@ -25,7 +24,6 @@ from tests.requests.enrolment import send_post_enrolment
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
-from tests.shared_utils.shared_steps import fetch_balance_for_account_holder
 
 scenarios("../features/trenette")
 
@@ -165,51 +163,6 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
     }
     logging.info(f"Payload of transaction : {json.dumps(payload)}")
     post_transaction_request(payload, retailer_slug, request_context)
-
-
-@when(parse("an {status} account holder exists for {retailer_slug}"))
-def setup_account_holder(
-    status: str,
-    retailer_slug: str,
-    request_context: dict,
-    polaris_db_session: "Session",
-    standard_campaigns: list[Campaign],
-) -> None:
-    email = request_context["email"]
-    retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
-    if retailer is None:
-        raise ValueError(f"a retailer with slug '{retailer_slug}' was not found in the db.")
-
-    account_status = {"active": "ACTIVE"}.get(status, "PENDING")
-    if "campaign" in request_context:
-        campaign_slug = request_context["campaign"].slug
-    else:
-        campaign_slug = standard_campaigns[0].slug
-
-    account_holder = (
-        polaris_db_session.execute(
-            select(AccountHolder).where(AccountHolder.email == email, AccountHolder.retailer_id == retailer.id)
-        )
-        .scalars()
-        .first()
-    )
-
-    assert account_holder.status == account_status
-
-    account_holder_campaign_balance = fetch_balance_for_account_holder(
-        polaris_db_session, account_holder, campaign_slug
-    )
-
-    request_context["campaign_slug"] = campaign_slug
-    request_context["account_holder_uuid"] = str(account_holder.account_holder_uuid)
-    request_context["account_number"] = account_holder.account_number
-    request_context["account_holder"] = account_holder
-    request_context["retailer_id"] = retailer.id
-    request_context["retailer_slug"] = retailer.slug
-    request_context["start_balance"] = 0
-    request_context["account_holder_campaign_balance"] = account_holder_campaign_balance
-
-    logging.info(f"Active account holder uuid:{account_holder.account_holder_uuid}\n" f"Retailer slug: {retailer_slug}")
 
 
 @then(parse("the account holder get a HTTP {status_code:d} with {response_type} response"))
