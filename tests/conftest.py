@@ -1,19 +1,25 @@
+import json
 import logging
-import uuid
+import time
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, Generator
+from uuid import uuid4
 
 import pytest
 
-from pytest_bdd import given, parsers
+from pytest_bdd import given, parsers, then, when
 from sqlalchemy import create_engine
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
+import settings
+
 from db.carina.models import Base as CarinaModelBase
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
+from db.polaris.models import AccountHolder, AccountHolderCampaignBalance
 from db.polaris.models import Base as PolarisModelBase
 from db.polaris.models import RetailerConfig
 from db.vela.models import Base as VelaModelBase
@@ -26,12 +32,16 @@ from settings import (
     VELA_DATABASE_URI,
     VELA_TEMPLATE_DB_NAME,
 )
+from tests.api.base import Endpoints
+from tests.requests.enrolment import send_get_accounts
+from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 
 if TYPE_CHECKING:
     from _pytest.config import Config
     from _pytest.config.argparsing import Parser
     from _pytest.fixtures import SubRequest
+    from requests import Response
     from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -107,28 +117,32 @@ def retailer(
 
 
 # fmt: off
-@given("that retailer has the standard campaigns configured",
+@given(parsers.parse("that retailer has the {campaign_slug} campaign configured"),
        target_fixture="standard_campaigns",
        )
 # fmt: on
-def standard_campaigns_and_reward_slugs(vela_db_session: "Session", retailer_config: RetailerConfig) -> list[Campaign]:
+def standard_campaigns_and_reward_slugs(
+    campaign_slug: str, vela_db_session: "Session", retailer_config: RetailerConfig
+) -> list[Campaign]:
     fixture_data = load_fixture(retailer_config.slug)
     campaigns: list = []
+
     for campaign_data in fixture_data.campaign:
-        campaign = Campaign(retailer_id=retailer_config.id, **campaign_data)
-        vela_db_session.add(campaign)
-        vela_db_session.flush()
-        campaigns.append(campaign)
+        if campaign_data.get("slug") == campaign_slug:
+            campaign = Campaign(retailer_id=retailer_config.id, **campaign_data)
+            vela_db_session.add(campaign)
+            vela_db_session.flush()
+            campaigns.append(campaign)
 
-        vela_db_session.add_all(
-            EarnRule(campaign_id=campaign.id, **earn_rule_data)
-            for earn_rule_data in fixture_data.earn_rule.get(campaign.slug, [])
-        )
+            vela_db_session.add_all(
+                EarnRule(campaign_id=campaign.id, **earn_rule_data)
+                for earn_rule_data in fixture_data.earn_rule.get(campaign.slug, [])
+            )
 
-        vela_db_session.add_all(
-            RewardRule(campaign_id=campaign.id, **reward_rule_data)
-            for reward_rule_data in fixture_data.reward_rule.get(campaign.slug, [])
-        )
+            vela_db_session.add_all(
+                RewardRule(campaign_id=campaign.id, **reward_rule_data)
+                for reward_rule_data in fixture_data.reward_rule.get(campaign.slug, [])
+            )
 
     vela_db_session.commit()
     return campaigns
@@ -162,7 +176,7 @@ def standard_reward_and_reward_config(
         for config in reward_configs:
             carina_db_session.add_all(
                 Reward(
-                    id=str(uuid.uuid4()),
+                    id=str(uuid4()),
                     code=f"{config.reward_slug}/{i}",
                     allocated=False,
                     deleted=False,
@@ -252,3 +266,76 @@ def env(pytestconfig: "Config") -> Generator:
 def channel(pytestconfig: "Config") -> Generator:
     """Returns current environment"""
     return pytestconfig.getoption("channel")
+
+
+# fmt: off
+@given(parsers.parse("an {status} account holder exists for the retailer"),
+       target_fixture="account_holder",
+       )
+# fmt: on
+def setup_account_holder(
+    status: str,
+    retailer_config: RetailerConfig,
+    standard_campaigns: list[AccountHolderCampaignBalance],
+    polaris_db_session: "Session",
+) -> AccountHolder:
+
+    account_status = {"active": "ACTIVE", "pending": "PENDING", "inactive": "INACTIVE"}.get(status, "PENDING")
+
+    account_holder = AccountHolder(
+        email=f"pytest+{uuid4()}@bink.com",
+        status=account_status,
+        account_number="1234567890",
+        retailer_id=retailer_config.id,
+        account_holder_uuid=str(uuid4()),
+        opt_out_token=str(uuid4()),
+    )
+    polaris_db_session.add(account_holder)
+    polaris_db_session.flush()
+
+    for campaign in standard_campaigns:
+        balance = AccountHolderCampaignBalance(
+            account_holder_id=account_holder.id, campaign_slug=campaign.slug, balance=0
+        )
+        polaris_db_session.add(balance)
+
+    polaris_db_session.commit()
+    return account_holder
+
+
+@when(parsers.parse("BPL receives a transaction for the account holder for the amount of {amount:d} pennies"))
+def the_account_holder_transaction_request(
+    account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
+) -> None:
+
+    payload = {
+        "id": str(uuid4()),
+        "transaction_total": amount,
+        "datetime": int(datetime.utcnow().timestamp()),
+        "MID": "12432432",
+        "loyalty_id": str(account_holder.account_holder_uuid),
+    }
+    logging.info(f"Payload of transaction : {json.dumps(payload)}")
+    post_transaction_request(payload, retailer_config.slug, request_context)
+
+
+# fmt: off
+@when("the account holder send GET accounts request by UUID",
+      target_fixture="get_account_response_by_uuid"
+      )
+# fmt: on
+def send_get_request_to_account_holder(retailer_config: RetailerConfig, account_holder: AccountHolder) -> "Response":
+    time.sleep(3)
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET{settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+    return resp
+
+
+@then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
+def account_holder_balance_correct(account_holder: AccountHolder, campaign_slug: str, amount: int) -> None:
+    balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
+    assert balances_by_slug[campaign_slug].balance == amount

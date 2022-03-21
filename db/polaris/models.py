@@ -1,8 +1,5 @@
-import uuid
-
 from retry_tasks_lib.db.models import load_models_to_metadata
-from sqlalchemy import Boolean, Column, DateTime, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import text
 from sqlalchemy.ext.automap import AutomapBase, automap_base
 
 Base: AutomapBase = automap_base()
@@ -13,12 +10,6 @@ utc_timestamp_sql = text("TIMEZONE('utc', CURRENT_TIMESTAMP)")
 
 class AccountHolder(Base):
     __tablename__ = "account_holder"
-
-    account_holder_uuid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True)
-    is_active = Column(Boolean, default=True, nullable=False)
-    is_superuser = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, server_default=utc_timestamp_sql, nullable=False)
-    updated_at = Column(DateTime, server_default=utc_timestamp_sql, onupdate=utc_timestamp_sql, nullable=False)
 
 
 class AccountHolderProfile(Base):

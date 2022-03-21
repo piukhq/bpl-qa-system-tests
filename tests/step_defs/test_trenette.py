@@ -11,7 +11,6 @@ from uuid import uuid4
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
-from sqlalchemy.future import select
 
 import settings
 
@@ -19,14 +18,12 @@ from db.carina.models import RewardConfig
 from db.polaris.models import AccountHolder, RetailerConfig
 from db.vela.models import Campaign
 from settings import MOCK_SERVICE_BASE_URL
-from tests.api.base import Endpoints
 from tests.db_actions.polaris import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
-from tests.requests.enrolment import send_get_accounts, send_post_enrolment
+from tests.requests.enrolment import send_post_enrolment
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
-from tests.shared_utils.shared_steps import fetch_balance_for_account_holder
 
 scenarios("../features/trenette")
 
@@ -168,51 +165,6 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
     post_transaction_request(payload, retailer_slug, request_context)
 
 
-@when(parse("an {status} account holder exists for {retailer_slug}"))
-def setup_account_holder(
-    status: str,
-    retailer_slug: str,
-    request_context: dict,
-    polaris_db_session: "Session",
-    standard_campaigns: list[Campaign],
-) -> None:
-    email = request_context["email"]
-    retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=retailer_slug).first()
-    if retailer is None:
-        raise ValueError(f"a retailer with slug '{retailer_slug}' was not found in the db.")
-
-    account_status = {"active": "ACTIVE"}.get(status, "PENDING")
-    if "campaign" in request_context:
-        campaign_slug = request_context["campaign"].slug
-    else:
-        campaign_slug = standard_campaigns[0].slug
-
-    account_holder = (
-        polaris_db_session.execute(
-            select(AccountHolder).where(AccountHolder.email == email, AccountHolder.retailer_id == retailer.id)
-        )
-        .scalars()
-        .first()
-    )
-
-    assert account_holder.status == account_status
-
-    account_holder_campaign_balance = fetch_balance_for_account_holder(
-        polaris_db_session, account_holder, campaign_slug
-    )
-
-    request_context["campaign_slug"] = campaign_slug
-    request_context["account_holder_uuid"] = str(account_holder.account_holder_uuid)
-    request_context["account_number"] = account_holder.account_number
-    request_context["account_holder"] = account_holder
-    request_context["retailer_id"] = retailer.id
-    request_context["retailer_slug"] = retailer.slug
-    request_context["start_balance"] = 0
-    request_context["account_holder_campaign_balance"] = account_holder_campaign_balance
-
-    logging.info(f"Active account holder uuid:{account_holder.account_holder_uuid}\n" f"Retailer slug: {retailer_slug}")
-
-
 @then(parse("the account holder get a HTTP {status_code:d} with {response_type} response"))
 def the_account_holder_get_response(status_code: int, response_type: str, request_context: dict) -> None:
     time.sleep(20)
@@ -220,44 +172,38 @@ def the_account_holder_get_response(status_code: int, response_type: str, reques
     assert request_context["resp"].json() == TransactionResponses.get_json(response_type)
 
 
-@then("the account holder's balance is updated")
+@then(parse("the account holder's {campaign_slug} balance is updated"))
 def check_account_holder_balance_is_updated(
-    request_context: dict, polaris_db_session: "Session", vela_db_session: "Session"
+    account_holder: AccountHolder,
+    retailer_config: RetailerConfig,
+    campaign_slug: str,
+    polaris_db_session: "Session",
+    vela_db_session: "Session",
 ) -> None:
-    fixture_data = load_fixture(request_context["retailer_slug"])
-    account_holder_campaign_balance = request_context["account_holder_campaign_balance"]
-    earn_rule_increment = fixture_data.earn_rule[request_context["campaign_slug"]][0]["increment"]
-    earn_rule_increment_multiplier = fixture_data.earn_rule[request_context["campaign_slug"]][0]["increment_multiplier"]
-    reward_goal = fixture_data.reward_rule[request_context["campaign_slug"]][0]["reward_goal"]
+    polaris_db_session.refresh(account_holder)
+    fixture_data = load_fixture(retailer_config.slug)
+    account_holder_campaign_balances = account_holder.accountholdercampaignbalance_collection
+    # campaign_info_by_slug = {info['slug']: info for info in fixture_data.campaign}
+    earn_rule_increment = fixture_data.earn_rule[campaign_slug][0]["increment"]
+    earn_rule_increment_multiplier = fixture_data.earn_rule[campaign_slug][0]["increment_multiplier"]
+    reward_goal = fixture_data.reward_rule[campaign_slug][0]["reward_goal"]
+    balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder_campaign_balances}
 
-    expected_balance = account_holder_campaign_balance.balance + (earn_rule_increment * earn_rule_increment_multiplier)
+    expected_balance = balances_by_slug[campaign_slug].balance + (earn_rule_increment * earn_rule_increment_multiplier)
     if expected_balance >= reward_goal:
         expected_balance -= reward_goal
     logging.info(f"Expected Balance : {expected_balance}")
 
     for i in range(5):
         sleep(i)
-        polaris_db_session.refresh(account_holder_campaign_balance)
+        polaris_db_session.refresh(balances_by_slug[campaign_slug])
 
-        if account_holder_campaign_balance.balance == expected_balance:
+        if balances_by_slug[campaign_slug].balance == expected_balance:
             break
 
-    logging.info(f"Account holder campaign balance : {account_holder_campaign_balance.balance}")
+    logging.info(f"Account holder campaign balance : {balances_by_slug[campaign_slug].balance}")
 
-    assert account_holder_campaign_balance.balance == expected_balance
-    request_context["account_holder_campaign_balance"] = account_holder_campaign_balance
-
-
-@when("the account holder send GET accounts request by UUID", target_fixture="get_account_response_by_uuid")
-def send_get_request_to_account_holder(request_context: dict) -> "Response":
-    time.sleep(3)
-    resp = send_get_accounts(request_context["retailer_slug"], request_context["account_holder_uuid"])
-    logging.info(f"Response HTTP status code: {resp.status_code}")
-    logging.info(
-        f"Response of GET{settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-        f"{request_context['account_holder_uuid']}: {json.dumps(resp.json(), indent=4)}"
-    )
-    return resp
+    assert balances_by_slug[campaign_slug].balance == expected_balance
 
 
 @then(parse("the account holder {issued} reward"))
