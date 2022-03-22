@@ -205,7 +205,7 @@ def check_account_holder_balance_is_updated(
     assert balances_by_slug[campaign_slug].balance == expected_balance
 
 
-@then(parse("the account holder's {campaign_slug} accumulator campaign balance for {transaction_amount:d} is updated"))
+@then(parse("the account holder's {campaign_slug} accumulator campaign balance {transaction_amount:d} is updated"))
 def check_account_holder_accumulator_campaign_balance_is_updated(
     account_holder: AccountHolder,
     retailer_config: RetailerConfig,
