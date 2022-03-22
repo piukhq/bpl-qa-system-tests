@@ -33,7 +33,7 @@ campaign:
     end_date: null
   - slug: "trenette-acc-campaign-1"
     name: "Trenette Accumulator Campaign 1"
-    status: "DRAFT"
+    status: "ACTIVE"
     loyalty_type: ACCUMULATOR
     start_date: 
       !utc_now 
@@ -46,7 +46,7 @@ earn_rule:
       increment: 100
       increment_multiplier: 1
   trenette-acc-campaign-1:
-    - threshold: 1
+    - threshold: 0
       increment_multiplier: 1
 
 reward_rule:
@@ -55,7 +55,7 @@ reward_rule:
       reward_slug: "free-item"
       allocation_window: 0
   trenette-acc-campaign-1:
-    - reward_goal: 200
+    - reward_goal: 10000
       reward_slug: "10percentoff"
       allocation_window: 1
 
