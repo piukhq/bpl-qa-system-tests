@@ -41,7 +41,6 @@ if TYPE_CHECKING:
     from _pytest.config import Config
     from _pytest.config.argparsing import Parser
     from _pytest.fixtures import SubRequest
-    from requests import Response
     from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
