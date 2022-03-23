@@ -4,7 +4,7 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
   I want to transact some amount
   So I make sure that balance get increase and reward goal meet
 
-  @transaction @test
+  @transaction @bpl
   Scenario Outline: Account holder is rewarded when reward threshold is met
     Given the trenette retailer exists
     And that retailer has the trenette-stmp-campaign-1 campaign configured

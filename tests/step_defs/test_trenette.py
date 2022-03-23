@@ -167,7 +167,6 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
 
 @then(parse("the account holder get a HTTP {status_code:d} with {response_type} response"))
 def the_account_holder_get_response(status_code: int, response_type: str, request_context: dict) -> None:
-    time.sleep(20)
     assert request_context["resp"].status_code == status_code
     assert request_context["resp"].json() == TransactionResponses.get_json(response_type)
 
@@ -190,6 +189,40 @@ def check_account_holder_balance_is_updated(
     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder_campaign_balances}
 
     expected_balance = balances_by_slug[campaign_slug].balance + (earn_rule_increment * earn_rule_increment_multiplier)
+    if expected_balance >= reward_goal:
+        expected_balance -= reward_goal
+    logging.info(f"Expected Balance : {expected_balance}")
+
+    for i in range(5):
+        sleep(i)
+        polaris_db_session.refresh(balances_by_slug[campaign_slug])
+
+        if balances_by_slug[campaign_slug].balance == expected_balance:
+            break
+
+    logging.info(f"Account holder campaign balance : {balances_by_slug[campaign_slug].balance}")
+
+    assert balances_by_slug[campaign_slug].balance == expected_balance
+
+
+@then(parse("the account holder's {campaign_slug} accumulator campaign balance {transaction_amount:d} is updated"))
+def check_account_holder_accumulator_campaign_balance_is_updated(
+    account_holder: AccountHolder,
+    retailer_config: RetailerConfig,
+    campaign_slug: str,
+    polaris_db_session: "Session",
+    vela_db_session: "Session",
+    transaction_amount: int,
+) -> None:
+    polaris_db_session.refresh(account_holder)
+    fixture_data = load_fixture(retailer_config.slug)
+    account_holder_campaign_balances = account_holder.accountholdercampaignbalance_collection
+    # campaign_info_by_slug = {info['slug']: info for info in fixture_data.campaign}
+    earn_rule_increment_multiplier = fixture_data.earn_rule[campaign_slug][0]["increment_multiplier"]
+    reward_goal = fixture_data.reward_rule[campaign_slug][0]["reward_goal"]
+    balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder_campaign_balances}
+
+    expected_balance = transaction_amount * earn_rule_increment_multiplier
     if expected_balance >= reward_goal:
         expected_balance -= reward_goal
     logging.info(f"Expected Balance : {expected_balance}")
