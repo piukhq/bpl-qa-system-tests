@@ -2,10 +2,10 @@
 Feature: Transaction with no earn threshold
   As a customer
   There is no earn threshold match set up
-  So I make sure that balance get increase whatever i transact
+  So I make sure that balance get increase whatever I transact
 
-  @transaction_without_threshold @bpl @test
-  Scenario Outline: Transaction with 0 threshold and verify balance and rewards
+  @transaction @bpl @test
+  Scenario Outline: Transaction with 0 threshold to verify balance and rewards
     Given the trenette retailer exists
     And that retailer has the trenette-acc-campaign-1 campaign configured
     And required fetch type are configured for the current retailer
