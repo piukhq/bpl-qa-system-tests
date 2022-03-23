@@ -320,19 +320,25 @@ def the_account_holder_transaction_request(
 
 
 # fmt: off
-@when("the account holder send GET accounts request by UUID",
-      target_fixture="get_account_response_by_uuid"
-      )
+@then(parsers.parse("{expected_num_rewards:d} rewards are available to the account holder"))
 # fmt: on
-def send_get_request_to_account_holder(retailer_config: RetailerConfig, account_holder: AccountHolder) -> "Response":
+def send_get_request_to_account_holder(
+    retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int
+) -> None:
     time.sleep(3)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(
-        f"Response of GET{settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
     )
-    return resp
+    assert len(resp.json()["rewards"]) == expected_num_rewards
+    for i in range(expected_num_rewards):
+        assert resp.json()["rewards"][i]["code"]
+        assert resp.json()["rewards"][i]["issued_date"]
+        assert resp.json()["rewards"][i]["redeemed_date"] is None
+        assert resp.json()["rewards"][i]["expiry_date"]
+        assert resp.json()["rewards"][i]["status"] == "issued"
 
 
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
