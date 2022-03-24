@@ -165,7 +165,7 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
     post_transaction_request(payload, retailer_slug, request_context)
 
 
-@then(parse("the account holder get a HTTP {status_code:d} with {response_type} response"))
+@then(parse("BPL responds with a HTTP {status_code:d} and {response_type} message"))
 def the_account_holder_get_response(status_code: int, response_type: str, request_context: dict) -> None:
     assert request_context["resp"].status_code == status_code
     assert request_context["resp"].json() == TransactionResponses.get_json(response_type)
