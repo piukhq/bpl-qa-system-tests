@@ -39,6 +39,14 @@ campaign:
       !utc_now 
       timedelta: -5
     end_date: null
+  - slug: "trenette-acc-campaign-3"
+    name: "Trenette Accumulator Campaign 3"
+    status: "ACTIVE"
+    loyalty_type: ACCUMULATOR
+    start_date:
+      !utc_now
+      timedelta: -5
+    end_date: null
 
 earn_rule:
   trenette-stmp-campaign-1:
@@ -47,6 +55,9 @@ earn_rule:
       increment_multiplier: 1
   trenette-acc-campaign-1:
     - threshold: 0
+      increment_multiplier: 1
+  trenette-acc-campaign-3:
+    - threshold: 500
       increment_multiplier: 1
 
 reward_rule:
@@ -58,13 +69,19 @@ reward_rule:
     - reward_goal: 10000
       reward_slug: "10percentoff"
       allocation_window: 0
-
+  trenette-acc-campaign-3:
+    - reward_goal: 1000
+      reward_slug: "20percent_egift"
+      allocation_window: 0
 reward_config:
   PRE_LOADED:
     - reward_slug: "free-item"
       required_fields_values: "validity_days: 30"
       status: "ACTIVE"
     - reward_slug: "10percentoff"
+      required_fields_values: "validity_days: 30"
+      status: "ACTIVE"
+    - reward_slug: "20percent_egift"
       required_fields_values: "validity_days: 30"
       status: "ACTIVE"
 

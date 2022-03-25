@@ -25,10 +25,8 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
     Then the account holder's trenette-stmp-campaign-1 balance is updated
     When BPL receives a transaction for the account holder for the amount of <amount_7> pennies
     Then the account holder's trenette-stmp-campaign-1 balance is updated
-    When the account holder send GET accounts request by UUID
-    Then the account holder issued reward
-    And the account holder's trenette-stmp-campaign-1 balance is <final_balance>
+    And <final_balance> rewards are available to the account holder
 
     Examples:
       | amount_1 | amount_2 | amount_3 | amount_4 | amount_5 | amount_6 | amount_7 | final_balance |
-      | 600      | 570      | 690      | 505      | 610      | 615      | 550      | 0             |
+      | 600      | 570      | 690      | 505      | 610      | 615      | 550      | 1             |
