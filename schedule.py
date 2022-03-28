@@ -3,7 +3,7 @@ import subprocess
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from azure_actions.blob_storage import upload_report_to_blob_storage
+# from azure_actions.blob_storage import upload_report_to_blob_storage
 from azure_actions.teams import post_to_teams
 from settings import (
     ALERT_ON_FAILURE,
@@ -36,14 +36,14 @@ def run_test() -> None:
         if ALERT_ON_FAILURE:
             alert = True
 
-    if BLOB_STORAGE_DSN and not LOCAL:
-        logger.debug("Uploading report.html to blob storage...")
-        blob = upload_report_to_blob_storage("report.html")
-        logger.debug(f"Successfully uploaded report to blob storage: {blob.url}")
-        if alert:
-            post_to_teams(TEAMS_WEBHOOK, status, blob.url)
-    else:
-        logger.debug("No BLOB_STORAGE_DSN set, skipping report upload and teams notification")
+    # if BLOB_STORAGE_DSN and not LOCAL:
+    #     logger.debug("Uploading report.html to blob storage...")
+    #     blob = upload_report_to_blob_storage("report.html")
+    #     logger.debug(f"Successfully uploaded report to blob storage: {blob.url}")
+    #     if alert:
+    #         post_to_teams(TEAMS_WEBHOOK, status, blob.url)
+    # else:
+    #     logger.debug("No BLOB_STORAGE_DSN set, skipping report upload and teams notification")
 
 
 def main() -> None:
