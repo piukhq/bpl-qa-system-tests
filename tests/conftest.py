@@ -3,9 +3,10 @@ import logging
 import time
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Generator
+from typing import TYPE_CHECKING, Any, Generator, Literal, Union
 from uuid import uuid4
 
+import arrow
 import pytest
 
 from pytest_bdd import given, parsers, then, when
@@ -116,7 +117,7 @@ def retailer(
 
 
 # fmt: off
-@given(parsers.parse("that retailer has the {campaign_slug} campaign configured"),
+@given(parsers.parse("that retailer has the standard campaigns configured"),
        target_fixture="standard_campaigns",
        )
 # fmt: on
@@ -127,24 +128,85 @@ def standard_campaigns_and_reward_slugs(
     campaigns: list = []
 
     for campaign_data in fixture_data.campaign:
-        if campaign_data.get("slug") == campaign_slug:
-            campaign = Campaign(retailer_id=retailer_config.id, **campaign_data)
-            vela_db_session.add(campaign)
-            vela_db_session.flush()
-            campaigns.append(campaign)
+        campaign = Campaign(retailer_id=retailer_config.id, **campaign_data)
+        vela_db_session.add(campaign)
+        vela_db_session.flush()
+        campaigns.append(campaign)
 
-            vela_db_session.add_all(
-                EarnRule(campaign_id=campaign.id, **earn_rule_data)
-                for earn_rule_data in fixture_data.earn_rule.get(campaign.slug, [])
-            )
+        vela_db_session.add_all(
+            EarnRule(campaign_id=campaign.id, **earn_rule_data)
+            for earn_rule_data in fixture_data.earn_rule.get(campaign.slug, [])
+        )
 
-            vela_db_session.add_all(
-                RewardRule(campaign_id=campaign.id, **reward_rule_data)
-                for reward_rule_data in fixture_data.reward_rule.get(campaign.slug, [])
-            )
+        vela_db_session.add_all(
+            RewardRule(campaign_id=campaign.id, **reward_rule_data)
+            for reward_rule_data in fixture_data.reward_rule.get(campaign.slug, [])
+        )
 
     vela_db_session.commit()
     return campaigns
+
+
+# fmt: off
+@given(parsers.parse("the retailer's {campaign_slug} {loyalty_type} campaign starts {starts_when} "
+                     "and ends {ends_when} and is {status}"))
+# fmt: on
+def create_campaign(
+    campaign_slug: str,
+    loyalty_type: Union[Literal["STAMPS"], Literal["ACCUMULATOR"]],
+    starts_when: str,
+    ends_when: str,
+    status: str,
+    vela_db_session: "Session",
+    retailer_config: RetailerConfig,
+) -> None:
+
+    arw = arrow.utcnow()
+    start_date = arw.dehumanize(starts_when).date()
+    end_date = arw.dehumanize(ends_when).date()
+    campaign = Campaign(
+        retailer_id=retailer_config.id,
+        slug=campaign_slug,
+        name=campaign_slug,
+        loyalty_type=loyalty_type,
+        start_date=start_date,
+        end_date=end_date,
+        status=status,
+    )
+    vela_db_session.add(campaign)
+    vela_db_session.commit()
+
+
+# fmt: off
+@given(parsers.parse("the {campaign_slug} campaign has an {campaign_type} earn rule with a threshold of {threshold}, "
+                     "an increment of {inc} and a multiplier of {mult}"))
+# fmt: on
+def create_earn_rule(
+    campaign_slug: str, campaign_type: str, threshold: int, inc: int, mult: int, vela_db_session: "Session"
+) -> None:
+    campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
+    if campaign_type == "STAMPS":
+        earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult)
+    else:
+        earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment_multiplier=mult)
+    vela_db_session.add(earn_rule)
+    vela_db_session.commit()
+
+
+# fmt: off
+@given(parsers.parse("the {campaign_slug} campaign has reward rule of {reward_rule}, with reward slug {reward_slug} "
+                     "and allocation window {allocation_window}"))
+# fmt: on
+def create_reward_rule(
+    campaign_slug: str, reward_rule: int, reward_slug: str, allocation_window: int, vela_db_session: "Session"
+) -> None:
+    campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
+    # earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult)
+    reward_rule = RewardRule(
+        campaign_id=campaign.id, reward_goal=reward_rule, reward_slug=reward_slug, allocation_window=allocation_window
+    )
+    vela_db_session.add(reward_rule)
+    vela_db_session.commit()
 
 
 # fmt: off
@@ -275,8 +337,8 @@ def channel(pytestconfig: "Config") -> Generator:
 def setup_account_holder(
     status: str,
     retailer_config: RetailerConfig,
-    standard_campaigns: list[AccountHolderCampaignBalance],
     polaris_db_session: "Session",
+    vela_db_session: "Session",
 ) -> AccountHolder:
 
     account_status = {"active": "ACTIVE", "pending": "PENDING", "inactive": "INACTIVE"}.get(status, "PENDING")
@@ -292,7 +354,14 @@ def setup_account_holder(
     polaris_db_session.add(account_holder)
     polaris_db_session.flush()
 
-    for campaign in standard_campaigns:
+    campaigns = (
+        vela_db_session.execute(
+            select(Campaign).where(Campaign.retailer_id == retailer_config.id, Campaign.status == "ACTIVE")
+        )
+        .scalars()
+        .all()
+    )
+    for campaign in campaigns:
         balance = AccountHolderCampaignBalance(
             account_holder_id=account_holder.id, campaign_slug=campaign.slug, balance=0
         )
@@ -341,6 +410,9 @@ def send_get_request_to_account_holder(
 
 
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
-def account_holder_balance_correct(account_holder: AccountHolder, campaign_slug: str, amount: int) -> None:
+def account_holder_balance_correct(
+    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str, amount: int
+) -> None:
+    polaris_db_session.refresh(account_holder)
     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
     assert balances_by_slug[campaign_slug].balance == amount

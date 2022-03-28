@@ -4,27 +4,31 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
   I want to transact some amount
   So I make sure that balance get increase and reward goal meet
 
-  @transaction @bpl
-  Scenario Outline: Account holder is rewarded when reward threshold is met
+  Background:
     Given the trenette retailer exists
-    And that retailer has the trenette-stmp-campaign-1 campaign configured
+    And the retailer's trenette-stmp-campaign STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
+    And the trenette-stmp-campaign campaign has an STAMPS earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
+    And the trenette-stmp-campaign campaign has reward rule of 700, with reward slug free-item and allocation window 0
     And required fetch type are configured for the current retailer
     And that campaign has the standard reward config configured with 1 allocable rewards
-    And an active account holder exists for the retailer
+
+  @transaction @bpl
+  Scenario Outline: Account holder is rewarded when reward threshold is met
+    Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <amount_1> pennies
-    Then the account holder's trenette-stmp-campaign-1 balance is updated
+    Then the account holder's trenette-stmp-campaign balance is updated
     When BPL receives a transaction for the account holder for the amount of <amount_2> pennies
-    Then the account holder's trenette-stmp-campaign-1 balance is updated
+    Then the account holder's trenette-stmp-campaign balance is updated
     When BPL receives a transaction for the account holder for the amount of <amount_3> pennies
-    Then the account holder's trenette-stmp-campaign-1 balance is updated
+    Then the account holder's trenette-stmp-campaign balance is updated
     When BPL receives a transaction for the account holder for the amount of <amount_4> pennies
-    Then the account holder's trenette-stmp-campaign-1 balance is updated
+    Then the account holder's trenette-stmp-campaign balance is updated
     When BPL receives a transaction for the account holder for the amount of <amount_5> pennies
-    Then the account holder's trenette-stmp-campaign-1 balance is updated
+    Then the account holder's trenette-stmp-campaign balance is updated
     When BPL receives a transaction for the account holder for the amount of <amount_6> pennies
-    Then the account holder's trenette-stmp-campaign-1 balance is updated
+    Then the account holder's trenette-stmp-campaign balance is updated
     When BPL receives a transaction for the account holder for the amount of <amount_7> pennies
-    Then the account holder's trenette-stmp-campaign-1 balance is updated
+    Then the account holder's trenette-stmp-campaign balance is updated
     And <final_balance> rewards are available to the account holder
 
     Examples:

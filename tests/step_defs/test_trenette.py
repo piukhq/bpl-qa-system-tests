@@ -11,12 +11,13 @@ from uuid import uuid4
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
+from sqlalchemy.future import select
 
 import settings
 
 from db.carina.models import RewardConfig
 from db.polaris.models import AccountHolder, RetailerConfig
-from db.vela.models import Campaign
+from db.vela.models import Campaign, EarnRule, RewardRule
 from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.polaris import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
@@ -180,12 +181,21 @@ def check_account_holder_balance_is_updated(
     vela_db_session: "Session",
 ) -> None:
     polaris_db_session.refresh(account_holder)
-    fixture_data = load_fixture(retailer_config.slug)
+    # fixture_data = load_fixture(retailer_config.slug)
     account_holder_campaign_balances = account_holder.accountholdercampaignbalance_collection
     # campaign_info_by_slug = {info['slug']: info for info in fixture_data.campaign}
-    earn_rule_increment = fixture_data.earn_rule[campaign_slug][0]["increment"]
-    earn_rule_increment_multiplier = fixture_data.earn_rule[campaign_slug][0]["increment_multiplier"]
-    reward_goal = fixture_data.reward_rule[campaign_slug][0]["reward_goal"]
+    # earn_rule_increment = fixture_data.earn_rule[campaign_slug][0]["increment"]
+    # earn_rule_increment_multiplier = fixture_data.earn_rule[campaign_slug][0]["increment_multiplier"]
+    # reward_goal = fixture_data.reward_rule[campaign_slug][0]["reward_goal"]
+
+    campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
+    earn_rule = vela_db_session.execute(select(EarnRule).where(EarnRule.campaign_id == campaign.id)).scalar_one()
+    reward_goal = vela_db_session.execute(select(RewardRule).where(RewardRule.campaign_id == campaign.id)).scalar_one()
+
+    earn_rule_increment = earn_rule.increment
+    earn_rule_increment_multiplier = earn_rule.increment_multiplier
+    reward_goal = reward_goal.reward_goal
+
     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder_campaign_balances}
 
     expected_balance = balances_by_slug[campaign_slug].balance + (earn_rule_increment * earn_rule_increment_multiplier)
