@@ -41,7 +41,7 @@ from tests.shared_utils.fixture_loader import load_fixture
 if TYPE_CHECKING:
     from _pytest.config import Config
     from _pytest.config.argparsing import Parser
-    from _pytest.fixtures import SubRequest
+    # from _pytest.fixtures import SubRequest
     from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
