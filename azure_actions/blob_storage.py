@@ -10,8 +10,8 @@
 #
 # from db.carina.models import Reward
 # from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, LOCAL, REPORT_CONTAINER, REPORT_DIRECTORY, logger
-
-
+#
+#
 # def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl") -> BlobClient:
 #     assert not LOCAL
 #     blob_name = f"{blob_prefix}-{datetime.now().strftime('%Y%m%d-%H%M%S')}.html"
@@ -26,7 +26,7 @@
 #         blob.upload_blob(f, content_settings=ContentSettings(content_type="text/html"))
 #
 #     return blob
-
+#
 #
 # def put_new_reward_updates_file(retailer_slug: str, rewards: List[Reward], blob_name: str) -> BlobClient:
 #     blob_path = os.path.join(retailer_slug, "reward-updates", blob_name)
@@ -46,8 +46,8 @@
 #     content = "\n".join([code for code in codes])
 #     logging.info(f"content of csv file upload: {content}")
 #     return upload_blob(blob_path, content)
-
-
+#
+#
 # def upload_blob(blob_path: str, content: str) -> BlobClient:
 #     content_binary = content.encode("utf-8")
 #     blob = BlobClient.from_connection_string(

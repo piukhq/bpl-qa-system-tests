@@ -299,17 +299,17 @@ def pytest_html_report_title(report: Any) -> None:
 def request_context() -> dict:
     return {}
 
-
-@pytest.fixture(scope="session", autouse=True)
-def configure_html_report_env(request: "SubRequest", env: str, channel: str) -> None:
-    """Delete existing data in the test report and add bpl execution details"""
-
-    metadata: dict = getattr(request.config, "_metadata")
-
-    for ele in list(metadata.keys()):
-        del metadata[ele]
-    # if re.search(r'^(GITLAB_|CI_)', k): for git lab related extra table contents
-    metadata.update({"Test Environment": env.upper(), "Channel": channel})
+#
+# @pytest.fixture(scope="session", autouse=True)
+# def configure_html_report_env(request: "SubRequest", env: str, channel: str) -> None:
+#     """Delete existing data in the test report and add bpl execution details"""
+#
+#     metadata: dict = getattr(request.config, "_metadata")
+#
+#     for ele in list(metadata.keys()):
+#         del metadata[ele]
+#     # if re.search(r'^(GITLAB_|CI_)', k): for git lab related extra table contents
+#     metadata.update({"Test Environment": env.upper(), "Channel": channel})
 
 
 def pytest_addoption(parser: "Parser") -> None:
