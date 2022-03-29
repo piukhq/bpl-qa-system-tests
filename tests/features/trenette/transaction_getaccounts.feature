@@ -16,21 +16,22 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
   Scenario Outline: Account holder is rewarded when reward threshold is met
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <amount_1> pennies
-    Then the account holder's trenette-stmp-campaign balance is updated
+    Then the account holder's trenette-stmp-campaign balance is 100
     When BPL receives a transaction for the account holder for the amount of <amount_2> pennies
-    Then the account holder's trenette-stmp-campaign balance is updated
+    Then the account holder's trenette-stmp-campaign balance is 200
     When BPL receives a transaction for the account holder for the amount of <amount_3> pennies
-    Then the account holder's trenette-stmp-campaign balance is updated
+    Then the account holder's trenette-stmp-campaign balance is 300
     When BPL receives a transaction for the account holder for the amount of <amount_4> pennies
-    Then the account holder's trenette-stmp-campaign balance is updated
+    Then the account holder's trenette-stmp-campaign balance is 400
     When BPL receives a transaction for the account holder for the amount of <amount_5> pennies
-    Then the account holder's trenette-stmp-campaign balance is updated
+    Then the account holder's trenette-stmp-campaign balance is 500
     When BPL receives a transaction for the account holder for the amount of <amount_6> pennies
-    Then the account holder's trenette-stmp-campaign balance is updated
+    Then the account holder's trenette-stmp-campaign balance is 600
     When BPL receives a transaction for the account holder for the amount of <amount_7> pennies
-    Then the account holder's trenette-stmp-campaign balance is updated
-    And <final_balance> rewards are available to the account holder
+    Then the account holder's trenette-stmp-campaign balance is 0
+    And 1 rewards are available to the account holder
 
     Examples:
-      | amount_1 | amount_2 | amount_3 | amount_4 | amount_5 | amount_6 | amount_7 | final_balance |
-      | 600      | 570      | 690      | 505      | 610      | 615      | 550      | 1             |
+      | amount_1 | amount_2 | amount_3 | amount_4 | amount_5 | amount_6 | amount_7 |
+      | 600      | 570      | 690      | 505      | 610      | 615      | 550      |
+      | 1700     | 1550     | 1505     | 1610     | 1605     | 1700     | 1050     |

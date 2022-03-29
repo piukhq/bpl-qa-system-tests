@@ -415,6 +415,7 @@ def send_get_request_to_account_holder(
 def account_holder_balance_correct(
     polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str, amount: int
 ) -> None:
+    time.sleep(2)
     polaris_db_session.refresh(account_holder)
     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
     assert balances_by_slug[campaign_slug].balance == amount
