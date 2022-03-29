@@ -11,13 +11,12 @@ from uuid import uuid4
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
-from sqlalchemy.future import select
 
 import settings
 
 from db.carina.models import RewardConfig
 from db.polaris.models import AccountHolder, RetailerConfig
-from db.vela.models import Campaign, EarnRule, RewardRule
+from db.vela.models import Campaign
 from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.polaris import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
