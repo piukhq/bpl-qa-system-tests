@@ -3,7 +3,7 @@ Feature: Enrol with Trenette loyalty
 
   Scenario: Successful adding retailer
     Given the trenette retailer exists
-    And that retailer has the trenette-stmp-campaign-1 campaign configured
+    And that retailer has the standard campaigns configured
     And required fetch type are configured for the current retailer
     And that campaign has the standard reward config configured with 1 allocable rewards
     And an active account holder exists for the retailer
