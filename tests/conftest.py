@@ -3,7 +3,8 @@ import logging
 import time
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Generator, Literal, Union
+from time import sleep
+from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Union
 from uuid import uuid4
 
 import arrow
@@ -34,6 +35,8 @@ from settings import (
     VELA_TEMPLATE_DB_NAME,
 )
 from tests.api.base import Endpoints
+from tests.db_actions.carina import get_fetch_type_id, get_retailer_id, get_reward_config_id
+from tests.db_actions.vela import get_campaign_by_slug, get_reward_goal_by_campaign_id
 from tests.requests.enrolment import send_get_accounts
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
@@ -201,13 +204,88 @@ def create_earn_rule(
 def create_reward_rule(
     campaign_slug: str, reward_rule: int, reward_slug: str, allocation_window: int, vela_db_session: "Session"
 ) -> None:
-    campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
+    campaign = get_campaign_by_slug(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
     # earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult)
     reward_rule = RewardRule(
         campaign_id=campaign.id, reward_goal=reward_rule, reward_slug=reward_slug, allocation_window=allocation_window
     )
     vela_db_session.add(reward_rule)
     vela_db_session.commit()
+
+
+# fmt: off
+@given(parsers.parse("the retailer has a {reward_slug} reward config configured with {required_fields_values}, "
+                     "and a status of {status} and a {fetch_type_name} fetch type"))
+# fmt: on
+def add_reward_config(
+    carina_db_session: "Session",
+    reward_slug: str,
+    required_fields_values: str,
+    status: str,
+    retailer_config: RetailerConfig,
+    fetch_type_name: str,
+) -> None:
+    retailer_id = get_retailer_id(carina_db_session=carina_db_session, retailer_slug=retailer_config.slug)
+    fetch_type_id = get_fetch_type_id(carina_db_session=carina_db_session, fetch_type_name=fetch_type_name)
+    reward_config = RewardConfig(
+        reward_slug=reward_slug,
+        retailer_id=retailer_id,
+        status=status,
+        required_fields_values=required_fields_values,
+        fetch_type_id=fetch_type_id,
+    )
+    carina_db_session.add(reward_config)
+    carina_db_session.commit()
+
+
+# fmt: off
+@given(parsers.parse("a {fetch_type_name} fetch type is configured for the current retailer "
+                     "with an agent config of {agent_config}"))
+# fmt: on
+def add_retailer_fetch_type(
+    carina_db_session: "Session",
+    retailer_config: RetailerConfig,
+    fetch_type_name: str,
+    agent_config: Optional[str],
+) -> None:
+    if agent_config == "None":
+        agent_config = None
+    retailer_fetch_type = RetailerFetchType(
+        retailer_id=get_retailer_id(carina_db_session=carina_db_session, retailer_slug=retailer_config.slug),
+        fetch_type_id=get_fetch_type_id(carina_db_session=carina_db_session, fetch_type_name=fetch_type_name),
+        agent_config=agent_config,
+    )
+    carina_db_session.add(retailer_fetch_type)
+    carina_db_session.commit()
+
+
+# fmt: off
+@given(parsers.parse("there is {rewards_n:d} reward configured for the {reward_slug} reward config, "
+                     "with allocation status set to {allocation_status} and deleted status set to {deleted_status}"))
+# fmt: on
+def add_reward(
+    carina_db_session: "Session",
+    reward_slug: str,
+    allocation_status: str,
+    deleted_status: str,
+    retailer_config: RetailerConfig,
+    rewards_n: int,
+) -> None:
+    allocation_status_bool = allocation_status == "true"
+    deleted_status_bool = allocation_status == "true"
+    reward_config_id = get_reward_config_id(carina_db_session=carina_db_session, reward_slug=reward_slug)
+    if rewards_n > 0:
+        for i in range(rewards_n):
+            reward = Reward(
+                id=str(uuid4()),
+                code=f"{reward_slug}/{i}",
+                allocated=allocation_status_bool,
+                deleted=deleted_status_bool,
+                reward_config_id=reward_config_id,
+                retailer_id=retailer_config.id,
+            )
+            carina_db_session.add(reward)
+            carina_db_session.commit()
 
 
 # fmt: off
@@ -419,3 +497,23 @@ def account_holder_balance_correct(
     polaris_db_session.refresh(account_holder)
     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
     assert balances_by_slug[campaign_slug].balance == amount
+
+
+@then(parsers.parse("the account holder's {campaign_slug} balance is reduced by the reward goal"))
+def check_account_holder_balance_reduced_by_reward_goal(
+    vela_db_session: "Session",
+    polaris_db_session: "Session",
+    campaign_slug: str,
+) -> None:
+    campaign = get_campaign_by_slug(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
+    reward_goal = get_reward_goal_by_campaign_id(vela_db_session=vela_db_session, campaign_id=campaign.id)
+    for i in range(5):
+        sleep(i)
+        campaign_balance = polaris_db_session.execute(
+            select(AccountHolderCampaignBalance.balance).where(
+                AccountHolderCampaignBalance.campaign_slug == campaign_slug
+            )
+        ).scalar_one()
+        if campaign_balance + reward_goal == reward_goal:
+            break
+    assert campaign_balance + reward_goal == reward_goal

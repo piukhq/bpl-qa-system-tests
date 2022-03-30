@@ -32,6 +32,22 @@ class RewardRule(Base):
     __tablename__ = "reward_rule"
 
 
+class TaskType(Base):
+    __tablename__ = "task_type"
+
+
+class TaskTypeKey(Base):
+    __tablename__ = "task_type_key"
+
+
+class TaskTypeKeyValue(Base):
+    __tablename__ = "task_type_key_value"
+
+
+class RetryTask(Base):
+    __tablename__ = "retry_task"
+
+
 class CampaignStatuses(str, Enum):
     ACTIVE = "ACTIVE"
     DRAFT = "DRAFT"
