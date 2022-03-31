@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.future import select
 
-from db.carina.models import FetchType, Retailer, RewardConfig
+from db.carina.models import FetchType, Retailer, Reward, RewardConfig
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -31,3 +31,10 @@ def get_retailer_id(
     retailer_slug: str,
 ) -> int:
     return carina_db_session.execute(select(Retailer.id).where(Retailer.slug == retailer_slug)).scalar_one()
+
+
+def get_unallocated_rewards(carina_db_session: "Session", reward_config_id: int) -> list[Reward]:
+    unallocated_rewards = (
+        carina_db_session.execute(select(Reward).where(Reward.reward_config_id == reward_config_id)).scalars().all()
+    )
+    return unallocated_rewards

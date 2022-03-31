@@ -13,7 +13,7 @@ class KeyVault:
 
     def get_secret(self, secret_name: str) -> str:
         try:
-            return self.client.get_secret(secret_name).value
+            return self.client.get_secret(secret_name).value  # type: ignore
         except (ServiceRequestError, ResourceNotFoundError, HttpResponseError) as ex:
             raise KeyVaultError(f"Could not retrieve secret {secret_name} due to {repr(ex)}") from ex
         except AttributeError:

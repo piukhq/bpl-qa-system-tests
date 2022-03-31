@@ -1,7 +1,8 @@
-from sqlalchemy import MetaData
+from retry_tasks_lib.db.models import load_models_to_metadata
 from sqlalchemy.ext.automap import AutomapBase, automap_base
 
-Base: AutomapBase = automap_base(metadata=MetaData())
+Base: AutomapBase = automap_base()
+load_models_to_metadata(Base.metadata)
 
 
 class Reward(Base):

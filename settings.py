@@ -5,6 +5,7 @@ import typing as t
 from collections.abc import Callable
 
 from dotenv import load_dotenv
+from redis import Redis
 
 from azure_actions.vault import KeyVault
 
@@ -67,3 +68,13 @@ POLARIS_BASE_URL = getenv("POLARIS_ENV_BASE_URL")
 VELA_BASE_URL = getenv("VELA_ENV_BASE_URL")
 
 MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")
+
+REDIS_URL = getenv("REDIS_URL")
+
+redis = Redis.from_url(
+    REDIS_URL,
+    socket_connect_timeout=3,
+    socket_keepalive=True,
+    retry_on_timeout=False,
+    decode_responses=True,
+)

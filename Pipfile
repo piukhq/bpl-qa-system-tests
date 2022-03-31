@@ -25,6 +25,8 @@ retry-tasks-lib = {version=">=1.10.2", index="pypi-cloud"}
 sqlalchemy-utils = "*"
 pydantic = "*"
 arrow = "*"
+types-redis = "*"
+redis = "*"
 
 [dev-packages]
 black = "*"

@@ -20,6 +20,10 @@ class AccountHolderReward(Base):
     __tablename__ = "account_holder_reward"
 
 
+class AccountHolderPendingReward(Base):
+    __tablename__ = "account_holder_pending_reward"
+
+
 class AccountHolderCampaignBalance(Base):
     __tablename__ = "account_holder_campaign_balance"
 
