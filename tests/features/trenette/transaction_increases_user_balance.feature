@@ -9,8 +9,9 @@ Feature: Bink BPL - Transaction increases user balance
     And the retailer's trenette-stmp-campaign-1 STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-stmp-campaign-1 campaign has an STAMPS earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
     And the trenette-stmp-campaign-1 campaign has reward rule of 700, with reward slug free-item and allocation window 0
-    And required fetch type are configured for the current retailer
-    And that campaign has the standard reward config configured with 1 allocable rewards
+    And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
+    And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
+    And there is 1 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
   @bpl @transaction @bpl-294
   Scenario: Transaction meets earn threshold (>0)

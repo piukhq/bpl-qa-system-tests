@@ -11,6 +11,7 @@ class Endpoints(str, Enum):
     GETBYCREDENTIALS = "/accounts/getbycredentials"
     ACCOUNTS = "/accounts/"
     TRANSACTION = "/transaction"
+    STATUSCHANGE = "/campaigns/status_change"
 
     @property
     def endpoint(self) -> str:

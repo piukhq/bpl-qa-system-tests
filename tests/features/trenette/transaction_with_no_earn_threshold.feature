@@ -9,8 +9,9 @@ Feature: Transaction with no earn threshold
     And the retailer's trenette-acc-campaign-1 ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-acc-campaign-1 campaign has an ACCUMULATOR earn rule with a threshold of 0, an increment of 0 and a multiplier of 1
     And the trenette-acc-campaign-1 campaign has reward rule of 10000, with reward slug 10percentoff and allocation window 0
-    And required fetch type are configured for the current retailer
-    And that campaign has the standard reward config configured with 2 allocable rewards
+    And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
+    And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
+    And there is 2 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 
   @transaction @bpl
   Scenario Outline: Transaction with 0 threshold to verify balance and rewards

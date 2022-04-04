@@ -20,7 +20,9 @@ from db.vela.models import Campaign
 from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.polaris import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
+from tests.db_actions.vela import get_reward_adjustment_task_status
 from tests.requests.enrolment import send_post_enrolment
+from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
@@ -228,3 +230,75 @@ def the_account_holder_balance_got_adjusted(request_context: dict, get_account_r
 def verify_uuid_and_account(request_context: dict, get_account_response_by_uuid: "Response") -> None:
     assert request_context["account_holder_uuid"] == get_account_response_by_uuid.json()["UUID"]
     assert request_context["account_number"] == get_account_response_by_uuid.json()["account_number"]
+
+
+@then(parse("the status is then changed to {status} for {campaign_slug} for the retailer {retailer_slug}"))
+def send_post_campaign_change_request(status: str, retailer_slug: str, campaign_slug: str) -> None:
+    payload = {
+        "requested_status": status,
+        "campaign_slugs": [campaign_slug],
+    }
+
+    request = send_post_campaign_status_change(retailer_slug=retailer_slug, request_body=payload)
+    assert request.status_code == 200
+
+
+@then(parse("the account holder's {campaign_slug} balance no longer exists"))
+def check_account_holder_balance_is_updated(
+    campaign_slug: str,
+    polaris_db_session: "Session",
+    account_holder: AccountHolder,
+) -> None:
+    for i in range(5):
+        sleep(i)
+        polaris_db_session.refresh(account_holder)
+        account_holder_campaign_balance = [
+            x for x in account_holder.accountholdercampaignbalance_collection if x.campaign_slug == campaign_slug
+        ]
+        if not account_holder_campaign_balance:
+            break
+    assert not account_holder_campaign_balance
+
+
+@then(parse("the reward adjustment retry task for {campaign_slug} has a status of {status}"))
+def check_reward_adjustment_task_status_is_failed(
+    vela_db_session: "Session",
+    campaign_slug: str,
+    status: str,
+) -> None:
+    resp = get_reward_adjustment_task_status(vela_db_session, campaign_slug)
+    assert resp == status
+
+
+def _get_reward_slug_from_account_holder_reward_collection(
+    account_holder: AccountHolder,
+    reward_slug: str,
+) -> list:
+    return [x for x in account_holder.accountholderreward_collection if x.reward_slug == reward_slug]
+
+
+@then(parse("the {retailer_slug} account is {issued} reward {reward_slug}"))
+def check_reward_issuance(
+    reward_slug: str,
+    issued: str,
+    account_holder: AccountHolder,
+    polaris_db_session: "Session",
+) -> None:
+    if issued == "not issued":
+        for i in range(5):
+            sleep(i)
+            polaris_db_session.refresh(account_holder)
+            account_holder_reward = _get_reward_slug_from_account_holder_reward_collection(account_holder, reward_slug)
+            if not account_holder_reward:
+                break
+        assert not account_holder_reward
+    elif issued == "issued":
+        for i in range(5):
+            sleep(i)
+            polaris_db_session.refresh(account_holder)
+            account_holder_reward = _get_reward_slug_from_account_holder_reward_collection(account_holder, reward_slug)
+            if account_holder_reward:
+                break
+        assert account_holder_reward
+    else:
+        raise ValueError(f"{issued} is not an acceptable value")
