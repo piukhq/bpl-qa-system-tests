@@ -1,10 +1,11 @@
 import json
 import logging
 import time
+import uuid
 
 from datetime import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Generator, Literal, Optional, Union
 from uuid import uuid4
 
 import arrow
@@ -19,6 +20,7 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 
 import settings
 
+from azure_actions.blob_storage import put_new_reward_updates_file
 from db.carina.models import Base as CarinaModelBase
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderCampaignBalance
@@ -27,6 +29,7 @@ from db.polaris.models import RetailerConfig
 from db.vela.models import Base as VelaModelBase
 from db.vela.models import Campaign, EarnRule, RetailerRewards, RewardRule
 from settings import (
+    BLOB_STORAGE_DSN,
     CARINA_DATABASE_URI,
     CARINA_TEMPLATE_DB_NAME,
     POLARIS_DATABASE_URI,
@@ -260,20 +263,24 @@ def add_retailer_fetch_type(
 
 
 # fmt: off
-@given(parsers.parse("there is {rewards_n:d} reward configured for the {reward_slug} reward config, "
-                     "with allocation status set to {allocation_status} and deleted status set to {deleted_status}"))
+@given(parsers.parse(
+    "there is {rewards_n:d} reward configured for the {reward_slug} reward config with allocation status set to "
+    "{allocation_status} and deleted status set to {deleted_status}"),
+    target_fixture="available_rewards")
 # fmt: on
-def add_reward(
+def add_rewards(
     carina_db_session: "Session",
     reward_slug: str,
     allocation_status: str,
     deleted_status: str,
     retailer_config: RetailerConfig,
     rewards_n: int,
-) -> None:
+) -> list[Reward]:
     allocation_status_bool = allocation_status == "true"
     deleted_status_bool = allocation_status == "true"
     reward_config_id = get_reward_config_id(carina_db_session=carina_db_session, reward_slug=reward_slug)
+    rewards: list[Reward] = []
+
     if rewards_n > 0:
         for i in range(rewards_n):
             reward = Reward(
@@ -286,6 +293,9 @@ def add_reward(
             )
             carina_db_session.add(reward)
             carina_db_session.commit()
+            rewards.append(reward)
+
+    return rewards
 
 
 # fmt: off
@@ -487,6 +497,7 @@ def send_get_request_to_account_holder(
         assert resp.json()["rewards"][i]["redeemed_date"] is None
         assert resp.json()["rewards"][i]["expiry_date"]
         assert resp.json()["rewards"][i]["status"] == "issued"
+    return
 
 
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
@@ -517,3 +528,42 @@ def check_account_holder_balance_reduced_by_reward_goal(
         if campaign_balance + reward_goal == reward_goal:
             break
     assert campaign_balance + reward_goal == reward_goal
+
+
+@pytest.fixture(scope="function")
+def upload_reward_updates_to_blob_storage() -> Callable:
+    def func(retailer_slug: str, rewards: list[Reward], blob_name: str = None) -> Optional[str]:
+        """Upload some reward updates to blob storage to test end-to-end import"""
+        blob = None
+        if blob_name is None:
+            blob_name = f"test_import_{uuid.uuid4()}.csv"
+
+        if BLOB_STORAGE_DSN:
+            logger.debug(f"Uploading reward updates to blob storage for {retailer_slug}...")
+            blob = put_new_reward_updates_file(retailer_slug=retailer_slug, rewards=rewards, blob_name=blob_name)
+            logger.debug(f"Successfully uploaded reward updates to blob storage: {blob.url}")
+        else:
+            logger.debug("No BLOB_STORAGE_DSN set, skipping reward updates upload")
+
+        return blob
+
+    return func
+
+
+@then(
+    parsers.parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status} with redeemed date")
+)
+def verify_status_updated(
+    retailer_config: str, account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
+) -> None:
+    time.sleep(3)
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+    assert len(resp.json()["rewards"]) == expected_num_rewards
+    for i in range(expected_num_rewards):
+        assert resp.json()["rewards"][i]["redeemed_date"] is not None
+        assert resp.json()["rewards"][i]["status"] == reward_status

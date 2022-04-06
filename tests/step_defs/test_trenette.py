@@ -5,17 +5,18 @@ import uuid
 
 from datetime import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 from uuid import uuid4
 
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
+from sqlalchemy import select
 
 import settings
 
-from db.carina.models import RewardConfig
-from db.polaris.models import AccountHolder, RetailerConfig
+from db.carina.models import Reward, RewardConfig
+from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign
 from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.polaris import get_account_holder
@@ -302,3 +303,48 @@ def check_reward_issuance(
         assert account_holder_reward
     else:
         raise ValueError(f"{issued} is not an acceptable value")
+
+
+@when(parse("the file for {retailer_slug} with redeemed status is imported"))
+def reward_updates_upload(
+    retailer_slug: str,
+    available_rewards: list[Reward],
+    upload_reward_updates_to_blob_storage: Callable,
+    carina_db_session: "Session",
+) -> None:
+    """
+    The fixture should place a CSV file onto blob storage, which a running instance of
+    carina (the scheduler job for doing these imports) will pick up and process, putting rows into carina's DB
+    for today's date.
+    """
+    blob = upload_reward_updates_to_blob_storage(retailer_slug=retailer_slug, rewards=available_rewards)
+    assert blob
+
+
+@then(parse("the status of the allocated account holder for {retailer_slug} rewards are updated with {reward_status}"))
+def check_account_holder_reward_statuses(
+    polaris_db_session: "Session", available_rewards: list[Reward], retailer_slug: str, reward_status: str
+) -> None:
+    time.sleep(60)
+    allocated_reward_codes = [reward.code for reward in available_rewards if reward.allocated]
+    account_holder_rewards = (
+        polaris_db_session.execute(
+            select(AccountHolderReward).where(
+                AccountHolderReward.code.in_(allocated_reward_codes),
+                AccountHolderReward.retailer_slug == retailer_slug,
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    assert len(allocated_reward_codes) == len(account_holder_rewards)
+
+    for account_holder_reward in account_holder_rewards:
+        for i in range(6):
+            time.sleep(i)
+            polaris_db_session.refresh(account_holder_reward)
+            if account_holder_reward.status != "ISSUED":
+                break
+
+        assert account_holder_reward.status == reward_status
