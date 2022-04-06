@@ -264,7 +264,7 @@ def add_retailer_fetch_type(
 
 # fmt: off
 @given(parsers.parse(
-    "there is {rewards_n:d} reward configured for the {reward_slug} reward config with allocation status set to "
+    "there is {rewards_n:d} reward configured for the {reward_slug} reward config, with allocation status set to "
     "{allocation_status} and deleted status set to {deleted_status}"),
     target_fixture="available_rewards")
 # fmt: on
