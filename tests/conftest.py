@@ -11,6 +11,7 @@ from uuid import uuid4
 import arrow
 import pytest
 
+from azure.storage.blob import BlobClient
 from pytest_bdd import given, parsers, then, when
 from sqlalchemy import create_engine
 from sqlalchemy.future import select
@@ -532,7 +533,7 @@ def check_account_holder_balance_reduced_by_reward_goal(
 
 @pytest.fixture(scope="function")
 def upload_reward_updates_to_blob_storage() -> Callable:
-    def func(retailer_slug: str, rewards: list[Reward], blob_name: str = None) -> Optional[str]:
+    def func(retailer_slug: str, rewards: list[Reward], blob_name: str = None) -> Optional[BlobClient]:
         """Upload some reward updates to blob storage to test end-to-end import"""
         blob = None
         if blob_name is None:
@@ -554,7 +555,7 @@ def upload_reward_updates_to_blob_storage() -> Callable:
     parsers.parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status} with redeemed date")
 )
 def verify_status_updated(
-    retailer_config: str, account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
+    retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
 ) -> None:
     time.sleep(3)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
