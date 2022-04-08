@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # @pytest.fixture(scope="function")
 # def get_reward_config(carina_db_session: "Session") -> Callable:
 #     def func(retailer_id: int, reward_slug: Optional[str] = None) -> RewardConfig:
@@ -8,7 +7,6 @@
 #         return carina_db_session.execute(query).scalars().first()
 #
 #     return func
-=======
 import time
 
 from typing import TYPE_CHECKING
@@ -41,4 +39,3 @@ def get_last_created_reward_allocation(carina_db_session: "Session", reward_conf
             break
 
     return allocation_task
->>>>>>> Allocate reward after the transaction happened
