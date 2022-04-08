@@ -345,7 +345,7 @@ def check_account_holder_reward_statuses(
 
     for account_holder_reward in account_holder_rewards:
         for i in range(6):
-            time.sleep(i)
+            time.sleep(10)  # Give it up to 1 min for the worker to do its job
             polaris_db_session.refresh(account_holder_reward)
             if account_holder_reward.status != "ISSUED":
                 break
