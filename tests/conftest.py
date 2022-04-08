@@ -264,10 +264,17 @@ def add_retailer_fetch_type(
 
 
 # fmt: off
+<<<<<<< HEAD
 @given(parsers.parse(
     "there is {rewards_n:d} reward configured for the {reward_slug} reward config, with allocation status set to "
     "{allocation_status} and deleted status set to {deleted_status}"),
     target_fixture="available_rewards")
+=======
+@when(parsers.parse("{rewards_n:d} reward configured for the {reward_slug} reward config, with allocation status set "
+                    "to {allocation_status} and deleted status set to {deleted_status}"))
+@given(parsers.parse("there is {rewards_n:d} reward configured for the {reward_slug} reward config, "
+                     "with allocation status set to {allocation_status} and deleted status set to {deleted_status}"))
+>>>>>>> Allocate reward after the transaction happened
 # fmt: on
 def add_rewards(
     carina_db_session: "Session",
