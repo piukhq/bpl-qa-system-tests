@@ -58,3 +58,30 @@ Defaults to `True`
 * `VELA_BASE_URL`: Base URL for the rewards rule management api 
   e.g. `https://api.dev.gb.bink.com/bpl/retailers`  
 * `MOCK_SERVICE_BASE_URL`: URL to send for the `callback_url` during enrolment requests  
+
+
+## Using the setup script
+This script will git clone the application repos into a directory called `bpl-auto` (configurable) as well as creating
+the required databases in local postgres and starting the workers. It will then use tmux to split the screen into
+tmux screens to monitor the apps and workers as you run the tests. 
+
+If you want to run any of the workers or apps
+in your editor, you'll need to comment that section out of the tmux part of the setup_bpl_local_test_env.sh script and
+run it again (it should be idempotent to a great degree).
+
+* You will need tmux (`brew update && brew install tmux`)
+* You will need to create a script called `bpl_auto_test.env` in your home directory (example contents below)
+* You will need to have local postgres and redis running, probably as docker containers. It's easiest to stick to default ports
+* Run the setup script in the root of this project: `./setup_bpl_local_test_env.sh`
+* To kill the tmux sessions, run  tmux kill-session -t bpl  in terminal.
+
+### Example content for `~/bpl_auto_test.env` file:
+
+    export ROOT_DIR=$HOME/dev/bpl-auto
+    export DB_USERNAME=postgres
+    export DB_PASSWORD=postgres
+    export DB_PORT=5432
+    export BLOB_STORAGE_DSN="DefaultEndpointsProtocol=https;AccountName=binkuksouthdev;AccountKey=L/xU6NZswZAJbFhKjIGr0feakhY8QsCw4oUuj6bXNfxhWQv2caNkDo8czIu05DBcaZbSL7vfpYGP7OZsbpXuhw==;EndpointSuffix=core.windows.net"
+
+* If you see any `KeyVaultError` errors, check that you have the VPN running, kill the tmux session and run the script again.
+* The DBs `*_auto` will not exist until you run the first pytest, so you may see warnings about that in the apps' output
