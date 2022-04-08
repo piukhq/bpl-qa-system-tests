@@ -11,6 +11,7 @@ from uuid import uuid4
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
+from retry_tasks_lib.enums import RetryTaskStatuses
 from sqlalchemy import select
 
 import settings
@@ -19,8 +20,10 @@ from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign
 from settings import MOCK_SERVICE_BASE_URL
+from tests.db_actions.carina import get_reward_config_id
 from tests.db_actions.polaris import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
+from tests.db_actions.reward import get_last_created_reward_allocation
 from tests.db_actions.vela import get_reward_adjustment_task_status
 from tests.requests.enrolment import send_post_enrolment
 from tests.requests.status_change import send_post_campaign_status_change
@@ -325,7 +328,7 @@ def reward_updates_upload(
 def check_account_holder_reward_statuses(
     polaris_db_session: "Session", available_rewards: list[Reward], retailer_slug: str, reward_status: str
 ) -> None:
-    time.sleep(60)
+    time.sleep(80)
     allocated_reward_codes = [reward.code for reward in available_rewards if reward.allocated]
     account_holder_rewards = (
         polaris_db_session.execute(
@@ -348,3 +351,22 @@ def check_account_holder_reward_statuses(
                 break
 
         assert account_holder_reward.status == reward_status
+
+
+@then(parse("a Reward code will be allocated asynchronously for {reward_slug} reward"))
+def check_async_reward_allocation(carina_db_session: "Session", request_context: dict, reward_slug: str) -> None:
+    """Check that the reward in the Reward table has been marked as 'allocated' and that it has an id"""
+    reward_config_id = get_reward_config_id(carina_db_session=carina_db_session, reward_slug=reward_slug)
+
+    reward_allocation_task = get_last_created_reward_allocation(
+        carina_db_session=carina_db_session, reward_config_id=reward_config_id
+    )
+    for i in range(20):
+        time.sleep(i)
+        carina_db_session.refresh(reward_allocation_task)
+        if reward_allocation_task.status == RetryTaskStatuses.SUCCESS:
+            break
+
+    reward = carina_db_session.query(Reward).filter_by(id=reward_allocation_task.get_params()["reward_uuid"]).one()
+    assert reward.allocated
+    assert reward.id
