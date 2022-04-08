@@ -13,7 +13,7 @@ Feature: Reward code status updated from 3rd party
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 
-  @transaction @bpl @bpl_301 @davetest
+  @transaction @bpl @bpl_301
   Scenario: Handle importing new reward codes from a 3rd party
     #To run these scenario we have to scale the carina cron worker with:
       # kubectl scale --replicas=0 deployment carina-cron-scheduler
