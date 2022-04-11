@@ -353,7 +353,7 @@ def check_account_holder_reward_statuses(
         assert account_holder_reward.status == reward_status
 
 
-@then(parse("a Reward code will be allocated asynchronously for {reward_slug} reward"))
+@then(parse("rewards allocated to the account holder for the {reward_slug} reward"))
 def check_async_reward_allocation(carina_db_session: "Session", request_context: dict, reward_slug: str) -> None:
     """Check that the reward in the Reward table has been marked as 'allocated' and that it has an id"""
     reward_config_id = get_reward_config_id(carina_db_session=carina_db_session, reward_slug=reward_slug)
@@ -365,6 +365,7 @@ def check_async_reward_allocation(carina_db_session: "Session", request_context:
         time.sleep(i)
         carina_db_session.refresh(reward_allocation_task)
         if reward_allocation_task.status == RetryTaskStatuses.SUCCESS:
+            assert reward_allocation_task.task_type.name == 'reward-issuance'
             break
 
     reward = carina_db_session.query(Reward).filter_by(id=reward_allocation_task.get_params()["reward_uuid"]).one()

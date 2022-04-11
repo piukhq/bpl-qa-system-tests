@@ -22,7 +22,7 @@ Feature: Transaction with no reward config setup for retailer
     Then the account holder's trenette-acc-campaign-1 accumulator campaign balance 2550 is updated
     And 0 rewards are available to the account holder
     When 1 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
-    Then a Reward code will be allocated asynchronously for 10percentoff reward
+    Then rewards allocated to the account holder for the 10percentoff reward
     And the account holder's trenette-acc-campaign-1 accumulator campaign balance 2550 is updated
     And 1 rewards are available to the account holder
 
@@ -34,6 +34,6 @@ Feature: Transaction with no reward config setup for retailer
     Then the account holder's trenette-acc-campaign-1 accumulator campaign balance 1000 is updated
     And 0 rewards are available to the account holder
     When 2 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
-    Then a Reward code will be allocated asynchronously for 10percentoff reward
+    Then rewards allocated to the account holder for the 10percentoff reward
     And the account holder's trenette-acc-campaign-1 accumulator campaign balance 1000 is updated
     And 2 rewards are available to the account holder
