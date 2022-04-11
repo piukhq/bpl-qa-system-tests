@@ -12,7 +12,7 @@ Feature: Transaction with no reward config setup for retailer
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
 
-  @transaction @bpl @bpl-297
+  @transaction @bpl @bpl-297 @test
   Scenario: Transaction without rewards configured - 1 reward setup
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 7500 pennies
@@ -22,18 +22,18 @@ Feature: Transaction with no reward config setup for retailer
     Then the account holder's trenette-acc-campaign-1 accumulator campaign balance 2550 is updated
     And 0 rewards are available to the account holder
     When 1 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
-    Then rewards allocated to the account holder for the 10percentoff reward
+    Then 1 rewards are allocated to the account holder for the 10percentoff reward
     And the account holder's trenette-acc-campaign-1 accumulator campaign balance 2550 is updated
     And 1 rewards are available to the account holder
 
 
-  @transaction @bpl @bpl-297
+  @transaction @bpl @bpl-297 @test
   Scenario: Transaction without rewards configured - 2 reward setup
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 21000 pennies
     Then the account holder's trenette-acc-campaign-1 accumulator campaign balance 1000 is updated
     And 0 rewards are available to the account holder
     When 2 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
-    Then rewards allocated to the account holder for the 10percentoff reward
+    Then 2 rewards are allocated to the account holder for the 10percentoff reward
     And the account holder's trenette-acc-campaign-1 accumulator campaign balance 1000 is updated
     And 2 rewards are available to the account holder
