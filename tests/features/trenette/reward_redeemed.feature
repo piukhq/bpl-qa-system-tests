@@ -15,9 +15,6 @@ Feature: Reward code status updated from 3rd party
 
   @transaction @bpl @bpl_301
   Scenario: Handle importing new reward codes from a 3rd party
-    #To run these scenario we have to scale the carina cron worker with:
-      # kubectl scale --replicas=0 deployment carina-cron-scheduler
-      # restart the .scheduler file and run the test
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 701 pennies
     Then the account holder's trenette-acc-campaign-1 balance is 1
