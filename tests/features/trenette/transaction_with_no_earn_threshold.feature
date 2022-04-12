@@ -17,11 +17,11 @@ Feature: Transaction with no earn threshold
   Scenario Outline: Transaction with 0 threshold to verify balance and rewards
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <tx_amount_1> pennies
-    Then the account holder's trenette-acc-campaign-1 accumulator campaign balance <expected_balance_1> is updated
+    Then the account holder's trenette-acc-campaign-1 balance is <expected_balance_1>
     And <expected_num_rewards_1> rewards are available to the account holder
     And the account holder's trenette-acc-campaign-1 balance is <expected_balance_1>
     When BPL receives a transaction for the account holder for the amount of <tx_amount_2> pennies
-    Then the account holder's trenette-acc-campaign-1 accumulator campaign balance <expected_balance_2> is updated
+    Then the account holder's trenette-acc-campaign-1 balance is <expected_balance_2>
     And <expected_num_rewards_2> rewards are available to the account holder
 
     Examples:

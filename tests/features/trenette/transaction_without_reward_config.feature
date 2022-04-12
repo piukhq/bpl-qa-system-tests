@@ -12,28 +12,28 @@ Feature: Transaction with no reward config setup for retailer
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
 
-  @transaction @bpl @bpl-297 @test
-  Scenario: Transaction without rewards configured - 1 reward setup
+  @transaction @bpl @bpl-297
+  Scenario: 1 Rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 7500 pennies
-    Then the account holder's trenette-acc-campaign-1 accumulator campaign balance 7500 is updated
+    Then the account holder's trenette-acc-campaign-1 balance is 7500
     And 0 rewards are available to the account holder
     When BPL receives a transaction for the account holder for the amount of 5050 pennies
-    Then the account holder's trenette-acc-campaign-1 accumulator campaign balance 2550 is updated
+    Then the account holder's trenette-acc-campaign-1 balance is 2550
     And 0 rewards are available to the account holder
-    When 1 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
+    When 1 rewards are generated for the 10percentoff reward config with allocation status set to false and deleted status set to false
     Then 1 rewards are allocated to the account holder for the 10percentoff reward
-    And the account holder's trenette-acc-campaign-1 accumulator campaign balance 2550 is updated
+    And the account holder's trenette-acc-campaign-1 balance is 2550
     And 1 rewards are available to the account holder
 
 
-  @transaction @bpl @bpl-297 @test
-  Scenario: Transaction without rewards configured - 2 reward setup
+  @transaction @bpl @bpl-297
+  Scenario: 2 Rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 21000 pennies
-    Then the account holder's trenette-acc-campaign-1 accumulator campaign balance 1000 is updated
+    Then the account holder's trenette-acc-campaign-1 balance is 1000
     And 0 rewards are available to the account holder
-    When 2 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
+    When 2 rewards are generated for the 10percentoff reward config with allocation status set to false and deleted status set to false
     Then 2 rewards are allocated to the account holder for the 10percentoff reward
-    And the account holder's trenette-acc-campaign-1 accumulator campaign balance 1000 is updated
+    And the account holder's trenette-acc-campaign-1 balance is 1000
     And 2 rewards are available to the account holder

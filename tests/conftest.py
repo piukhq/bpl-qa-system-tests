@@ -264,8 +264,8 @@ def add_retailer_fetch_type(
 
 
 # fmt: off
-@when(parsers.parse("{rewards_n:d} reward configured for the {reward_slug} reward config, with allocation status set "
-                    "to {allocation_status} and deleted status set to {deleted_status}"),
+@when(parsers.parse("{rewards_n:d} rewards are generated for the {reward_slug} reward config with allocation status "
+                    "set to {allocation_status} and deleted status set to {deleted_status}"),
       target_fixture="available_rewards")
 @given(parsers.parse(
     "there is {rewards_n:d} reward configured for the {reward_slug} reward config, with allocation status set to "
@@ -393,7 +393,6 @@ def request_context() -> dict:
     return {}
 
 
-#
 # @pytest.fixture(scope="session", autouse=True)
 # def configure_html_report_env(request: "SubRequest", env: str, channel: str) -> None:
 #     """Delete existing data in the test report and add bpl execution details"""
@@ -501,7 +500,6 @@ def send_get_request_to_account_holder(
         assert resp.json()["rewards"][i]["redeemed_date"] is None
         assert resp.json()["rewards"][i]["expiry_date"]
         assert resp.json()["rewards"][i]["status"] == "issued"
-    return
 
 
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))

@@ -20,7 +20,7 @@ Feature: Reward code status updated from 3rd party
       # restart the .scheduler file and run the test
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 701 pennies
-    Then the account holder's trenette-acc-campaign-1 accumulator campaign balance 1 is updated
+    Then the account holder's trenette-acc-campaign-1 balance is 1
     And 1 rewards are available to the account holder
     When the file for trenette with redeemed status is imported
     Then the status of the allocated account holder for trenette rewards are updated with REDEEMED
