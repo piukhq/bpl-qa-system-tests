@@ -332,7 +332,6 @@ def check_async_reward_allocation(
         time.sleep(i)
         carina_db_session.refresh(reward_allocation_task)
         if reward_allocation_task.status == RetryTaskStatuses.SUCCESS:
-            assert reward_allocation_task.task_type.name == "reward-issuance"
             break
 
     reward = carina_db_session.query(Reward).filter_by(id=reward_allocation_task.get_params()["reward_uuid"]).one()
