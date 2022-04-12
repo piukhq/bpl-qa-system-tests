@@ -11,20 +11,23 @@ import time
 
 from typing import TYPE_CHECKING
 
-from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue
+from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue, TaskType
 from sqlalchemy.future import select
+
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-def get_last_created_reward_allocation(carina_db_session: "Session", reward_config_id: int) -> RetryTask:
+def get_last_created_reward_issuance_task(carina_db_session: "Session", reward_config_id: int) -> RetryTask:
     for i in (1, 3, 5, 10):
         time.sleep(i)
         allocation_task = (
             carina_db_session.execute(
                 select(RetryTask)
                 .where(
+                    TaskType.task_type_id == RetryTask.task_type_id,
+                    TaskType.name == "reward-issuance",
                     TaskTypeKey.name == "reward_config_id",
                     TaskTypeKeyValue.task_type_key_id == TaskTypeKey.task_type_key_id,
                     TaskTypeKeyValue.value == str(reward_config_id),
