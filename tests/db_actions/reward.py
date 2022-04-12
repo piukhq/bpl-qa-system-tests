@@ -11,9 +11,8 @@ import time
 
 from typing import TYPE_CHECKING
 
-from retry_tasks_lib.db.models import RetryTask, TaskTypeKey, TaskTypeKeyValue, TaskType
+from retry_tasks_lib.db.models import RetryTask, TaskType, TaskTypeKey, TaskTypeKeyValue
 from sqlalchemy.future import select
-
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
