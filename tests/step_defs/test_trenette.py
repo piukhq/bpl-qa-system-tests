@@ -18,13 +18,13 @@ import settings
 
 from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
-from db.vela.models import Campaign
+from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
-from tests.db_actions.carina import get_reward_config_id
+from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
 from tests.db_actions.polaris import get_account_holder
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
 from tests.db_actions.reward import get_last_created_reward_issuance_task
-from tests.db_actions.vela import get_reward_adjustment_task_status
+from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
 from tests.requests.enrolment import send_post_enrolment
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
@@ -202,14 +202,23 @@ def verify_uuid_and_account(request_context: dict, get_account_response_by_uuid:
 
 
 @then(parse("the status is then changed to {status} for {campaign_slug} for the retailer {retailer_slug}"))
-def send_post_campaign_change_request(status: str, retailer_slug: str, campaign_slug: str) -> None:
+def send_post_campaign_change_request(
+    request_context: dict, vela_db_session: "Session", status: str, retailer_slug: str, campaign_slug: str
+) -> None:
     payload = {
         "requested_status": status,
         "campaign_slugs": [campaign_slug],
     }
 
-    request = send_post_campaign_status_change(retailer_slug=retailer_slug, request_body=payload)
+    request = send_post_campaign_status_change(
+        request_context=request_context, retailer_slug=retailer_slug, request_body=payload
+    )
     assert request.status_code == 200
+
+    if status == "ended":
+        for i in range(5):
+            campaign_status = get_campaign_status(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
+            assert campaign_status == CampaignStatuses.ENDED
 
 
 @then(parse("the account holder's {campaign_slug} balance no longer exists"))
@@ -337,3 +346,23 @@ def check_async_reward_allocation(
     reward = carina_db_session.query(Reward).filter_by(id=reward_allocation_task.get_params()["reward_uuid"]).one()
     assert reward.allocated
     assert reward.id
+
+
+@then(parse("all unallocated rewards for {reward_slug} reward config are soft deleted"))
+def check_unallocated_rewards_deleted(
+    carina_db_session: "Session",
+    reward_slug: str,
+) -> None:
+    reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
+    unallocated_rewards = get_unallocated_rewards(carina_db_session, reward_config_id)
+    for i in range(3):
+        time.sleep(i)  # Need to allow enough time for the task to soft delete rewards
+        rewards_deleted = []
+        for reward in unallocated_rewards:
+            carina_db_session.refresh(reward)
+            rewards_deleted.append(reward.deleted)
+
+        if all(rewards_deleted):
+            break
+
+    assert all(rewards_deleted), "All rewards not soft deleted"

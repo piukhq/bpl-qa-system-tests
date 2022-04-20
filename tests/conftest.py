@@ -13,7 +13,8 @@ import pytest
 
 from azure.storage.blob import BlobClient
 from pytest_bdd import given, parsers, then, when
-from sqlalchemy import create_engine
+from retry_tasks_lib.db.models import RetryTaskStatuses
+from sqlalchemy import create_engine, update
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
@@ -40,10 +41,16 @@ from settings import (
 )
 from tests.api.base import Endpoints
 from tests.db_actions.carina import get_fetch_type_id, get_retailer_id, get_reward_config_id
+from tests.db_actions.polaris import (
+    create_pending_rewards_for_existing_account_holder,
+    create_rewards_for_existing_account_holder,
+)
+from tests.db_actions.retry_tasks import get_task_status
 from tests.db_actions.vela import get_campaign_by_slug, get_reward_goal_by_campaign_id
 from tests.requests.enrolment import send_get_accounts
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
+from tests.shared_utils.redis import pause_redis, unpause_redis
 
 if TYPE_CHECKING:
     from _pytest.config import Config
@@ -122,6 +129,16 @@ def retailer(
     logging.info(retailer_config)
     request_context["carina_retailer_id"] = retailer.id
     return retailer_config
+
+
+@when(parsers.parse("the task worker queue is full"))
+def stop_redis() -> None:
+    pause_redis(seconds=10)
+
+
+@when(parsers.parse("the task worker queue is ready"))
+def resume_redis() -> None:
+    unpause_redis()
 
 
 # fmt: off
@@ -464,6 +481,62 @@ def setup_account_holder(
     return account_holder
 
 
+# fmt: off
+@given(parsers.parse("the {campaign_slug} account holder campaign balance is {amount}"))
+# fmt: on
+def update_existing_account_holder_with_campaign_balance(
+    account_holder: AccountHolder, amount: int, polaris_db_session: "Session", campaign_slug: str
+) -> AccountHolder:
+
+    polaris_db_session.execute(
+        update(AccountHolderCampaignBalance)
+        .values(balance=amount)
+        .where(
+            AccountHolderCampaignBalance.account_holder_id == account_holder.id,
+            AccountHolderCampaignBalance.campaign_slug == campaign_slug,
+        )
+    )
+
+    polaris_db_session.commit()
+    return account_holder
+
+
+# fmt: off
+@given(parsers.parse("the account has {reward_count} issued unexpired rewards"))
+# fmt: on
+def update_existing_account_holder_with_rewards(
+    account_holder: AccountHolder,
+    retailer_config: RetailerConfig,
+    reward_count: int,
+    polaris_db_session: "Session",
+) -> AccountHolder:
+
+    create_rewards_for_existing_account_holder(
+        polaris_db_session, retailer_config.slug, reward_count, account_holder.id
+    )
+
+    return account_holder
+
+
+# fmt: off
+@given(parsers.parse("the account has {count} pending rewards for {campaign_slug} with value {reward_goal}"))
+# fmt: on
+def update_existing_account_holder_with_pending_rewards(
+    account_holder: AccountHolder,
+    retailer_config: RetailerConfig,
+    count: int,
+    polaris_db_session: "Session",
+    reward_goal: int,
+    campaign_slug: str,
+) -> AccountHolder:
+
+    create_pending_rewards_for_existing_account_holder(
+        polaris_db_session, retailer_config.slug, count, account_holder.id, campaign_slug, reward_goal
+    )
+
+    return account_holder
+
+
 @when(parsers.parse("BPL receives a transaction for the account holder for the amount of {amount:d} pennies"))
 def the_account_holder_transaction_request(
     account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
@@ -503,6 +576,7 @@ def send_get_request_to_account_holder(
 
 
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
+@given(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
 def account_holder_balance_correct(
     polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str, amount: int
 ) -> None:
@@ -552,9 +626,10 @@ def upload_reward_updates_to_blob_storage() -> Callable:
     return func
 
 
-@then(
-    parsers.parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status} with redeemed date")
-)
+# fmt: off
+@then(parsers.parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status}"
+                    "with redeemed date"))
+# fmt: on
 def verify_status_updated(
     retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
 ) -> None:
@@ -569,3 +644,16 @@ def verify_status_updated(
     for i in range(expected_num_rewards):
         assert resp.json()["rewards"][i]["redeemed_date"] is not None
         assert resp.json()["rewards"][i]["status"] == reward_status
+
+
+# fmt: off
+@when(parsers.parse("the {task_name} task status is cancelled"))
+# fmt: on
+def check_retry_task_status(vela_db_session: "Session", task_name: str) -> None:
+    for i in range(5):
+        sleep(i)
+        status = get_task_status(vela_db_session, task_name)
+        if status[0] == RetryTaskStatuses.CANCELLED:
+            break
+
+    assert status[0] == RetryTaskStatuses.CANCELLED
