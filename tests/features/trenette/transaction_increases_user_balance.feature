@@ -17,10 +17,10 @@ Feature: Bink BPL - Transaction increases user balance
   Scenario: Transaction meets earn threshold (>0)
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 550 pennies
-    Then 0 rewards are available to the account holder
+    Then 0 issued rewards are available to the account holder
     When BPL receives a transaction for the account holder for the amount of 550 pennies
-    Then 0 rewards are available to the account holder
+    Then 0 issued rewards are available to the account holder
     And the account holder's trenette-stmp-campaign-1 balance is 200
     When BPL receives a transaction for the account holder for the amount of 600 pennies
-    Then 0 rewards are available to the account holder
+    Then 0 issued rewards are available to the account holder
     And the account holder's trenette-stmp-campaign-1 balance is 300

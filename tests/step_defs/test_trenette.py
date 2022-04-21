@@ -215,10 +215,13 @@ def send_post_campaign_change_request(
     )
     assert request.status_code == 200
 
-    if status == "ended":
+    if status in ("ended", "cancelled"):
         for i in range(5):
             campaign_status = get_campaign_status(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
-            assert campaign_status == CampaignStatuses.ENDED
+            if status == "ended":
+                assert campaign_status == CampaignStatuses.ENDED
+            else:
+                assert campaign_status == CampaignStatuses.CANCELLED
 
 
 @then(parse("the account holder's {campaign_slug} balance no longer exists"))
