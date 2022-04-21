@@ -70,6 +70,8 @@ LOG_FORMATTER=brief
 POLARIS_HOST=http://localhost:8000
 CARINA_HOST=http://localhost:8002
 REDIS_URL=redis://localhost:6379/0
+REPORT_ANOMALOUS_TASKS_SCHEDULE=* * * * *
+ACTIVATE_TASKS_METRICS=false
 EOF
 )
 
@@ -126,7 +128,7 @@ echo "Starting services in tmux session: $TMUX_SESSION_NAME"
 tmux -2 new-session -d -s $TMUX_SESSION_NAME
 tmux new-window -t $TMUX_SESSION_NAME -n 'BPL'
 
-for p in {0..7}; do
+for p in {0..8}; do
     tmux split-pane -v
     tmux select-layout tiled
 done
@@ -147,9 +149,11 @@ tmux send-keys "cd $ROOT_DIR/carina && pipenv run uvicorn asgi:app --port 8002" 
 tmux select-pane -t 5
 tmux send-keys "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli task-worker" C-m
 tmux select-pane -t 6
-tmux send-keys "cd $ROOT_DIR/polaris && pipenv run python -m app.core.cli cron-scheduler" C-m
+tmux send-keys "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli cron-scheduler" C-m
 tmux select-pane -t 7
-tmux send-keys "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
+tmux send-keys "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.core.cli cron-scheduler" C-m
 tmux select-pane -t 8
-tmux send-keys "cd $ROOT_DIR/carina && pipenv run python -m app.core.cli cron-scheduler" C-m
+tmux send-keys "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli cron-scheduler" C-m
+tmux select-pane -t 9
+tmux send-keys "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
 tmux attach-session -t $TMUX_SESSION_NAME

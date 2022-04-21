@@ -655,5 +655,21 @@ def check_retry_task_status(vela_db_session: "Session", task_name: str) -> None:
         status = get_task_status(vela_db_session, task_name)
         if status[0] == RetryTaskStatuses.CANCELLED:
             break
+        assert status[0] == RetryTaskStatuses.CANCELLED
 
-    assert status[0] == RetryTaskStatuses.CANCELLED
+
+# fmt: off
+@given(parsers.parse("there are {reward_count} issued unexpired rewards for account holder with "
+                     "reward slug {reward_slug}"))
+# fmt: on
+def update_existing_account_holder_with_rewards_for_reward_slug(
+    account_holder: AccountHolder,
+    retailer_config: RetailerConfig,
+    reward_count: int,
+    reward_slug: str,
+    polaris_db_session: "Session",
+) -> AccountHolder:
+    create_rewards_for_existing_account_holder(
+        polaris_db_session, retailer_config.slug, reward_count, account_holder.id, reward_slug
+    )
+    return account_holder

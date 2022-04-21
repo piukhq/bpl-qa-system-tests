@@ -21,7 +21,7 @@ from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
-from tests.db_actions.polaris import get_account_holder
+from tests.db_actions.polaris import get_account_holder, get_account_holder_reward, get_pending_rewards
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
@@ -238,6 +238,21 @@ def check_account_holder_balance_is_updated(
     assert not account_holder_campaign_balance
 
 
+@then(parse("any {retailer_slug} account holder rewards for {reward_slug} are cancelled"))
+def check_account_holder_rewards_are_cancelled(
+    reward_slug: str,
+    retailer_slug: str,
+    polaris_db_session: "Session",
+) -> None:
+    account_holder_rewards = get_account_holder_reward(
+        polaris_db_session=polaris_db_session, reward_slug=reward_slug, retailer_slug=retailer_slug
+    )
+    for reward in account_holder_rewards:
+        if str(reward.status) == "CANCELLED":
+            continue
+        assert str(reward.status) == "CANCELLED"
+
+
 @then(parse("the reward adjustment retry task for {campaign_slug} has a status of {status}"))
 def check_reward_adjustment_task_status_is_failed(
     vela_db_session: "Session",
@@ -366,3 +381,16 @@ def check_unallocated_rewards_deleted(
             break
 
     assert all(rewards_deleted), "All rewards not soft deleted"
+
+
+@then(parse("any pending rewards for {campaign_slug} are deleted"))
+def check_for_pending_rewards(
+    polaris_db_session: "Session",
+    campaign_slug: str,
+) -> None:
+    for i in range(5):
+        sleep(i)
+        pending_rewards = get_pending_rewards(polaris_db_session=polaris_db_session, campaign_slug=campaign_slug)
+        if pending_rewards == []:
+            break
+    assert pending_rewards == []

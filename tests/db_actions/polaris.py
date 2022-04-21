@@ -19,15 +19,33 @@ def get_account_holder(polaris_db_session: "Session", email: str, retailer_id: i
 
 def get_account_holder_reward(
     polaris_db_session: "Session", reward_slug: str, retailer_slug: str
-) -> Optional[AccountHolderReward]:
-    account_holder_reward = polaris_db_session.execute(
-        select(AccountHolderReward).where(reward_slug == reward_slug, retailer_slug == retailer_slug)
-    ).one_or_none()
-    return account_holder_reward
+) -> list[AccountHolderReward]:
+    return (
+        polaris_db_session.execute(
+            select(AccountHolderReward).where(reward_slug == reward_slug, retailer_slug == retailer_slug)
+        )
+        .scalars()
+        .all()
+    )
+
+
+def get_pending_rewards(
+    polaris_db_session: "Session",
+    campaign_slug: str,
+) -> list[AccountHolderPendingReward]:
+    return (
+        polaris_db_session.execute(select(AccountHolderPendingReward).where(campaign_slug == campaign_slug))
+        .scalars()
+        .all()
+    )
 
 
 def create_rewards_for_existing_account_holder(
-    polaris_db_session: "Session", retailer_slug: str, reward_count: int, account_holder_id: int
+    polaris_db_session: "Session",
+    retailer_slug: str,
+    reward_count: int,
+    account_holder_id: int,
+    reward_slug: Optional[str] = "reward-test-slug",
 ) -> None:
     rewards = []
     for count in range(1, int(reward_count) + 1):
@@ -37,7 +55,7 @@ def create_rewards_for_existing_account_holder(
             issued_date=datetime.now() - timedelta(days=1),
             expiry_date=datetime.now() + timedelta(days=1),
             status="ISSUED",
-            reward_slug=f"reward-slug-{count}",
+            reward_slug=reward_slug,
             retailer_slug=retailer_slug,
             idempotency_token=str(uuid4()),
             account_holder_id=account_holder_id,
