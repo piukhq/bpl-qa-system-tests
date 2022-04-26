@@ -28,22 +28,29 @@ set -x
 
 source ~/bpl_auto_test.env
 
+RUN=${1}
+
 TMUX_SESSION_NAME=bpl
+
 BASE_DB_URI="postgresql://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT"
 PROMETHEUS_ROOT_DIR=$ROOT_DIR/_prometheus_
 export PIPENV_VENV_IN_PROJECT=1
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
-LUNA_ENV_FILE=$(cat <<EOF
+setup_projects() {
+
+    LUNA_ENV_FILE=$(
+        cat <<EOF
 DEBUG=True
 LUNA_PORT=9001
 LOG_FORMATTER=brief
 USE_REDIS_CACHE=False
 REDIS_URL=redis://localhost:6379/0
 EOF
-)
+    )
 
-POLARIS_ENV_FILE=$(cat <<EOF
+    POLARIS_ENV_FILE=$(
+        cat <<EOF
 POSTGRES_USER=$DB_USERNAME
 POSTGRES_PASSWORD=$DB_PASSWORD
 POSTGRES_PORT=$DB_PORT
@@ -59,9 +66,10 @@ PENDING_REWARDS_SCHEDULE=* * * * *
 POLARIS_PUBLIC_URL=http://localhost:8000
 SEND_EMAIL=false
 EOF
-)
+    )
 
-VELA_ENV_FILE=$(cat <<EOF
+    VELA_ENV_FILE=$(
+        cat <<EOF
 POSTGRES_USER=$DB_USERNAME
 POSTGRES_PASSWORD=$DB_PASSWORD
 POSTGRES_PORT=$DB_PORT
@@ -73,9 +81,10 @@ REDIS_URL=redis://localhost:6379/0
 REPORT_ANOMALOUS_TASKS_SCHEDULE=* * * * *
 ACTIVATE_TASKS_METRICS=false
 EOF
-)
+    )
 
-CARINA_ENV_FILE=$(cat <<EOF
+    CARINA_ENV_FILE=$(
+        cat <<EOF
 POSTGRES_USER=$DB_USERNAME
 POSTGRES_PASSWORD=$DB_PASSWORD
 POSTGRES_PORT=$DB_PORT
@@ -87,73 +96,101 @@ BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
 BLOB_IMPORT_SCHEDULE=* * * * *
 REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
 EOF
-)
-cd $ROOT_DIR
+    )
 
-# install repositories and make correct databases
-if [[ ! -d "luna" ]]; then
-    echo "- Cloning luna ..."
-    git clone git@github.com:binkhq/luna.git
+    cd $ROOT_DIR
+
+    # install repositories and make correct databases
+    if [[ ! -d "luna" ]]; then
+        echo "- Cloning luna ..."
+        git clone git@github.com:binkhq/luna.git
+    fi
+    cd luna && echo "$LUNA_ENV_FILE" >.env && pipenv sync --dev
+
+    for p_name in "polaris" "vela" "carina"; do
+        if [[ ! -d $PROMETHEUS_ROOT_DIR/$p_name ]]; then
+            mkdir -p $PROMETHEUS_ROOT_DIR/$p_name
+        fi
+        cd "${ROOT_DIR}"
+        if [[ ! -d $p_name ]]; then
+            echo "- Cloning $p_name..."
+            git clone "git@github.com:binkhq/$p_name.git"
+        fi
+        cd "${ROOT_DIR}/${p_name}"
+        echo "Working on ${p_name}"
+        echo "- Checking out and updating master branch"
+        git checkout master
+        git pull --ff-only origin master
+        echo "- Writing sane local.env"
+        env_var_name=$(echo "${p_name}_env_file" | tr 'a-z' 'A-Z')
+        echo "${!env_var_name}" >local.env
+        echo "- Updating python environment"
+        pipenv sync
+        echo "- Resetting database"
+        psql "${BASE_DB_URI}/postgres" -c "drop database ${p_name}_template ;"
+        psql "${BASE_DB_URI}/postgres" -c "create database ${p_name}_template ;"
+        echo "- Running alembic migrations"
+        SQLALCHEMY_DATABASE_URI="${BASE_DB_URI}/${p_name}_template" pipenv run alembic upgrade head
+    done
+
+}
+
+run_services() {
+    echo "Starting services in tmux session: $TMUX_SESSION_NAME"
+    tmux -2 new-session -d -s $TMUX_SESSION_NAME
+    tmux new-window -t $TMUX_SESSION_NAME -n 'BPL'
+
+    for p in {0..8}; do
+        tmux split-pane -v
+        tmux select-layout tiled
+    done
+
+    for proj in polaris vela carina; do
+        rm -rf $PROMETHEUS_ROOT_DIR/$proj/*
+    done
+
+    # tmux gui formatting
+    tmux set -g mouse on
+    tmux set -g pane-border-status on
+    tmux set -g pane-border-status top
+    tmux set -g pane-border-format "[#[fg=white]#{?pane_active,#[bold],} #P - #T #[fg=default,nobold]]"
+
+    # create tmux panes with the following layout example
+    ## Polaris
+    tmux select-pane -t 0 -T PolarisAPI
+    tmux send-keys -t 0 "cd $ROOT_DIR/polaris && pipenv run uvicorn asgi:app --port 8000" C-m
+    tmux select-pane -t 3 -T PolarisWorker
+    tmux send-keys -t 3 "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli task-worker" C-m
+    tmux select-pane -t 6 -T PolarisCronScheduler
+    tmux send-keys -t 6 "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli cron-scheduler" C-m
+
+    ## Vela
+    tmux select-pane -t 1 -T VelaAPI
+    tmux send-keys -t 1 "cd $ROOT_DIR/vela && pipenv run uvicorn asgi:app --port 8001" C-m
+    tmux select-pane -t 4 -T VelaWorker
+    tmux send-keys -t 4 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.core.cli task-worker" C-m
+    tmux select-pane -t 7 -T VelaCronScheduler
+    tmux send-keys -t 7 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.core.cli cron-scheduler" C-m
+
+    ## Carina
+    tmux select-pane -t 2 -T CarinaAPI
+    tmux send-keys -t 2 "cd $ROOT_DIR/carina && pipenv run uvicorn asgi:app --port 8002" C-m
+    tmux select-pane -t 5 -T CarinaWorker
+    tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli task-worker" C-m
+    tmux select-pane -t 8 -T CarinaCronScheduler
+    tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli cron-scheduler" C-m
+
+    ## Luna
+    tmux select-pane -t 9 -T Luna
+    tmux send-keys -t 9 "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
+
+    # Attach to the tmux session
+    tmux attach-session -t $TMUX_SESSION_NAME
+}
+
+if [ $RUN = "services" ]; then
+    run_services
+else
+    setup_projects
+    run_services
 fi
-cd luna && echo "$LUNA_ENV_FILE" > .env && pipenv sync --dev
-
-for p_name in "polaris" "vela" "carina"; do
-    if [[ ! -d $PROMETHEUS_ROOT_DIR/$p_name ]]; then
-        mkdir -p $PROMETHEUS_ROOT_DIR/$p_name
-    fi
-    cd "${ROOT_DIR}"
-    if [[ ! -d $p_name ]]; then
-        echo "- Cloning $p_name..."
-        git clone "git@github.com:binkhq/$p_name.git"
-    fi
-    cd "${ROOT_DIR}/${p_name}"
-    echo "Working on ${p_name}"
-    echo "- Checking out and updating master branch"
-    git checkout master
-    git pull --ff-only origin master
-    echo "- Writing sane local.env";
-    env_var_name=$(echo "${p_name}_env_file" | tr 'a-z' 'A-Z')
-    echo "${!env_var_name}" > local.env
-    echo "- Updating python environment";
-    pipenv sync
-    echo "- Resetting database"
-    psql "${BASE_DB_URI}/postgres" -c "drop database ${p_name}_template ;"
-    psql "${BASE_DB_URI}/postgres" -c "create database ${p_name}_template ;"
-    echo "- Running alembic migrations"
-    SQLALCHEMY_DATABASE_URI="${BASE_DB_URI}/${p_name}_template" pipenv run alembic upgrade head
-done
-
-# run up all BPL services
-echo "Starting services in tmux session: $TMUX_SESSION_NAME"
-tmux -2 new-session -d -s $TMUX_SESSION_NAME
-tmux new-window -t $TMUX_SESSION_NAME -n 'BPL'
-
-for p in {0..8}; do
-    tmux split-pane -v
-    tmux select-layout tiled
-done
-
-for proj in polaris vela carina; do
-    rm -rf $PROMETHEUS_ROOT_DIR/$proj/*
-done
-tmux select-pane -t 0
-tmux send-keys "cd $ROOT_DIR/polaris && pipenv run uvicorn asgi:app --port 8000" C-m
-tmux select-pane -t 3
-tmux send-keys "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli task-worker" C-m
-tmux select-pane -t 1
-tmux send-keys "cd $ROOT_DIR/vela && pipenv run uvicorn asgi:app --port 8001" C-m
-tmux select-pane -t 4
-tmux send-keys "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.core.cli task-worker" C-m
-tmux select-pane -t 2
-tmux send-keys "cd $ROOT_DIR/carina && pipenv run uvicorn asgi:app --port 8002" C-m
-tmux select-pane -t 5
-tmux send-keys "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli task-worker" C-m
-tmux select-pane -t 6
-tmux send-keys "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli cron-scheduler" C-m
-tmux select-pane -t 7
-tmux send-keys "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.core.cli cron-scheduler" C-m
-tmux select-pane -t 8
-tmux send-keys "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli cron-scheduler" C-m
-tmux select-pane -t 9
-tmux send-keys "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
-tmux attach-session -t $TMUX_SESSION_NAME
