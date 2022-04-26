@@ -608,7 +608,9 @@ def check_account_holder_balance_reduced_by_reward_goal(
 
 @pytest.fixture(scope="function")
 def upload_reward_updates_to_blob_storage() -> Callable:
-    def func(retailer_slug: str, rewards: list[Reward], blob_name: str = None) -> Optional[BlobClient]:
+    def func(
+        retailer_slug: str, rewards: list[Reward], reward_status: str, blob_name: str = None
+    ) -> Optional[BlobClient]:
         """Upload some reward updates to blob storage to test end-to-end import"""
         blob = None
         if blob_name is None:
@@ -616,7 +618,9 @@ def upload_reward_updates_to_blob_storage() -> Callable:
 
         if BLOB_STORAGE_DSN:
             logger.debug(f"Uploading reward updates to blob storage for {retailer_slug}...")
-            blob = put_new_reward_updates_file(retailer_slug=retailer_slug, rewards=rewards, blob_name=blob_name)
+            blob = put_new_reward_updates_file(
+                retailer_slug=retailer_slug, rewards=rewards, blob_name=blob_name, reward_status=reward_status
+            )
             logger.debug(f"Successfully uploaded reward updates to blob storage: {blob.url}")
         else:
             logger.debug("No BLOB_STORAGE_DSN set, skipping reward updates upload")
@@ -627,13 +631,12 @@ def upload_reward_updates_to_blob_storage() -> Callable:
 
 
 # fmt: off
-@then(parsers.parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status}"
+@then(parsers.parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status} "
                     "with redeemed date"))
 # fmt: on
-def verify_status_updated(
+def verify_account_holder_reward_status(
     retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
 ) -> None:
-    time.sleep(3)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(
@@ -642,7 +645,11 @@ def verify_status_updated(
     )
     assert len(resp.json()["rewards"]) == expected_num_rewards
     for i in range(expected_num_rewards):
-        assert resp.json()["rewards"][i]["redeemed_date"] is not None
+        redeemed_date = resp.json()["rewards"][i]["redeemed_date"]
+        if reward_status == "redeemed":
+            assert redeemed_date is not None
+        elif reward_status == "cancelled":
+            assert redeemed_date is None
         assert resp.json()["rewards"][i]["status"] == reward_status
 
 
