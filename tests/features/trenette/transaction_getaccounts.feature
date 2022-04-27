@@ -30,7 +30,7 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
     Then the account holder's trenette-stmp-campaign balance is 600
     When BPL receives a transaction for the account holder for the amount of <amount_7> pennies
     Then the account holder's trenette-stmp-campaign balance is 0
-    And 1 rewards are available to the account holder
+    And 1 issued rewards are available to the account holder
 
     Examples:
       | amount_1 | amount_2 | amount_3 | amount_4 | amount_5 | amount_6 | amount_7 |

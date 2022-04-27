@@ -554,10 +554,10 @@ def the_account_holder_transaction_request(
 
 
 # fmt: off
-@then(parsers.parse("{expected_num_rewards:d} rewards are available to the account holder"))
+@then(parsers.parse("{expected_num_rewards:d} {state} rewards are available to the account holder"))
 # fmt: on
 def send_get_request_to_account_holder(
-    retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int
+    retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int, state: str
 ) -> None:
     time.sleep(3)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
@@ -572,7 +572,7 @@ def send_get_request_to_account_holder(
         assert resp.json()["rewards"][i]["issued_date"]
         assert resp.json()["rewards"][i]["redeemed_date"] is None
         assert resp.json()["rewards"][i]["expiry_date"]
-        assert resp.json()["rewards"][i]["status"] == "issued"
+        assert resp.json()["rewards"][i]["status"] == state
 
 
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
@@ -662,7 +662,8 @@ def check_retry_task_status(vela_db_session: "Session", task_name: str) -> None:
         status = get_task_status(vela_db_session, task_name)
         if status[0] == RetryTaskStatuses.CANCELLED:
             break
-        assert status[0] == RetryTaskStatuses.CANCELLED
+
+    assert status[0] == RetryTaskStatuses.CANCELLED
 
 
 # fmt: off
@@ -680,3 +681,20 @@ def update_existing_account_holder_with_rewards_for_reward_slug(
         polaris_db_session, retailer_config.slug, reward_count, account_holder.id, reward_slug
     )
     return account_holder
+
+
+# fmt: off
+@then(parsers.parse("there is no balance shown for {campaign_slug} for account holder"))
+# fmt: on
+def send_get_request_to_accounts_check_balance_for_campaign(
+    retailer_config: RetailerConfig, account_holder: AccountHolder, campaign_slug: str
+) -> None:
+    time.sleep(3)
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+    for i in range(len(resp.json()["current_balances"])):
+        assert resp.json()["current_balances"][i]["campaign_slug"] != campaign_slug
