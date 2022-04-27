@@ -297,9 +297,10 @@ def check_reward_issuance(
         raise ValueError(f"{issued} is not an acceptable value")
 
 
-@when(parse("the file for {retailer_slug} with redeemed status is imported"))
+@when(parse("the file for {retailer_slug} with {reward_status} status is imported"))
 def reward_updates_upload(
     retailer_slug: str,
+    reward_status: str,
     available_rewards: list[Reward],
     upload_reward_updates_to_blob_storage: Callable,
     carina_db_session: "Session",
@@ -309,7 +310,9 @@ def reward_updates_upload(
     carina (the scheduler job for doing these imports) will pick up and process, putting rows into carina's DB
     for today's date.
     """
-    blob = upload_reward_updates_to_blob_storage(retailer_slug=retailer_slug, rewards=available_rewards)
+    blob = upload_reward_updates_to_blob_storage(
+        retailer_slug=retailer_slug, rewards=available_rewards, reward_status=reward_status
+    )
     assert blob
 
 
