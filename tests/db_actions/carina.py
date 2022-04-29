@@ -35,6 +35,21 @@ def get_retailer_id(
 
 def get_unallocated_rewards(carina_db_session: "Session", reward_config_id: int) -> list[Reward]:
     unallocated_rewards = (
-        carina_db_session.execute(select(Reward).where(Reward.reward_config_id == reward_config_id)).scalars().all()
+        carina_db_session.execute(
+            select(Reward).where(Reward.reward_config_id == reward_config_id, Reward.allocated is False)
+        )
+        .scalars()
+        .all()
     )
     return unallocated_rewards
+
+
+def get_allocated_rewards(carina_db_session: "Session", reward_config_id: int) -> list[Reward]:
+    allocated_rewards = (
+        carina_db_session.execute(
+            select(Reward).where(Reward.reward_config_id == reward_config_id, Reward.allocated is True)
+        )
+        .scalars()
+        .all()
+    )
+    return allocated_rewards

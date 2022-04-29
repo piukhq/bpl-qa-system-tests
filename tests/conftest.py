@@ -51,7 +51,8 @@ from tests.db_actions.polaris import (
     create_rewards_for_existing_account_holder,
     get_account_holder_for_retailer,
 )
-from tests.db_actions.retry_tasks import get_latest_task
+
+from tests.db_actions.retry_tasks import RetryTaskStatuses, get_latest_task
 from tests.db_actions.vela import get_campaign_by_slug
 from tests.requests.enrolment import send_get_accounts
 from tests.requests.transaction import post_transaction_request
@@ -728,6 +729,35 @@ def verify_account_holder_reward_status(
         elif reward_status == "cancelled":
             assert redeemed_date is None
         assert resp.json()["rewards"][i]["status"] == reward_status
+
+
+# fmt: off
+@when(parsers.parse("the {task_name} task status is cancelled"))
+# fmt: on
+def check_retry_task_status(vela_db_session: "Session", task_name: str) -> None:
+    for i in range(5):
+        sleep(i)
+        status = get_latest_task(vela_db_session, task_name)
+        if status[0] == RetryTaskStatuses.CANCELLED:
+            break
+
+    assert status[0] == RetryTaskStatuses.CANCELLED
+
+
+# fmt: off
+@when(parsers.parse("the {task_name} task status is {retry_status}"))
+# fmt: on
+def check_retry_task_status_fail(carina_db_session: "Session", task_name: str, retry_status: str) -> None:
+    if retry_status == "failed":
+        enum_status = RetryTaskStatuses.FAILED
+
+    for i in range(15):
+        sleep(i)
+        status = get_latest_task(carina_db_session, task_name)
+        if status is not None and status.status == enum_status:
+            break
+
+    assert status.status == enum_status
 
 
 # fmt: off

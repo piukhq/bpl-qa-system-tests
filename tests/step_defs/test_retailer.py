@@ -21,9 +21,13 @@ from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
 from tests.api.base import Endpoints
-from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
+from tests.db_actions.carina import get_allocated_rewards, get_reward_config_id, get_unallocated_rewards
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
-from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
+from tests.db_actions.retry_tasks import (
+    get_latest_callback_task_for_account_holder,
+    get_latest_task,
+    get_retry_task_audit_data,
+)
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
 from tests.requests.enrolment import send_get_accounts, send_post_enrolment
@@ -454,3 +458,33 @@ def the_account_holder_activation_is_started(polaris_db_session: "Session", reta
     assert resp.json()["transaction_history"] == []
     assert resp.json()["rewards"] == []
     assert resp.json()["pending_rewards"] == []
+
+
+@then(parse("the {retry_task} did not find rewards and return {status_code:d}"))
+def retry_task_not_found_rewards(carina_db_session: "Session", retry_task: str, status_code: int) -> None:
+
+    for i in range(15):
+        sleep(i)
+        audit_data = get_retry_task_audit_data(carina_db_session, task_name=retry_task)
+        if audit_data is not None:
+            break
+
+    logging.info(f"{retry_task} returned : {audit_data[0][0]['response']['status']} ")
+    assert audit_data[0][0]["response"]["status"] == status_code
+
+
+@then(parse("all rewards for {reward_slug} reward config are soft deleted"))
+def reward_gets_soft_deleted(carina_db_session: "Session", reward_slug: str) -> None:
+    reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
+    rewards = get_allocated_rewards(carina_db_session, reward_config_id)
+    for i in range(3):
+        sleep(i)  # Need to allow enough time for the task to soft delete rewards
+        rewards_deleted = []
+        for reward in rewards:
+            carina_db_session.refresh(reward)
+            rewards_deleted.append(reward.deleted)
+
+        if all(rewards_deleted):
+            break
+
+    assert all(rewards_deleted), "All rewards not soft deleted"
