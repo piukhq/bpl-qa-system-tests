@@ -21,7 +21,7 @@ from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
-from tests.db_actions.polaris import get_account_holder, get_account_holder_reward, get_pending_rewards
+from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
@@ -111,9 +111,9 @@ def only_required_credentials() -> dict:
 
 
 @then("the account holder is activated")
-def account_holder_is_activated(polaris_db_session: "Session", request_context: dict) -> None:
-    account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
-    assert account_holder, "account holder not found from request_context"
+def account_holder_is_activated(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
+    account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
+    assert account_holder, "account holder not found"
     for i in range(1, 18):  # 3 minute wait
         logging.info(
             f"Sleeping for 10 seconds while waiting for account activation (account holder id: {account_holder.id})..."
@@ -128,15 +128,6 @@ def account_holder_is_activated(polaris_db_session: "Session", request_context: 
     assert account_holder.opt_out_token is not None
 
 
-def get_account_holder_from_request_data(
-    polaris_db_session: "Session", request_context: dict
-) -> Optional[AccountHolder]:
-    request_body = json.loads(request_context["response"].request.body)
-    email = request_body["credentials"]["email"]
-    retailer = polaris_db_session.query(RetailerConfig).filter_by(slug=request_context["retailer_slug"]).first()
-    return get_account_holder(polaris_db_session, email, retailer.id)
-
-
 @then(parse("i receive a HTTP {status_code:d} status code response"))
 def check_response_status_code(status_code: int, request_context: dict) -> None:
     resp = request_context["response"]
@@ -145,14 +136,14 @@ def check_response_status_code(status_code: int, request_context: dict) -> None:
 
 
 @then("an enrolment callback task is saved in the database")
-def verify_callback_task_saved_in_db(polaris_db_session: "Session", request_context: dict) -> None:
-    account_holder = get_account_holder_from_request_data(polaris_db_session, request_context)
+def verify_callback_task_saved_in_db(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
+    account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
     assert account_holder is not None
-    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session, account_holder.account_holder_uuid)
+    callback_task = get_latest_callback_task_for_account_holder(polaris_db_session)
     assert callback_task is not None
     assert settings.MOCK_SERVICE_BASE_URL in callback_task.get_params()["callback_url"]
     assert callback_task.get_params()["third_party_identifier"] == "identifier"
-    assert callback_task.get_params()["account_holder_uuid"] == str(account_holder.account_holder_uuid)
+    assert callback_task.get_params()["account_holder_id"] == account_holder.id
 
 
 @when(parse("the account holder POST transaction request for {retailer_slug} retailer with {amount:d}"))

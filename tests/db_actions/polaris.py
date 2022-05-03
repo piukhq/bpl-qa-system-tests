@@ -10,10 +10,15 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-def get_account_holder(polaris_db_session: "Session", email: str, retailer_id: int) -> Optional[AccountHolder]:
+def get_account_holder_for_retailer(polaris_db_session: "Session", retailer_id: int) -> AccountHolder:
+    account_holder = polaris_db_session.execute(select(AccountHolder).where(retailer_id == retailer_id)).scalar_one()
+    return account_holder
+
+
+def get_account_holder_with_email(polaris_db_session: "Session", email: str, retailer_id: int) -> AccountHolder:
     account_holder = polaris_db_session.execute(
         select(AccountHolder).where(email == email, retailer_id == retailer_id)
-    ).one_or_none()
+    ).scalar_one()
     return account_holder
 
 

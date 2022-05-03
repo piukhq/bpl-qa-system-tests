@@ -44,6 +44,7 @@ from tests.db_actions.carina import get_fetch_type_id, get_retailer_id, get_rewa
 from tests.db_actions.polaris import (
     create_pending_rewards_for_existing_account_holder,
     create_rewards_for_existing_account_holder,
+    get_account_holder_for_retailer,
 )
 from tests.db_actions.retry_tasks import get_task_status
 from tests.db_actions.vela import get_campaign_by_slug, get_reward_goal_by_campaign_id
@@ -586,6 +587,17 @@ def account_holder_balance_correct(
     assert balances_by_slug[campaign_slug].balance == amount
 
 
+@then(parsers.parse("new enrolled account holder's {campaign_slug} balance is {amount:d}"))
+def get_account_and_check_balance(
+    polaris_db_session: "Session", campaign_slug: str, amount: int, retailer_config: RetailerConfig
+) -> None:
+    time.sleep(2)
+    account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
+    polaris_db_session.refresh(account_holder)
+    balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
+    assert balances_by_slug[campaign_slug].balance == amount
+
+
 @then(parsers.parse("the account holder's {campaign_slug} balance is reduced by the reward goal"))
 def check_account_holder_balance_reduced_by_reward_goal(
     vela_db_session: "Session",
@@ -654,19 +666,6 @@ def verify_account_holder_reward_status(
 
 
 # fmt: off
-@when(parsers.parse("the {task_name} task status is cancelled"))
-# fmt: on
-def check_retry_task_status(vela_db_session: "Session", task_name: str) -> None:
-    for i in range(5):
-        sleep(i)
-        status = get_task_status(vela_db_session, task_name)
-        if status[0] == RetryTaskStatuses.CANCELLED:
-            break
-
-    assert status[0] == RetryTaskStatuses.CANCELLED
-
-
-# fmt: off
 @given(parsers.parse("there are {reward_count} issued unexpired rewards for account holder with "
                      "reward slug {reward_slug}"))
 # fmt: on
@@ -698,3 +697,48 @@ def send_get_request_to_accounts_check_balance_for_campaign(
     )
     for i in range(len(resp.json()["current_balances"])):
         assert resp.json()["current_balances"][i]["campaign_slug"] != campaign_slug
+
+
+# fmt: off
+@then(parsers.parse("the balance shown for account holder is {amount:d}"))
+# fmt: on
+def send_get_request_to_accounts_check_balance(
+    polaris_db_session: "Session", retailer_config: RetailerConfig, amount: int
+) -> None:
+    account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
+    time.sleep(3)
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+    for i in range(len(resp.json()["current_balances"])):
+        assert resp.json()["current_balances"][i]["value"] == amount
+
+
+# Retry task fixtures
+# fmt: off
+@when(parsers.parse("the {task_name} task status is cancelled"))
+# fmt: on
+def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_name: str) -> None:
+    for i in range(5):
+        sleep(i)
+        status = get_task_status(vela_db_session, task_name)
+        if status[0] == RetryTaskStatuses.CANCELLED:
+            break
+
+    assert status[0] == RetryTaskStatuses.CANCELLED
+
+
+# fmt: off
+@then(parsers.parse("the {task_name} task status is success"))
+# fmt: on
+def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", task_name: str) -> None:
+    for i in range(5):
+        sleep(i)
+        status = get_task_status(polaris_db_session, task_name)
+        if status[0] == RetryTaskStatuses.SUCCESS:
+            break
+
+    assert status[0] == RetryTaskStatuses.SUCCESS
