@@ -46,7 +46,7 @@ from tests.db_actions.polaris import (
     create_rewards_for_existing_account_holder,
     get_account_holder_for_retailer,
 )
-from tests.db_actions.retry_tasks import get_task_status
+from tests.db_actions.retry_tasks import get_task_attempts, get_task_status
 from tests.db_actions.vela import get_campaign_by_slug, get_reward_goal_by_campaign_id
 from tests.requests.enrolment import send_get_accounts
 from tests.requests.transaction import post_transaction_request
@@ -741,4 +741,18 @@ def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", ta
         if status[0] == RetryTaskStatuses.SUCCESS:
             break
 
+    logging.info(f"{task_name} task status is {RetryTaskStatuses.SUCCESS}")
     assert status[0] == RetryTaskStatuses.SUCCESS
+
+
+@then(parsers.parse("the {task_name} is retried {num_retried:d} time and successful on attempt {num_success:d}"))
+def number_of_callback_attempts(
+    polaris_db_session: "Session", task_name: str, num_retried: int, num_success: int
+) -> None:
+    for i in range(5):
+        sleep(i)
+        attempts = get_task_attempts(polaris_db_session, task_name)
+        if attempts[0] == num_success:
+            break
+    logging.info(f"{task_name} retried number of {num_retried} time ")
+    assert attempts[0] == num_success
