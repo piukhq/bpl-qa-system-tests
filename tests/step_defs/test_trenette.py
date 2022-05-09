@@ -156,6 +156,7 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
         "datetime": int(datetime.utcnow().timestamp()),
         "MID": "12432432",
         "loyalty_id": str(account_holder_uuid),
+        "transaction_id": "BPL1234567891",
     }
     logging.info(f"Payload of transaction : {json.dumps(payload)}")
     post_transaction_request(payload, retailer_slug, request_context)
