@@ -390,12 +390,8 @@ def check_for_pending_rewards(
 
 
 # fmt: off
-@when(
-    parse(
-        "an account holder is enrolled passing in all required and optional fields with a callback URL for "
-        "{num_failures:d} consecutive HTTP {status_code:d} responses"
-    )
-)
+@when(parse("an account holder is enrolled passing in all required and optional fields with a callback URL for "
+            "{num_failures:d} consecutive HTTP {status_code:d} responses"))
 # fmt: on
 def post_enrolment_with_known_repeated_callback(
     retailer_config: RetailerConfig, num_failures: int, status_code: int
