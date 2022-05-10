@@ -48,3 +48,16 @@ def get_task_status(
 ) -> RetryTaskStatuses:
     task_type_id = db_session.execute(select(TaskType.task_type_id).where(TaskType.name == task_name)).scalar_one()
     return db_session.execute(select(RetryTask.status).where(RetryTask.task_type_id == task_type_id)).first()
+
+
+def get_retry_task_audit_data(
+    db_session: "Session",
+    task_name: str,
+) -> RetryTaskStatuses:
+    task_type_id = db_session.execute(select(TaskType.task_type_id).where(TaskType.name == task_name)).scalar_one()
+    return db_session.execute(select(RetryTask.audit_data).where(RetryTask.task_type_id == task_type_id)).first()
+
+
+def get_task_attempts(db_session: "Session", task_name: str) -> RetryTask:
+    task_type_id = db_session.execute(select(TaskType.task_type_id).where(TaskType.name == task_name)).scalar_one()
+    return db_session.execute(select(RetryTask.attempts).where(RetryTask.task_type_id == task_type_id)).first()

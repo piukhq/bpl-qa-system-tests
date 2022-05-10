@@ -22,7 +22,7 @@ from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
-from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder
+from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_retry_task_audit_data
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
 from tests.requests.enrolment import send_post_enrolment
@@ -50,30 +50,27 @@ def enrolment(
 
 @when(parse("i Enrol a account holder passing in all required and all optional fields"))
 @when(parse("the account holder enrol to retailer with all required and all optional fields"))
-def enrol_accountholder_with_all_required_fields(
-    retailer_config: RetailerConfig, request_context: dict, polaris_db_session: "Session"
-) -> None:
-    return enrol_account_holder(retailer_config, request_context)
+def enrol_accountholder_with_all_required_fields(retailer_config: RetailerConfig) -> None:
+    return enrol_account_holder(retailer_config)
 
 
 def enrol_account_holder(
     retailer_config: RetailerConfig,
-    request_context: dict,
     incl_optional_fields: bool = True,
     callback_url: Optional[str] = None,
 ) -> None:
-    request_context["retailer_slug"] = retailer_config.slug
     if incl_optional_fields:
         request_body = all_required_and_all_optional_credentials(callback_url=callback_url)
     else:
         request_body = only_required_credentials()
-
-    resp = send_post_enrolment(request_context["retailer_slug"], request_body)
+    resp = send_post_enrolment(retailer_config.slug, request_body)
     time.sleep(3)
-    request_context["email"] = request_body["credentials"]["email"]
-    request_context["response"] = resp
-    request_context["status_code"] = resp.status_code
-    logging.info(f"Response : {request_context}")
+    logging.info(
+        f"Response HTTP status code for enrolment: {resp.status_code} "
+        f"Response status: {json.dumps(resp.json(), indent=4)}"
+    )
+    assert resp.status_code == 202
+    logging.info(f"Account holder response: {resp}")
 
 
 def all_required_and_all_optional_credentials(callback_url: Optional[str] = None) -> dict:
@@ -114,6 +111,7 @@ def only_required_credentials() -> dict:
 def account_holder_is_activated(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
     assert account_holder, "account holder not found"
+
     for i in range(1, 18):  # 3 minute wait
         logging.info(
             f"Sleeping for 10 seconds while waiting for account activation (account holder id: {account_holder.id})..."
@@ -122,17 +120,15 @@ def account_holder_is_activated(polaris_db_session: "Session", retailer_config: 
         polaris_db_session.refresh(account_holder)
         if account_holder.status == "ACTIVE":
             break
+    logging.info(
+        f"\n Account holder status : {account_holder.status}\n"
+        f"Account number: {account_holder.account_number}\n"
+        f"Account UUID: {account_holder.account_holder_uuid}"
+    )
     assert account_holder.status == "ACTIVE"
     assert account_holder.account_number is not None
     assert account_holder.account_holder_uuid is not None
     assert account_holder.opt_out_token is not None
-
-
-@then(parse("i receive a HTTP {status_code:d} status code response"))
-def check_response_status_code(status_code: int, request_context: dict) -> None:
-    resp = request_context["response"]
-    logging.info(f"Response HTTP status code: {resp.status_code} Response status: {json.dumps(resp.json(), indent=4)}")
-    assert resp.status_code == status_code
 
 
 @then("an enrolment callback task is saved in the database")
@@ -392,3 +388,50 @@ def check_for_pending_rewards(
         if pending_rewards == []:
             break
     assert pending_rewards == []
+
+
+# fmt: off
+@when(parse("an account holder is enrolled passing in all required and optional fields with a callback URL for "
+            "{num_failures:d} consecutive HTTP {status_code:d} responses"))
+# fmt: on
+def post_enrolment_with_known_repeated_callback(
+    retailer_config: RetailerConfig, num_failures: int, status_code: int
+) -> None:
+    enrol_account_holder(
+        retailer_config, callback_url=get_callback_url(num_failures=num_failures, status_code=status_code)
+    )
+
+
+def get_callback_url(
+    *,
+    num_failures: Optional[int] = None,
+    status_code: Optional[int] = None,
+    timeout_seconds: Optional[int] = 60,
+) -> str:
+    if status_code is None:
+        location = f"/enrol/callback/timeout-{timeout_seconds}"
+    elif status_code == 200:
+        location = "/enrol/callback/success"
+    elif status_code == 500 and num_failures is not None:
+        location = f"/enrol/callback/retry-{num_failures}"
+    else:
+        location = f"/enrol/callback/error-{status_code}"
+    return f"{settings.MOCK_SERVICE_BASE_URL}{location}"
+
+
+@then(parse("a {retry_task} retryable error is received {number_of_time:d} time with {status_code:d} responses"))
+def retry_task_error_received(
+    polaris_db_session: "Session", retry_task: str, number_of_time: int, status_code: int
+) -> None:
+
+    for i in range(15):
+        sleep(i)
+        audit_data = get_retry_task_audit_data(polaris_db_session, task_name=retry_task)
+        if audit_data is not None:
+            break
+
+    for i, data in enumerate(audit_data[0]):
+        if i < number_of_time:
+            assert data["response"]["status"] == 500
+        elif i == number_of_time:
+            assert data["response"]["status"] == 200
