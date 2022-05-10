@@ -7,12 +7,6 @@ Feature: Bink BPL - Ensure a customer can enrol succesfully and that activation 
   Background:
     Given the trenette retailer exists
     And the retailer's trenette-active-campaign STAMPS campaign starts 10 days ago and ends in a day and is ACTIVE
-    And the trenette-active-campaign campaign has an STAMPS earn rule with a threshold of 100, an increment of 0 and a multiplier of 1
-    And the trenette-active-campaign campaign has reward rule of 700, with reward slug 10percentoff and allocation window 0
-    And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
-    And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-    And there is 1 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
-
 
   @bpl @enrol_callback @bpl-302
   Scenario: Enrol account holder successful with callback
