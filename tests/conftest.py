@@ -458,8 +458,7 @@ def setup_account_holder(
     account_holder = AccountHolder(
         email=f"pytest+{uuid4()}@bink.com",
         status=account_status,
-        account_number=fixture_data.retailer_config["account_number_prefix"]
-        + str(random.randint(1, (10**10) - 1)).zfill(10),
+        account_number=fixture_data.retailer_config["account_number_prefix"] + str(random.randint(1, (10**10))),
         retailer_id=retailer_config.id,
         account_holder_uuid=str(uuid4()),
         opt_out_token=str(uuid4()),
