@@ -13,10 +13,10 @@ from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, logger
 def put_new_reward_updates_file(
     retailer_slug: str, rewards: list[Reward], blob_name: str, reward_status: str
 ) -> BlobClient:
-    blob_path = os.path.join(retailer_slug, "reward-updates", blob_name)
+    blob_path = os.path.join(retailer_slug, "reward-updates-" + blob_name)
     today_date = datetime.now().strftime("%Y-%m-%d")
     content = "\n".join([f"{reward.code},{today_date},{reward_status}" for reward in rewards])
-    logging.info(f"content of csv file upload: {content}")
+    logging.info(f"content of csv file upload: {content}\n Blob_path: {blob_path}")
     return upload_blob(blob_path, content)
 
 
