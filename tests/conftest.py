@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 import time
 import uuid
 
@@ -299,7 +300,7 @@ def add_rewards(
     rewards_n: int,
 ) -> list[Reward]:
     allocation_status_bool = allocation_status == "true"
-    deleted_status_bool = allocation_status == "true"
+    deleted_status_bool = deleted_status == "true"
     reward_config_id = get_reward_config_id(carina_db_session=carina_db_session, reward_slug=reward_slug)
     rewards: list[Reward] = []
 
@@ -453,11 +454,11 @@ def setup_account_holder(
 ) -> AccountHolder:
 
     account_status = {"active": "ACTIVE", "pending": "PENDING", "inactive": "INACTIVE"}.get(status, "PENDING")
-
+    fixture_data = load_fixture(retailer_config.slug)
     account_holder = AccountHolder(
         email=f"pytest+{uuid4()}@bink.com",
         status=account_status,
-        account_number="1234567890",
+        account_number=fixture_data.retailer_config["account_number_prefix"] + str(random.randint(1, (10**10))),
         retailer_id=retailer_config.id,
         account_holder_uuid=str(uuid4()),
         opt_out_token=str(uuid4()),
@@ -549,7 +550,7 @@ def the_account_holder_transaction_request(
         "datetime": int(datetime.utcnow().timestamp()),
         "MID": "12432432",
         "loyalty_id": str(account_holder.account_holder_uuid),
-        "transaction_id": "BPL1234567891",
+        "transaction_id": "BPL" + str(random.randint(1, (10**10))),
     }
     logging.info(f"Payload of transaction : {json.dumps(payload)}")
     post_transaction_request(payload, retailer_config.slug, request_context)
