@@ -4,12 +4,11 @@ import time
 
 from datetime import datetime, timedelta
 from time import sleep
-from typing import TYPE_CHECKING, Callable, Optional, Union, Literal
+from typing import TYPE_CHECKING, Callable, Literal, Optional, Union
 from uuid import uuid4
 
 from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient
-
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
@@ -17,13 +16,11 @@ from retry_tasks_lib.enums import RetryTaskStatuses
 from sqlalchemy import select
 
 import settings
-from settings import BLOB_ARCHIVE_CONTAINER, BLOB_ERROR_CONTAINER, BLOB_STORAGE_DSN
-
 
 from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
-from settings import MOCK_SERVICE_BASE_URL
+from settings import BLOB_ARCHIVE_CONTAINER, BLOB_ERROR_CONTAINER, BLOB_STORAGE_DSN, MOCK_SERVICE_BASE_URL
 from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_retry_task_audit_data
