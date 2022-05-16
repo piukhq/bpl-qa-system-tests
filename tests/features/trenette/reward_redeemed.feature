@@ -20,5 +20,6 @@ Feature: Reward code status updated to redeemed from 3rd party
     Then the account holder's trenette-acc-campaign-1 balance is 1
     And 1 issued rewards are available to the account holder
     When the file for trenette with redeemed status is imported
-    Then the status of the allocated account holder for trenette rewards are updated with REDEEMED
+    Then the file is moved to the archive container by the reward importer
+    And the status of the allocated account holder for trenette rewards are updated with REDEEMED
     And 1 reward for the account holder shows as redeemed with redeemed date

@@ -1,12 +1,14 @@
 import json
 import logging
 import time
-import uuid
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Callable, Optional, Union, Literal
 from uuid import uuid4
+
+from azure.core.exceptions import ResourceExistsError
+from azure.storage.blob import BlobServiceClient
 
 from faker import Faker
 from pytest_bdd import scenarios, then, when
@@ -15,6 +17,8 @@ from retry_tasks_lib.enums import RetryTaskStatuses
 from sqlalchemy import select
 
 import settings
+from settings import BLOB_ARCHIVE_CONTAINER, BLOB_ERROR_CONTAINER, BLOB_STORAGE_DSN
+
 
 from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
@@ -147,7 +151,7 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
     account_holder_uuid = request_context["account_holder_uuid"]
 
     payload = {
-        "id": str(uuid.uuid4()),
+        "id": str(uuid4()),
         "transaction_total": amount,
         "datetime": int(datetime.utcnow().timestamp()),
         "MID": "12432432",
@@ -295,6 +299,7 @@ def reward_updates_upload(
     available_rewards: list[Reward],
     upload_reward_updates_to_blob_storage: Callable,
     carina_db_session: "Session",
+    request_context: dict,
 ) -> None:
     """
     The fixture should place a CSV file onto blob storage, which a running instance of
@@ -305,13 +310,13 @@ def reward_updates_upload(
         retailer_slug=retailer_slug, rewards=available_rewards, reward_status=reward_status
     )
     assert blob
+    request_context["blob"] = blob
 
 
 @then(parse("the status of the allocated account holder for {retailer_slug} rewards are updated with {reward_status}"))
 def check_account_holder_reward_statuses(
     polaris_db_session: "Session", available_rewards: list[Reward], retailer_slug: str, reward_status: str
 ) -> None:
-    time.sleep(80)
     allocated_reward_codes = [reward.code for reward in available_rewards if reward.allocated]
     account_holder_rewards = (
         polaris_db_session.execute(
@@ -435,3 +440,46 @@ def retry_task_error_received(
             assert data["response"]["status"] == 500
         elif i == number_of_time:
             assert data["response"]["status"] == 200
+
+
+@then(parse("the file is moved to the {container_type} container by the reward importer"))
+def check_file_moved(
+    container_type: Union[Literal["archive"], Literal["error"]],
+    request_context: dict,
+) -> None:
+    blob_service_client = BlobServiceClient.from_connection_string(BLOB_STORAGE_DSN)
+    now = datetime.utcnow()
+    # Note: possible timing issue with looking for %H%M (hour/minute) if test is behind or ahead of file_agent.py
+    possible_dates = [now - timedelta(seconds=60), now, now + timedelta(seconds=60)]
+    blob_starts_withs = [f"{dt.strftime('%Y/%m/%d/%H%M')}/{request_context['blob'].blob_name}" for dt in possible_dates]
+
+    blob_container = None
+    if container_type == "archive":
+        blob_container = BLOB_ARCHIVE_CONTAINER
+    elif container_type == "errors":
+        blob_container = BLOB_ERROR_CONTAINER
+
+    try:
+        blob_service_client.create_container(blob_container)
+    except ResourceExistsError:
+        pass  # this is fine
+
+    container = blob_service_client.get_container_client(blob_container)
+    for i in range(7):
+        if i:
+            logging.info("No blobs found. Sleeping for 10 seconds...")
+            sleep(10)
+        logging.info(f"Looking for blobs on these paths: {blob_starts_withs}")
+        blobs = []
+        for blob_starts_with in blob_starts_withs:
+            blobs.extend(list(container.list_blobs(name_starts_with=blob_starts_with)))
+
+        if not blobs:
+            continue
+        else:
+            logging.info("Found it!")
+            break
+
+    assert len(blobs) == 1
+
+    container.delete_blob(blobs[0])
