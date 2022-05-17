@@ -2,13 +2,11 @@ import json
 import logging
 import time
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Callable, Literal, Optional, Union
 from uuid import uuid4
 
-from azure.core.exceptions import ResourceExistsError
-from azure.storage.blob import BlobServiceClient
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
@@ -17,10 +15,11 @@ from sqlalchemy import select
 
 import settings
 
+from azure_actions.blob_storage import check_archive_blobcontainer
 from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
-from settings import BLOB_ARCHIVE_CONTAINER, BLOB_ERROR_CONTAINER, BLOB_STORAGE_DSN, MOCK_SERVICE_BASE_URL
+from settings import MOCK_SERVICE_BASE_URL
 from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_retry_task_audit_data
@@ -296,7 +295,6 @@ def reward_updates_upload(
     available_rewards: list[Reward],
     upload_reward_updates_to_blob_storage: Callable,
     carina_db_session: "Session",
-    request_context: dict,
 ) -> None:
     """
     The fixture should place a CSV file onto blob storage, which a running instance of
@@ -307,7 +305,6 @@ def reward_updates_upload(
         retailer_slug=retailer_slug, rewards=available_rewards, reward_status=reward_status
     )
     assert blob
-    request_context["blob"] = blob
 
 
 @then(parse("the status of the allocated account holder for {retailer_slug} rewards are updated with {reward_status}"))
@@ -442,40 +439,8 @@ def retry_task_error_received(
 @then(parse("the file is moved to the {container_type} container by the reward importer"))
 def check_file_moved(
     container_type: Union[Literal["archive"], Literal["error"]],
-    request_context: dict,
 ) -> None:
-    blob_service_client = BlobServiceClient.from_connection_string(BLOB_STORAGE_DSN)
-    now = datetime.utcnow()
-    # Note: possible timing issue with looking for %H%M (hour/minute) if test is behind or ahead of file_agent.py
-    possible_dates = [now - timedelta(seconds=60), now, now + timedelta(seconds=60)]
-    blob_starts_withs = [f"{dt.strftime('%Y/%m/%d/%H%M')}/{request_context['blob'].blob_name}" for dt in possible_dates]
-
-    blob_container = None
-    if container_type == "archive":
-        blob_container = BLOB_ARCHIVE_CONTAINER
-    elif container_type == "errors":
-        blob_container = BLOB_ERROR_CONTAINER
-
-    try:
-        blob_service_client.create_container(blob_container)
-    except ResourceExistsError:
-        pass  # this is fine
-
-    container = blob_service_client.get_container_client(blob_container)
-    for i in range(7):
-        if i:
-            logging.info("No blobs found. Sleeping for 10 seconds...")
-            sleep(10)
-        logging.info(f"Looking for blobs on these paths: {blob_starts_withs}")
-        blobs = []
-        for blob_starts_with in blob_starts_withs:
-            blobs.extend(list(container.list_blobs(name_starts_with=blob_starts_with)))
-
-        if not blobs:
-            continue
-        else:
-            logging.info("Found it!")
-            break
+    blobs, container = check_archive_blobcontainer(container_type)
 
     assert len(blobs) == 1
 
