@@ -68,15 +68,16 @@ def check_archive_blobcontainer(
 
     container = blob_service_client.get_container_client(blob_container)
     for i in range(7):
-        if i:
-            logging.info("No blobs found. Sleeping for 10 seconds...")
-            sleep(10)
+
+        logging.info("Sleeping for 10 seconds...")
+        sleep(10)
         logging.info(f"Looking for blobs on these paths: {blob_starts_withs}")
         blobs = []
         for blob_starts_with in blob_starts_withs:
             blobs.extend(list(container.list_blobs(name_starts_with=blob_starts_with)))
 
         if not blobs:
+            logging.info(f"No blobs found")
             continue
         else:
             logging.info("Found it!")
