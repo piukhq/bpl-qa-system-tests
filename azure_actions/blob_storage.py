@@ -77,7 +77,7 @@ def check_archive_blobcontainer(
             blobs.extend(list(container.list_blobs(name_starts_with=blob_starts_with)))
 
         if not blobs:
-            logging.info(f"No blobs found")
+            logging.info("No blobs found")
             continue
         else:
             logging.info("Found it!")
