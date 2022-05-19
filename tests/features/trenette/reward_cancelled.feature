@@ -19,5 +19,6 @@ Feature: Reward code status updated to cancelled from 3rd party
     Then the account holder's trenette-acc-campaign-1 balance is 1
     And 1 issued rewards are available to the account holder
     When the file for trenette with cancelled status is imported
-    Then the status of the allocated account holder for trenette rewards are updated with CANCELLED
+    Then the file is moved to the archive container by the reward importer
+    And the status of the allocated account holder for trenette rewards are updated with CANCELLED
     And 1 reward for the account holder shows as cancelled with redeemed date

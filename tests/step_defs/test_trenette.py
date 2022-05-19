@@ -1,11 +1,10 @@
 import json
 import logging
 import time
-import uuid
 
 from datetime import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Callable, Literal, Optional, Union
 from uuid import uuid4
 
 from faker import Faker
@@ -16,6 +15,7 @@ from sqlalchemy import select
 
 import settings
 
+from azure_actions.blob_storage import check_archive_blobcontainer
 from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
@@ -147,7 +147,7 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
     account_holder_uuid = request_context["account_holder_uuid"]
 
     payload = {
-        "id": str(uuid.uuid4()),
+        "id": str(uuid4()),
         "transaction_total": amount,
         "datetime": int(datetime.utcnow().timestamp()),
         "MID": "12432432",
@@ -311,7 +311,6 @@ def reward_updates_upload(
 def check_account_holder_reward_statuses(
     polaris_db_session: "Session", available_rewards: list[Reward], retailer_slug: str, reward_status: str
 ) -> None:
-    time.sleep(80)
     allocated_reward_codes = [reward.code for reward in available_rewards if reward.allocated]
     account_holder_rewards = (
         polaris_db_session.execute(
@@ -435,3 +434,14 @@ def retry_task_error_received(
             assert data["response"]["status"] == 500
         elif i == number_of_time:
             assert data["response"]["status"] == 200
+
+
+@then(parse("the file is moved to the {container_type} container by the reward importer"))
+def check_file_moved(
+    container_type: Union[Literal["archive"], Literal["error"]],
+) -> None:
+    blobs, container = check_archive_blobcontainer(container_type)
+
+    assert len(blobs) == 1
+
+    container.delete_blob(blobs[0])

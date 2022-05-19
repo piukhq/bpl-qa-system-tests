@@ -1,22 +1,24 @@
 import logging
 import os
 
-from datetime import datetime
+from datetime import datetime, timedelta
+from time import sleep
+from typing import List, Literal, Tuple, Union
 
-from azure.core.exceptions import HttpResponseError
-from azure.storage.blob import BlobClient, BlobType, ContentSettings
+from azure.core.exceptions import HttpResponseError, ResourceExistsError
+from azure.storage.blob import BlobClient, BlobProperties, BlobServiceClient, BlobType, ContainerClient, ContentSettings
 
 from db.carina.models import Reward
-from settings import BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, logger
+from settings import BLOB_ARCHIVE_CONTAINER, BLOB_ERROR_CONTAINER, BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, logger
 
 
 def put_new_reward_updates_file(
     retailer_slug: str, rewards: list[Reward], blob_name: str, reward_status: str
 ) -> BlobClient:
-    blob_path = os.path.join(retailer_slug, "reward-updates", blob_name)
+    blob_path = os.path.join(retailer_slug, "reward-updates-" + blob_name)
     today_date = datetime.now().strftime("%Y-%m-%d")
     content = "\n".join([f"{reward.code},{today_date},{reward_status}" for reward in rewards])
-    logging.info(f"content of csv file upload: {content}")
+    logging.info(f"content of csv file upload: {content}\n Blob_path: {blob_path}")
     return upload_blob(blob_path, content)
 
 
@@ -42,3 +44,42 @@ def upload_blob(blob_path: str, content: str) -> BlobClient:
         pass
 
     return blob_client
+
+
+def check_archive_blobcontainer(
+    container_type: Union[Literal["archive"], Literal["error"]]
+) -> Tuple[List[BlobProperties], ContainerClient]:
+    blob_service_client: BlobServiceClient = BlobServiceClient.from_connection_string(BLOB_STORAGE_DSN)
+    now = datetime.utcnow()
+    # Note: possible timing issue with looking for %H%M (hour/minute) if test is behind or ahead of file_agent.py
+    possible_dates = [now - timedelta(seconds=60), now, now + timedelta(seconds=60)]
+    blob_starts_withs = [f"{dt.strftime('%Y/%m/%d/%H%M')}" for dt in possible_dates]
+
+    # blob_container = None
+    if container_type == "archive":
+        blob_container = BLOB_ARCHIVE_CONTAINER
+    elif container_type == "errors":
+        blob_container = BLOB_ERROR_CONTAINER
+
+    try:
+        blob_service_client.create_container(blob_container)
+    except ResourceExistsError:
+        pass  # this is fine
+
+    container = blob_service_client.get_container_client(blob_container)
+    for i in range(7):
+
+        logging.info("Sleeping for 10 seconds...")
+        sleep(10)
+        logging.info(f"Looking for blobs on these paths: {blob_starts_withs}")
+        blobs = []
+        for blob_starts_with in blob_starts_withs:
+            blobs.extend(list(container.list_blobs(name_starts_with=blob_starts_with)))
+
+        if not blobs:
+            logging.info("No blobs found")
+            continue
+        else:
+            logging.info("Found it!")
+            break
+    return blobs, container
