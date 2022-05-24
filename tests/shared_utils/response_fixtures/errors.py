@@ -75,6 +75,7 @@ class TransactionResponses:
     # TODO: adapt success response when the correct one is implemented in vela
     awarded = "Awarded"
     threshold_not_met = "Threshold not met"
+    refund_accepted = "Refund accepted"
 
     @classmethod
     def get_json(cls, key: str) -> dict:

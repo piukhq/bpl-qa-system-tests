@@ -162,6 +162,7 @@ def the_account_holder_transaction_request(retailer_slug: str, amount: int, requ
 def the_account_holder_get_response(status_code: int, response_type: str, request_context: dict) -> None:
     assert request_context["resp"].status_code == status_code
     assert request_context["resp"].json() == TransactionResponses.get_json(response_type)
+    logging.info(TransactionResponses.get_json(response_type))
 
 
 @then(parse("the account holder {issued} reward"))

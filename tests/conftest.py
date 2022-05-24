@@ -539,14 +539,14 @@ def update_existing_account_holder_with_pending_rewards(
     return account_holder
 
 
-@when(parsers.parse("BPL receives a transaction for the account holder for the amount of {amount:d} pennies"))
+@when(parsers.parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
 def the_account_holder_transaction_request(
     account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
 ) -> None:
 
     payload = {
         "id": str(uuid4()),
-        "transaction_total": amount,
+        "transaction_total": int(amount),
         "datetime": int(datetime.utcnow().timestamp()),
         "MID": "12432432",
         "loyalty_id": str(account_holder.account_holder_uuid),
@@ -576,11 +576,6 @@ def send_get_request_to_account_holder(
         assert resp.json()["rewards"][i]["redeemed_date"] is None
         assert resp.json()["rewards"][i]["expiry_date"]
         assert resp.json()["rewards"][i]["status"] == state
-
-
-@then(parsers.parse("the account holder's transaction {response_message}"))
-def transaction_threshold_not_match(response_message: str, request_context: dict) -> None:
-    assert request_context["resp"].json() == response_message
 
 
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
@@ -763,3 +758,27 @@ def number_of_callback_attempts(
             break
     logging.info(f"{task_name} retried number of {num_retried} time ")
     assert attempts[0] == num_success
+
+
+@then(parsers.parse("{expected_num_rewards:d} pending-rewards are available to the account holder"))
+# fmt: on
+def send_get_request_to_account_holder_for_pending_reward(
+    retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int
+) -> None:
+    time.sleep(3)
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+    assert len(resp.json()["pending_rewards"]) == expected_num_rewards
+    assert resp.json()["UUID"] == account_holder.account_holder_uuid
+    assert resp.json()["email"] == account_holder.email
+    assert resp.json()["account_number"] == account_holder.account_number
+    assert resp.json()["status"] == "active"
+    assert resp.json()["transaction_history"] == []
+    assert resp.json()["rewards"] == []
+    for i in range(expected_num_rewards):
+        assert resp.json()["pending_rewards"][i]["created_date"] is not None
+        assert resp.json()["pending_rewards"][i]["conversion_date"] is not None

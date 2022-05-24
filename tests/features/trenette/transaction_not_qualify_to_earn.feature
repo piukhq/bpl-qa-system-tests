@@ -4,7 +4,7 @@ Feature: Bink BPL - Transaction doesn't meet threshold
   I am doing transaction with less then threshold amount
   So I make sure that I dont get reward or balance increament
 
-  @bpl @transaction
+  @bpl @transaction @bpl-308
   Scenario Outline: Transaction doesn’t qualify for earn
     Given the trenette retailer exists
     And the retailer's <campaign_type> <loyalty_type> campaign starts 5 days ago and ends in a day and is ACTIVE
