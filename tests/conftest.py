@@ -578,6 +578,11 @@ def send_get_request_to_account_holder(
         assert resp.json()["rewards"][i]["status"] == state
 
 
+@then(parsers.parse("the account holder's transaction {response_message}"))
+def transaction_threshold_not_match(response_message: str, request_context: dict) -> None:
+    assert request_context["resp"].json() == response_message
+
+
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
 @given(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
 def account_holder_balance_correct(
