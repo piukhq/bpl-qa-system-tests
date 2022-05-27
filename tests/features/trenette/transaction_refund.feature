@@ -13,25 +13,27 @@ Feature: Bink BPL - refund
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
-  @bpl @refund
+  @bpl @refund @bpl-540
   Scenario: Refund accepted and balance updated with 0
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 100 pennies
     Then BPL responds with a HTTP 200 and threshold_not_met message
     And the account holder's trenette-accumulator balance is 0
     And 0 issued rewards are available to the account holder
-    When BPL receives a transaction for the account holder for the amount of 500 pennies
-    Then BPL responds with a HTTP 200 and awarded message
-    And the account holder's trenette-accumulator balance is 500
-    And 0 issued rewards are available to the account holder
-    When BPL receives a transaction for the account holder for the amount of 300 pennies
-    Then BPL responds with a HTTP 200 and awarded message
-    And the account holder's trenette-accumulator balance is 100
-    And 1 pending-rewards are available to the account holder
-    When BPL receives a transaction for the account holder for the amount of -600 pennies
-    Then BPL responds with a HTTP 200 and refund_accepted message
-    And 0 issued rewards are available to the account holder
-    When BPL receives a transaction for the account holder for the amount of -400 pennies
-    Then the account holder's trenette-accumulator balance is 0
-    And 0 issued rewards are available to the account holder
 
+    When BPL receives a transaction for the account holder for the amount of 2000 pennies
+    Then BPL receives 2 pending-rewards for trenette-accumulator campaign
+    And BPL responds with a HTTP 200 and awarded message
+    And 0 issued rewards are available to the account holder
+    And the account holder's trenette-accumulator balance is 600
+
+    When BPL receives a transaction for the account holder for the amount of -700 pennies
+    Then BPL receives 1 pending-rewards for trenette-accumulator campaign
+    And BPL responds with a HTTP 200 and refund_accepted message
+    And the account holder's trenette-accumulator balance is 600
+
+    When BPL receives a transaction for the account holder for the amount of -1400 pennies
+    Then BPL responds with a HTTP 200 and refund_accepted message
+    And the account holder's trenette-accumulator balance is 0
+    And BPL receives 0 pending-rewards for trenette-accumulator campaign
+    And 0 issued rewards are available to the account holder

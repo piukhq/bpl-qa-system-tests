@@ -20,12 +20,13 @@ from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
+from tests.api.base import Endpoints
 from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_retry_task_audit_data
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
-from tests.requests.enrolment import send_post_enrolment
+from tests.requests.enrolment import send_get_accounts, send_post_enrolment
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
@@ -446,3 +447,31 @@ def check_file_moved(
     assert len(blobs) == 1
 
     container.delete_blob(blobs[0])
+
+
+@then(parse("BPL receives {expected_num_pending_rewards:d} pending-rewards for {campaign_slug} campaign"))
+# fmt: on
+def send_get_request_to_account_holder_for_pending_reward(
+    expected_num_pending_rewards: int,
+    campaign_slug: str,
+    polaris_db_session: "Session",
+    retailer_config: RetailerConfig,
+    account_holder: AccountHolder,
+) -> None:
+    time.sleep(2)
+    polaris_db_session.refresh(account_holder)
+    for i in range(5):
+        sleep(i)
+        pending_rewards = get_pending_rewards(polaris_db_session=polaris_db_session, campaign_slug=campaign_slug)
+        assert len(pending_rewards) == expected_num_pending_rewards
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+
+    for i in range(expected_num_pending_rewards):
+        assert resp.json()["pending_rewards"][i]["created_date"] is not None
+        assert resp.json()["pending_rewards"][i]["conversion_date"] is not None
+
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )

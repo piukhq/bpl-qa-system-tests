@@ -758,27 +758,3 @@ def number_of_callback_attempts(
             break
     logging.info(f"{task_name} retried number of {num_retried} time ")
     assert attempts[0] == num_success
-
-
-@then(parsers.parse("{expected_num_rewards:d} pending-rewards are available to the account holder"))
-# fmt: on
-def send_get_request_to_account_holder_for_pending_reward(
-    retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int
-) -> None:
-    time.sleep(3)
-    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
-    logging.info(f"Response HTTP status code: {resp.status_code}")
-    logging.info(
-        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
-    )
-    assert len(resp.json()["pending_rewards"]) == expected_num_rewards
-    assert resp.json()["UUID"] == account_holder.account_holder_uuid
-    assert resp.json()["email"] == account_holder.email
-    assert resp.json()["account_number"] == account_holder.account_number
-    assert resp.json()["status"] == "active"
-    assert resp.json()["transaction_history"] == []
-    assert resp.json()["rewards"] == []
-    for i in range(expected_num_rewards):
-        assert resp.json()["pending_rewards"][i]["created_date"] is not None
-        assert resp.json()["pending_rewards"][i]["conversion_date"] is not None
