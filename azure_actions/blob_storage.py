@@ -9,7 +9,16 @@ from azure.core.exceptions import HttpResponseError, ResourceExistsError
 from azure.storage.blob import BlobClient, BlobProperties, BlobServiceClient, BlobType, ContainerClient, ContentSettings
 
 from db.carina.models import Reward
-from settings import BLOB_ARCHIVE_CONTAINER, BLOB_ERROR_CONTAINER, BLOB_IMPORT_CONTAINER, BLOB_STORAGE_DSN, logger
+from settings import (
+    BLOB_ARCHIVE_CONTAINER,
+    BLOB_ERROR_CONTAINER,
+    BLOB_IMPORT_CONTAINER,
+    BLOB_STORAGE_DSN,
+    LOCAL,
+    REPORT_CONTAINER,
+    REPORT_DIRECTORY,
+    logger,
+)
 
 
 def put_new_reward_updates_file(
@@ -22,8 +31,23 @@ def put_new_reward_updates_file(
     return upload_blob(blob_path, content)
 
 
+def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl-auto") -> BlobClient:
+    assert not LOCAL
+    blob_name = f"{blob_prefix}-{datetime.now().strftime('%Y%m%d-%H%M%S')}.html"
+    blob_path = os.path.join(REPORT_DIRECTORY, blob_name)
+    logger.info(f"Uploading test report: {blob_path} to blob storage")
+    blob = BlobClient.from_connection_string(
+        conn_str=BLOB_STORAGE_DSN,
+        container_name=REPORT_CONTAINER,
+        blob_name=blob_path,
+    )
+    with open(filename, "rb") as f:
+        blob.upload_blob(f, content_settings=ContentSettings(content_type="text/html"))  # type: ignore [arg-type]
+
+    return blob
+
+
 def upload_blob(blob_path: str, content: str) -> BlobClient:
-    content_binary = content.encode("utf-8")
     blob_client = BlobClient.from_connection_string(
         conn_str=BLOB_STORAGE_DSN,
         container_name=BLOB_IMPORT_CONTAINER,
@@ -33,7 +57,7 @@ def upload_blob(blob_path: str, content: str) -> BlobClient:
     logger.info(f"Uploading {blob_path} to blob storage")
     try:
         blob_client.upload_blob(
-            content_binary.decode(),  # type: ignore
+            content,  # type: ignore [arg-type]
             blob_type=BlobType.BlockBlob,
             overwrite=True,
             content_settings=ContentSettings(content_type="text/csv"),
