@@ -569,13 +569,18 @@ def send_get_request_to_account_holder(
         f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
     )
-    assert len(resp.json()["rewards"]) == expected_num_rewards
-    for i in range(expected_num_rewards):
-        assert resp.json()["rewards"][i]["code"]
-        assert resp.json()["rewards"][i]["issued_date"]
-        assert resp.json()["rewards"][i]["redeemed_date"] is None
-        assert resp.json()["rewards"][i]["expiry_date"]
-        assert resp.json()["rewards"][i]["status"] == state
+    if state == "issued":
+        assert len(resp.json()["rewards"]) == expected_num_rewards
+        for i in range(expected_num_rewards):
+            assert resp.json()["rewards"][i]["code"]
+            assert resp.json()["rewards"][i]["issued_date"]
+            assert resp.json()["rewards"][i]["redeemed_date"] is None
+            assert resp.json()["rewards"][i]["expiry_date"]
+            assert resp.json()["rewards"][i]["status"] == state
+    elif state == "pending":
+        for i in range(expected_num_rewards):
+            assert resp.json()["pending_rewards"][i]["created_date"] is not None
+            assert resp.json()["pending_rewards"][i]["conversion_date"] is not None
 
 
 @then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))

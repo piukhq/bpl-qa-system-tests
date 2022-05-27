@@ -447,31 +447,3 @@ def check_file_moved(
     assert len(blobs) == 1
 
     container.delete_blob(blobs[0])
-
-
-@then(parse("BPL receives {expected_num_pending_rewards:d} pending-rewards for {campaign_slug} campaign"))
-# fmt: on
-def send_get_request_to_account_holder_for_pending_reward(
-    expected_num_pending_rewards: int,
-    campaign_slug: str,
-    polaris_db_session: "Session",
-    retailer_config: RetailerConfig,
-    account_holder: AccountHolder,
-) -> None:
-    time.sleep(2)
-    polaris_db_session.refresh(account_holder)
-    for i in range(5):
-        sleep(i)
-        pending_rewards = get_pending_rewards(polaris_db_session=polaris_db_session, campaign_slug=campaign_slug)
-        assert len(pending_rewards) == expected_num_pending_rewards
-    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
-
-    for i in range(expected_num_pending_rewards):
-        assert resp.json()["pending_rewards"][i]["created_date"] is not None
-        assert resp.json()["pending_rewards"][i]["conversion_date"] is not None
-
-    logging.info(f"Response HTTP status code: {resp.status_code}")
-    logging.info(
-        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
-    )
