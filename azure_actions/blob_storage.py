@@ -57,7 +57,7 @@ def upload_blob(blob_path: str, content: str) -> BlobClient:
     logger.info(f"Uploading {blob_path} to blob storage")
     try:
         blob_client.upload_blob(
-            content,  # type: ignore [arg-type]
+            content,
             blob_type=BlobType.BlockBlob,
             overwrite=True,
             content_settings=ContentSettings(content_type="text/csv"),

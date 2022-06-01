@@ -27,6 +27,7 @@ pydantic = "*"
 arrow = "*"
 types-redis = "*"
 redis = "*"
+pyyaml = "*"
 
 [dev-packages]
 black = "*"
