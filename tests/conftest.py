@@ -733,6 +733,8 @@ def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_n
         status = get_task_status(vela_db_session, task_name)
         sleep(i)
         if task_status == "cancelled":
+            if status[0] == RetryTaskStatuses.PENDING:
+                continue
             assert status[0] == RetryTaskStatuses.CANCELLED
             logging.info(f"{status[0]} is cancelled")
             break
