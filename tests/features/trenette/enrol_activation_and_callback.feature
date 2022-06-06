@@ -1,7 +1,7 @@
 # Created by rupalpatel at 16/02/2022, last updated by Haffi Mazhar at 03/05/2022
-Feature: Bink BPL - Ensure a customer can enrol succesfully and that activation and callback is completed
+Feature: Bink BPL - Ensure a customer can enrol successfully and that activation and callback is completed
   As a customer
-  I want to utilise POST enrol enodpoint
+  I want to utilise POST enrol endpoint
   So I can access to customer management system
 
   Background:

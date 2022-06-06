@@ -726,30 +726,51 @@ def send_get_request_to_accounts_check_balance(
 
 # Retry task fixtures
 # fmt: off
-@when(parsers.parse("the {task_name} task status is cancelled"))
+@when(parsers.parse("the {task_name} task status is {task_status}"))
 # fmt: on
-def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_name: str) -> None:
+def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_name: str, task_status: str) -> None:
     for i in range(5):
-        sleep(i)
         status = get_task_status(vela_db_session, task_name)
-        if status[0] == RetryTaskStatuses.CANCELLED:
+        sleep(i)
+        if task_status == "cancelled":
+            assert status[0] == RetryTaskStatuses.CANCELLED
+            logging.info(f"{status[0]} is cancelled")
             break
-
-    assert status[0] == RetryTaskStatuses.CANCELLED
+        elif task_status == "success":
+            if status[0] == RetryTaskStatuses.PENDING:
+                continue
+            assert status[0] == RetryTaskStatuses.SUCCESS
+            logging.info(f"{status[0]} is success")
+            break
 
 
 # fmt: off
-@then(parsers.parse("the {task_name} task status is success"))
+@then(parsers.parse("the {task_name} task status is {task_status}"))
 # fmt: on
-def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", task_name: str) -> None:
+def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", task_name: str, task_status: str) -> None:
     for i in range(5):
         sleep(i)
         status = get_task_status(polaris_db_session, task_name)
-        if status[0] == RetryTaskStatuses.SUCCESS:
-            break
-
-    logging.info(f"{task_name} task status is {RetryTaskStatuses.SUCCESS}")
-    assert status[0] == RetryTaskStatuses.SUCCESS
+        if task_status == "success":
+            if status[0] == RetryTaskStatuses.SUCCESS:
+                logging.info(f"{task_name} task status is {RetryTaskStatuses.SUCCESS}")
+                assert status[0] == RetryTaskStatuses.SUCCESS, "Status is not appearing"
+                break
+        elif task_status == "pending":
+            if status[0] == RetryTaskStatuses.PENDING:
+                logging.info(f"{task_name} task status is {RetryTaskStatuses.PENDING}")
+                assert status[0] == RetryTaskStatuses.PENDING, "Status is not appearing"
+                break
+        elif task_status == "waiting":
+            if status[0] == RetryTaskStatuses.WAITING:
+                logging.info(f"{task_name} task status is {RetryTaskStatuses.WAITING}")
+                assert status[0] == RetryTaskStatuses.WAITING, "Status is not appearing"
+                break
+        elif task_status == "cancelled":
+            if status[0] == RetryTaskStatuses.CANCELLED:
+                logging.info(f"{task_name} task status is {RetryTaskStatuses.CANCELLED}")
+                assert status[0] == RetryTaskStatuses.CANCELLED, "Status is not appearing"
+                break
 
 
 @then(parsers.parse("the {task_name} is retried {num_retried:d} time and successful on attempt {num_success:d}"))
