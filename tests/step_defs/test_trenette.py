@@ -216,29 +216,6 @@ def send_post_campaign_change_request(
                 assert campaign_status == CampaignStatuses.CANCELLED
 
 
-# @then(parse("the status is then changed to {status} for {campaign_slug} for the retailer {retailer_slug}"))
-# def send_post_campaign_change_request(
-#     request_context: dict, vela_db_session: "Session", status: str, retailer_slug: str, campaign_slug: str
-# ) -> None:
-#     payload = {
-#         "requested_status": status,
-#         "campaign_slugs": [campaign_slug],
-#     }
-#
-#     request = send_post_campaign_status_change(
-#         request_context=request_context, retailer_slug=retailer_slug, request_body=payload
-#     )
-#     assert request.status_code == 200
-#
-#     if status in ("ended", "cancelled"):
-#         for i in range(5):
-#             campaign_status = get_campaign_status(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
-#             if status == "ended":
-#                 assert campaign_status == CampaignStatuses.ENDED
-#             else:
-#                 assert campaign_status == CampaignStatuses.CANCELLED
-
-
 @then(parse("the account holder's {campaign_slug} balance no longer exists"))
 def check_account_holder_balance_is_updated(
     campaign_slug: str,

@@ -24,13 +24,11 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards
         And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff
         And the account has 3 pending rewards for trenette-active-campaign with value 700
 
-#        Then the status is then changed to active for trenette-draft-campaign for the retailer trenette
         Then the retailer's trenette-draft-campaign campaign status is changed to active
 
         When BPL receives a transaction for the account holder for the amount of 600 pennies
         And the task worker queue is full
         Then the retailer's trenette-active-campaign campaign status is changed to cancelled
-#        Then the status is then changed to cancelled for trenette-active-campaign for the retailer trenette
         When the task worker queue is ready
         Then any pending rewards for trenette-active-campaign are deleted
         And the account holder's trenette-active-campaign balance no longer exists
