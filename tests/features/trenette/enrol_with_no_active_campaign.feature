@@ -23,7 +23,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
     And the send-welcome-email task status is pending
     And the enrolment-callback task status is pending
 
-    Then the status is then changed to active for trenette-active-campaign for the retailer trenette
+    Then the retailer's trenette-active-campaign campaign status is changed to active
     When the create-campaign-balances task status is success
     Then the account holder is activated
     And new enrolled account holder's trenette-active-campaign balance is 0

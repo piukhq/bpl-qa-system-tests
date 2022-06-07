@@ -22,6 +22,6 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 600 pennies
     Then the account holder's trenette-stmp-campaign-1 balance is reduced by the reward goal
-    And the status is then changed to cancelled for trenette-stmp-campaign-1 for the retailer trenette
+    And the retailer's trenette-stmp-campaign-1 campaign status is changed to cancelled
     And the trenette account is not issued reward free-item
     And the account holder's trenette-stmp-campaign-1 balance no longer exists
