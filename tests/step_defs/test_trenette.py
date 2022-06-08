@@ -20,12 +20,13 @@ from db.carina.models import Reward, RewardConfig
 from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
+from tests.api.base import Endpoints
 from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
-from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_retry_task_audit_data
+from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
-from tests.requests.enrolment import send_post_enrolment
+from tests.requests.enrolment import send_get_accounts, send_post_enrolment
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
@@ -109,7 +110,9 @@ def only_required_credentials() -> dict:
 
 @then("the account holder is activated")
 def account_holder_is_activated(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
+    sleep(3)
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
+    polaris_db_session.refresh(account_holder)
     assert account_holder, "account holder not found"
 
     for i in range(1, 18):  # 3 minute wait
@@ -190,9 +193,9 @@ def verify_uuid_and_account(request_context: dict, get_account_response_by_uuid:
     assert request_context["account_number"] == get_account_response_by_uuid.json()["account_number"]
 
 
-@then(parse("the status is then changed to {status} for {campaign_slug} for the retailer {retailer_slug}"))
+@then(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
 def send_post_campaign_change_request(
-    request_context: dict, vela_db_session: "Session", status: str, retailer_slug: str, campaign_slug: str
+    request_context: dict, vela_db_session: "Session", status: str, retailer_config: RetailerConfig, campaign_slug: str
 ) -> None:
     payload = {
         "requested_status": status,
@@ -200,7 +203,7 @@ def send_post_campaign_change_request(
     }
 
     request = send_post_campaign_status_change(
-        request_context=request_context, retailer_slug=retailer_slug, request_body=payload
+        request_context=request_context, retailer_slug=retailer_config.slug, request_body=payload
     )
     assert request.status_code == 200
 
@@ -426,11 +429,11 @@ def retry_task_error_received(
 
     for i in range(15):
         sleep(i)
-        audit_data = get_retry_task_audit_data(polaris_db_session, task_name=retry_task)
-        if audit_data is not None:
+        task = get_latest_task(polaris_db_session, task_name=retry_task)
+        if task.audit_data is not None:
             break
 
-    for i, data in enumerate(audit_data[0]):
+    for i, data in enumerate(task.audit_data):
         if i < number_of_time:
             assert data["response"]["status"] == 500
         elif i == number_of_time:
@@ -446,3 +449,33 @@ def check_file_moved(
     assert len(blobs) == 1
 
     container.delete_blob(blobs[0])
+
+
+@then("the account holder activation is started")
+def the_account_holder_activation_is_started(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
+    account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
+    polaris_db_session.refresh(account_holder)
+    assert account_holder, "account holder not found"
+    assert account_holder.status == "PENDING"
+
+    logging.info(
+        f"\nAccount holder status : {account_holder.status}\n"
+        f"Account number: {account_holder.account_number}\n"
+        f"Account UUID: {account_holder.account_holder_uuid}"
+    )
+
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+
+    assert resp.json()["UUID"] is not None
+    assert resp.json()["email"] is not None
+    assert resp.json()["status"] == "pending"
+    assert resp.json()["account_number"] is not None
+    assert resp.json()["current_balances"] == []
+    assert resp.json()["transaction_history"] == []
+    assert resp.json()["rewards"] == []
+    assert resp.json()["pending_rewards"] == []

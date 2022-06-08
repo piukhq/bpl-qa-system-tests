@@ -29,12 +29,12 @@ Feature: Bink BPL - Activate new campaign, end old
         And the account has 3 pending rewards for trenette-active-campaign with value 700
         And the account has 3 issued unexpired rewards
 
-        Then the status is then changed to active for trenette-draft-campaign for the retailer trenette
+        Then the retailer's trenette-draft-campaign campaign status is changed to active
         When BPL receives a transaction for the account holder for the amount of 600 pennies
         And the task worker queue is full
-        Then the status is then changed to ended for trenette-active-campaign for the retailer trenette
+        Then the retailer's trenette-active-campaign campaign status is changed to ended
         When the task worker queue is ready
-        And the reward-adjustment task status is cancelled
+        And the vela reward-adjustment task status is cancelled
 
         Then all unallocated rewards for 10percentoff reward config are soft deleted
         And the account holder's trenette-active-campaign balance no longer exists

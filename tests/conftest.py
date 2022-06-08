@@ -14,7 +14,6 @@ import pytest
 
 from azure.storage.blob import BlobClient
 from pytest_bdd import given, parsers, then, when
-from retry_tasks_lib.db.models import RetryTaskStatuses
 from sqlalchemy import create_engine, update
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
@@ -47,7 +46,7 @@ from tests.db_actions.polaris import (
     create_rewards_for_existing_account_holder,
     get_account_holder_for_retailer,
 )
-from tests.db_actions.retry_tasks import get_task_attempts, get_task_status
+from tests.db_actions.retry_tasks import get_latest_task
 from tests.db_actions.vela import get_campaign_by_slug, get_reward_goal_by_campaign_id
 from tests.requests.enrolment import send_get_accounts
 from tests.requests.transaction import post_transaction_request
@@ -726,30 +725,31 @@ def send_get_request_to_accounts_check_balance(
 
 # Retry task fixtures
 # fmt: off
-@when(parsers.parse("the {task_name} task status is cancelled"))
+@when(parsers.parse("the vela {task_name} task status is {task_status}"))
 # fmt: on
-def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_name: str) -> None:
+def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_name: str, task_status: str) -> None:
+    task = get_latest_task(vela_db_session, task_name)
     for i in range(5):
         sleep(i)
-        status = get_task_status(vela_db_session, task_name)
-        if status[0] == RetryTaskStatuses.CANCELLED:
+        if task.status.value == task_status:
+            logging.info(f"{task.status} is {task_status}")
             break
-
-    assert status[0] == RetryTaskStatuses.CANCELLED
+        vela_db_session.refresh(task)
+    assert task.status.value == task_status
 
 
 # fmt: off
-@then(parsers.parse("the {task_name} task status is success"))
+@then(parsers.parse("the polaris {task_name} task status is {task_status}"))
 # fmt: on
-def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", task_name: str) -> None:
+def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", task_name: str, task_status: str) -> None:
+    task = get_latest_task(polaris_db_session, task_name)
     for i in range(5):
         sleep(i)
-        status = get_task_status(polaris_db_session, task_name)
-        if status[0] == RetryTaskStatuses.SUCCESS:
+        if task.status.value == task_status:
+            logging.info(f"{task.status} is {task_status}")
             break
-
-    logging.info(f"{task_name} task status is {RetryTaskStatuses.SUCCESS}")
-    assert status[0] == RetryTaskStatuses.SUCCESS
+        polaris_db_session.refresh(task)
+    assert task.status.value == task_status
 
 
 @then(parsers.parse("the {task_name} is retried {num_retried:d} time and successful on attempt {num_success:d}"))
@@ -758,8 +758,8 @@ def number_of_callback_attempts(
 ) -> None:
     for i in range(5):
         sleep(i)
-        attempts = get_task_attempts(polaris_db_session, task_name)
-        if attempts[0] == num_success:
+        task = get_latest_task(polaris_db_session, task_name)
+        if task.attempts == num_success:
             break
     logging.info(f"{task_name} retried number of {num_retried} time ")
-    assert attempts[0] == num_success
+    assert task.attempts == num_success

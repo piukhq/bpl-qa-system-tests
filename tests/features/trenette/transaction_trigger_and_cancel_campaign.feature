@@ -27,12 +27,12 @@ Feature: Bink BPL - Trigger transaction and cancel campaign while balance adjust
         And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff
 
         Then 3 issued rewards are available to the account holder
-        And the status is then changed to active for trenette-draft-campaign for the retailer trenette
+        And the retailer's trenette-draft-campaign campaign status is changed to active
         When BPL receives a transaction for the account holder for the amount of 600 pennies
         And the task worker queue is full
-        Then the status is then changed to cancelled for trenette-active-campaign for the retailer trenette
+        Then the retailer's trenette-active-campaign campaign status is changed to cancelled
         When the task worker queue is ready
-        And the reward-adjustment task status is cancelled
+        And the vela reward-adjustment task status is cancelled
 
         Then all unallocated rewards for 10percentoff reward config are soft deleted
         And the account holder's trenette-active-campaign balance no longer exists
