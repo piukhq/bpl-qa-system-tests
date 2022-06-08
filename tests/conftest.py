@@ -725,7 +725,7 @@ def send_get_request_to_accounts_check_balance(
 
 # Retry task fixtures
 # fmt: off
-@when(parsers.parse("the {task_name} task status is {task_status}"))
+@when(parsers.parse("the vela {task_name} task status is {task_status}"))
 # fmt: on
 def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_name: str, task_status: str) -> None:
     task = get_latest_task(vela_db_session, task_name)
@@ -739,7 +739,7 @@ def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_n
 
 
 # fmt: off
-@then(parsers.parse("the {task_name} task status is {task_status}"))
+@then(parsers.parse("the polaris {task_name} task status is {task_status}"))
 # fmt: on
 def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", task_name: str, task_status: str) -> None:
     task = get_latest_task(polaris_db_session, task_name)

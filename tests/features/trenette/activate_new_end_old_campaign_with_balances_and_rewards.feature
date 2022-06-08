@@ -32,7 +32,7 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards
         When the task worker queue is ready
         Then any pending rewards for trenette-active-campaign are deleted
         And the account holder's trenette-active-campaign balance no longer exists
-        When the reward-adjustment task status is cancelled
+        When the vela reward-adjustment task status is cancelled
 
         Then the account holder's trenette-draft-campaign balance is 0
         And the account holder's trenette-active-campaign balance no longer exists

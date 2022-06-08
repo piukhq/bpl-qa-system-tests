@@ -19,16 +19,16 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
     When i Enrol a account holder passing in all required and all optional fields
     Then the account holder activation is started
     And an enrolment callback task is saved in the database
-    And the account-holder-activation task status is waiting
-    And the send-welcome-email task status is pending
-    And the enrolment-callback task status is pending
+    And the polaris account-holder-activation task status is waiting
+    And the polaris send-welcome-email task status is pending
+    And the polaris enrolment-callback task status is pending
 
     Then the retailer's trenette-active-campaign campaign status is changed to active
-    When the create-campaign-balances task status is success
+    When the vela create-campaign-balances task status is success
     Then the account holder is activated
     And new enrolled account holder's trenette-active-campaign balance is 0
-    And the account-holder-activation task status is success
-    And the send-welcome-email task status is success
-    And the enrolment-callback task status is success
+    And the polaris account-holder-activation task status is success
+    And the polaris send-welcome-email task status is success
+    And the polaris enrolment-callback task status is success
 
 

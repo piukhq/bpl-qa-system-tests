@@ -34,7 +34,7 @@ Feature: Bink BPL - Activate new campaign, end old
         And the task worker queue is full
         Then the retailer's trenette-active-campaign campaign status is changed to ended
         When the task worker queue is ready
-        And the reward-adjustment task status is cancelled
+        And the vela reward-adjustment task status is cancelled
 
         Then all unallocated rewards for 10percentoff reward config are soft deleted
         And the account holder's trenette-active-campaign balance no longer exists
