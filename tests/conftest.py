@@ -204,17 +204,26 @@ def create_campaign(
 
 
 # fmt: off
-@given(parsers.parse("the {campaign_slug} campaign has an {campaign_type} earn rule with a threshold of {threshold}, "
-                     "an increment of {inc} and a multiplier of {mult}"))
+@given(parsers.parse("the {campaign_slug} campaign has an {campaign_type} "
+                     "earn rule with a threshold of {threshold}, an increment of {inc}, "
+                     "a multiplier of {mult} and max amount of {earn_max_amount}"))
 # fmt: on
 def create_earn_rule(
-    campaign_slug: str, campaign_type: str, threshold: int, inc: int, mult: int, vela_db_session: "Session"
+    campaign_slug: str,
+    campaign_type: str,
+    threshold: int,
+    inc: int,
+    mult: int,
+    vela_db_session: "Session",
+    earn_max_amount: int,
 ) -> None:
     campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
     if campaign_type == "STAMPS":
         earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult)
     else:
-        earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment_multiplier=mult)
+        earn_rule = EarnRule(
+            campaign_id=campaign.id, threshold=threshold, increment_multiplier=mult, max_amount=earn_max_amount
+        )
     vela_db_session.add(earn_rule)
     vela_db_session.commit()
 
@@ -591,6 +600,7 @@ def account_holder_balance_correct(
     polaris_db_session.refresh(account_holder)
     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
     assert balances_by_slug[campaign_slug].balance == amount
+    logging.info(f"Account holder balance is {balances_by_slug[campaign_slug].balance}")
 
 
 @then(parsers.parse("new enrolled account holder's {campaign_slug} balance is {amount:d}"))
