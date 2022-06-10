@@ -7,7 +7,6 @@ Feature: Bink BPL - Transaction exceeds earn rule max amount
   Background:
     Given the trenette retailer exists
     And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
-#    And the trenette-acc-campaign campaign has an ACCUMULATOR earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
     And the trenette-acc-campaign campaign has an ACCUMULATOR earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 1000
     And the trenette-acc-campaign campaign has reward rule of 10000, with reward slug free-item and allocation window 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
