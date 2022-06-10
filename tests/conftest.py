@@ -215,14 +215,14 @@ def create_earn_rule(
     inc: int,
     mult: int,
     vela_db_session: "Session",
-    earn_max_amount: int,
+    earn_max_amount: Optional[str],
 ) -> None:
     campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
-    if campaign_type == "STAMPS":
+    if campaign_type == "STAMPS" and earn_max_amount == "None":
         earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult)
     else:
         earn_rule = EarnRule(
-            campaign_id=campaign.id, threshold=threshold, increment_multiplier=mult, max_amount=earn_max_amount
+            campaign_id=campaign.id, threshold=threshold, increment_multiplier=mult, max_amount=int(earn_max_amount)
         )
     vela_db_session.add(earn_rule)
     vela_db_session.commit()
