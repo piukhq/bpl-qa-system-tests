@@ -215,7 +215,7 @@ def create_earn_rule(
     inc: int,
     mult: int,
     vela_db_session: "Session",
-    earn_max_amount: Optional[str],
+    earn_max_amount: str,
 ) -> None:
     campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
     if campaign_type == "STAMPS" and earn_max_amount == "None":
