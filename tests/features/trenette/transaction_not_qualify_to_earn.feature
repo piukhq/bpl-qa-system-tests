@@ -21,7 +21,6 @@ Feature: Bink BPL - Transaction doesn't meet threshold
 
     Examples:
       | campaign_type          | loyalty_type | increment | reward_rule | reward_slug     | max_amount |
-#      | trenette-stmp-campaign | STAMPS       | 100       | 700         | free-item       | None       |
       | trenette-acc-campaign  | ACCUMULATOR  | 0         | 1000        | 20percent_egift | 0          |
 
   @bpl @transaction
@@ -45,6 +44,5 @@ Feature: Bink BPL - Transaction doesn't meet threshold
     Examples:
       | campaign_type          | transaction_amount_1 | transaction_amount_2 | expected_balance | expected_reward | loyalty_type | increment | reward_rule | reward_slug     |
       | trenette-stmp-campaign | 770                  | 480                  | 100              | 0               | STAMPS       | 100       | 700         | free-item       |
-#      | trenette-acc-campaign  | 1100                 | 480                  | 100              | 1               | ACCUMULATOR  | 0         | 1000        | 20percent_egift | 0          |
 
 
