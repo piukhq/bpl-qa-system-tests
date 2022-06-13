@@ -7,8 +7,8 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
     Given the trenette retailer exists
     And the retailer's trenette-stmp-campaign-1 STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
     And the retailer's trenette-stmp-campaign-2 STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
-    And the trenette-stmp-campaign-1 campaign has an STAMPS earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
-    And the trenette-stmp-campaign-2 campaign has an STAMPS earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
+    And the trenette-stmp-campaign-1 campaign has an earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
+    And the trenette-stmp-campaign-2 campaign has an earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
     And the trenette-stmp-campaign-1 campaign has reward rule of 100, with reward slug free-item and allocation window 0
     And the trenette-stmp-campaign-2 campaign has reward rule of 100, with reward slug free-item-2 and allocation window 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None with an agent config of None
