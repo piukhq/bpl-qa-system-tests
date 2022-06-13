@@ -204,7 +204,6 @@ def create_campaign(
 
 
 # fmt: off
-# STAMPS
 @given(parsers.parse("the {campaign_slug} campaign has an "
                      "earn rule with a threshold of {threshold}, an increment of {inc} and "
                      "a multiplier of {mult}"))
@@ -225,13 +224,9 @@ def create_stamps_earn_rule(
     vela_db_session.commit()
 
 
-@given(
-    parsers.parse(
-        "the {campaign_slug} campaign has an "
-        "earn rule with a threshold of {threshold}, an increment of {inc}, "
-        "a multiplier of {mult} and max amount of {earn_max_amount}"
-    )
-)
+# fmt: off
+@given(parsers.parse("the {campaign_slug} campaign has an earn rule with a threshold of {threshold}, "
+                     "an increment of {inc}, a multiplier of {mult} and max amount of {earn_max_amount}"))
 # fmt: on
 def create_accumulator_earn_rule(
     vela_db_session: "Session",

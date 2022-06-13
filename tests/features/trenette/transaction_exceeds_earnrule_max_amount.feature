@@ -13,7 +13,7 @@ Feature: Bink BPL - Transaction exceeds earn rule max amount
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
-  @transaction @bpl @bpl-562 @test
+  @transaction @bpl @bpl-562
   Scenario: Transaction exceeds earn rule max - Accumulator
     Given an active account holder exists for the retailer
     And the trenette-acc-campaign account holder campaign balance is 2000
