@@ -203,8 +203,6 @@ def create_campaign(
     vela_db_session.commit()
 
 
-
-
 # fmt: off
 # STAMPS
 @given(parsers.parse("the {campaign_slug} campaign has an "
@@ -219,15 +217,21 @@ def create_stamps_earn_rule(
     mult: int,
 ) -> None:
     campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
-    earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult, max_amount=None)
+    earn_rule = EarnRule(
+        campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult, max_amount=None
+    )
 
     vela_db_session.add(earn_rule)
     vela_db_session.commit()
 
 
-@given(parsers.parse("the {campaign_slug} campaign has an "
-                     "earn rule with a threshold of {threshold}, an increment of {inc}, "
-                     "a multiplier of {mult} and max amount of {earn_max_amount}"))
+@given(
+    parsers.parse(
+        "the {campaign_slug} campaign has an "
+        "earn rule with a threshold of {threshold}, an increment of {inc}, "
+        "a multiplier of {mult} and max amount of {earn_max_amount}"
+    )
+)
 # fmt: on
 def create_accumulator_earn_rule(
     vela_db_session: "Session",
@@ -238,7 +242,13 @@ def create_accumulator_earn_rule(
     earn_max_amount: int,
 ) -> None:
     campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
-    earn_rule = EarnRule(campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult, max_amount=earn_max_amount)
+    earn_rule = EarnRule(
+        campaign_id=campaign.id,
+        threshold=threshold,
+        increment=inc,
+        increment_multiplier=mult,
+        max_amount=earn_max_amount,
+    )
 
     vela_db_session.add(earn_rule)
     vela_db_session.commit()
