@@ -13,7 +13,7 @@ Feature: Transaction with no reward config setup for retailer
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
 
   @transaction @bpl @bpl-297-1
-  Scenario: 1 Rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
+  Scenario: single rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 7500 pennies
     Then the account holder's trenette-acc-campaign-1 balance is 7500
@@ -28,7 +28,7 @@ Feature: Transaction with no reward config setup for retailer
 
 
   @transaction @bpl @bpl-297-2
-  Scenario: 2 Rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
+  Scenario: Two rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 21000 pennies
     Then the account holder's trenette-acc-campaign-1 balance is 1000
