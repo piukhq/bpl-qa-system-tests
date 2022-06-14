@@ -12,7 +12,7 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards
         And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
 
         And the retailer's trenette-draft-campaign STAMPS campaign starts 5 days ago and ends in a week and is DRAFT
-        And the trenette-draft-campaign campaign has an earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
+        And the trenette-draft-campaign campaign has an earn rule with a threshold of 1000, an increment of 200 and a multiplier of 1
         And the trenette-draft-campaign campaign has reward rule of 900, with reward slug free-item and allocation window 0
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
 
