@@ -32,6 +32,7 @@ from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
 
 scenarios("../features/trenette")
+scenarios("../features/asos")
 
 if TYPE_CHECKING:
     from requests import Response

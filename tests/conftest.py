@@ -11,6 +11,7 @@ from uuid import uuid4
 
 import arrow
 import pytest
+import yaml
 
 from azure.storage.blob import BlobClient
 from pytest_bdd import given, parsers, then, when
@@ -292,20 +293,41 @@ def add_reward_config(
 
 # fmt: off
 @given(parsers.parse("a {fetch_type_name} fetch type is configured for the current retailer "
-                     "with an agent config of {agent_config}"))
+                     "with an agent config brand id {brand_id:d}"))
 # fmt: on
-def add_retailer_fetch_type(
+def add_retailer_fetch_type_egift(
+    carina_db_session: "Session",
+    retailer_config: RetailerConfig,
+    fetch_type_name: str,
+    brand_id: int,
+) -> None:
+
+    agent_config = {"base_url": settings.API_REFLECTOR_BASE_URL, "brand_id": brand_id}
+
+    retailer_fetch_type = RetailerFetchType(
+        retailer_id=get_retailer_id(carina_db_session=carina_db_session, retailer_slug=retailer_config.slug),
+        fetch_type_id=get_fetch_type_id(carina_db_session=carina_db_session, fetch_type_name=fetch_type_name),
+        agent_config=yaml.dump(agent_config),
+    )
+    carina_db_session.add(retailer_fetch_type)
+    carina_db_session.commit()
+
+
+# fmt: off
+@given(parsers.parse("a {fetch_type_name} fetch type is configured for the current retailer with "
+                     "an agent config of {agent_config}"))
+# fmt: on
+def add_retailer_fetch_type_preloaded(
     carina_db_session: "Session",
     retailer_config: RetailerConfig,
     fetch_type_name: str,
     agent_config: Optional[str],
 ) -> None:
-    if agent_config == "None":
-        agent_config = None
+
     retailer_fetch_type = RetailerFetchType(
         retailer_id=get_retailer_id(carina_db_session=carina_db_session, retailer_slug=retailer_config.slug),
         fetch_type_id=get_fetch_type_id(carina_db_session=carina_db_session, fetch_type_name=fetch_type_name),
-        agent_config=agent_config,
+        agent_config=None,
     )
     carina_db_session.add(retailer_fetch_type)
     carina_db_session.commit()

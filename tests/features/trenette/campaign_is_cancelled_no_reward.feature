@@ -11,7 +11,7 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
     And the trenette-stmp-campaign-2 campaign has an earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
     And the trenette-stmp-campaign-1 campaign has reward rule of 100, with reward slug free-item and allocation window 0
     And the trenette-stmp-campaign-2 campaign has reward rule of 100, with reward slug free-item-2 and allocation window 0
-    And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None with an agent config of None
+    And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And the retailer has a free-item-2 reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
