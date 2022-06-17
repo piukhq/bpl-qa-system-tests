@@ -1,0 +1,92 @@
+retailer_config:
+  name: "Asos"
+  slug: "asos"
+  account_number_prefix: "ASOS"
+  loyalty_name: "Asos"
+  welcome_email_from: "asos@bink.com"
+  welcome_email_subject: "Welcome"
+  profile_config:
+    !as_yaml_string
+    email:
+      required: true
+      label: email
+    first_name:
+      required: true
+      label: first_name
+    last_name:
+      required: true
+      label: last_name
+  marketing_preference_config:
+    !as_yaml_string
+    marketing_pref:
+      label: Would you like to receive marketing?
+      type: boolean
+
+campaign:
+  - slug: "asos-stamp-campaign"
+    name: "Asos Stamp Campaign"
+    status: "ACTIVE"
+    loyalty_type: STAMPS
+    start_date:
+      !utc_now
+      timedelta: -5
+    end_date: null
+  - slug: "asos-acc-campaign"
+    name: "Asos Accumulator Campaign"
+    status: "ACTIVE"
+    loyalty_type: ACCUMULATOR
+    start_date:
+      !utc_now
+      timedelta: -5
+    end_date: null
+  - slug: "asos-acc-campaign-1"
+    name: "Asos Accumulator Campaign 1"
+    status: "ACTIVE"
+    loyalty_type: ACCUMULATOR
+    start_date:
+      !utc_now
+      timedelta: -5
+    end_date: null
+
+earn_rule:
+  trenette-stmp-campaign-1:
+    - threshold: 500
+      increment: 100
+      increment_multiplier: 1
+  trenette-acc-campaign-1:
+    - threshold: 0
+      increment_multiplier: 1
+  trenette-acc-campaign-3:
+    - threshold: 500
+      increment_multiplier: 1
+
+reward_rule:
+  trenette-stmp-campaign-1:
+    - reward_goal: 700
+      reward_slug: "free-item"
+      allocation_window: 0
+  trenette-acc-campaign-1:
+    - reward_goal: 10000
+      reward_slug: "10percentoff"
+      allocation_window: 0
+  trenette-acc-campaign-3:
+    - reward_goal: 1000
+      reward_slug: "20percent_egift"
+      allocation_window: 0
+reward_config:
+  JIGSAW_EGIFT:
+    - reward_slug: "free-item"
+      required_fields_values: "transaction_value: 10"
+      status: "ACTIVE"
+    - reward_slug: "10percentoff"
+      required_fields_values: "transaction_value: 10"
+      status: "ACTIVE"
+    - reward_slug: "20percent_egift"
+      required_fields_values: "transaction_value: 10"
+      status: "ACTIVE"
+
+retailer_fetch_type:
+  JIGSAW_EGIFT:
+    agent_config:
+      base_url: http://api-reflector.default/mock
+      brand_id: 30
