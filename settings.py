@@ -71,7 +71,7 @@ MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")
 
 REDIS_URL = getenv("REDIS_URL")
 
-API_BASE_URL = "https://reflector.staging.gb.bink.com/mock"
+API_REFLECTOR_BASE_URL = "https://reflector.staging.gb.bink.com/mock"
 
 redis = Redis.from_url(
     REDIS_URL,

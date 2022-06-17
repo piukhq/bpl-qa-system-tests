@@ -302,7 +302,7 @@ def add_retailer_fetch_type_egift(
     brand_id: int,
 ) -> None:
 
-    agent_config = {"base_url": settings.API_BASE_URL, "brand_id": brand_id}
+    agent_config = {"base_url": settings.API_REFLECTOR_BASE_URL, "brand_id": brand_id}
 
     retailer_fetch_type = RetailerFetchType(
         retailer_id=get_retailer_id(carina_db_session=carina_db_session, retailer_slug=retailer_config.slug),
