@@ -1,3 +1,4 @@
+import importlib
 import json
 import logging
 import random
@@ -24,12 +25,11 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 import settings
 
 from azure_actions.blob_storage import put_new_reward_updates_file
-from db.carina.models import Base as CarinaModelBase
+from db.carina import models as carina_models
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
+from db.polaris import models as polaris_models
 from db.polaris.models import AccountHolder, AccountHolderCampaignBalance
-from db.polaris.models import Base as PolarisModelBase
-from db.polaris.models import RetailerConfig
-from db.vela.models import Base as VelaModelBase
+from db.vela import models as vela_models
 from db.vela.models import Campaign, EarnRule, RetailerRewards, RewardRule
 from settings import (
     BLOB_STORAGE_DSN,
@@ -57,9 +57,9 @@ from tests.shared_utils.redis import pause_redis, unpause_redis
 if TYPE_CHECKING:
     from _pytest.config import Config
     from _pytest.config.argparsing import Parser
-
-    # from _pytest.fixtures import SubRequest
     from sqlalchemy.orm import Session
+
+    from db.polaris.models import RetailerConfig
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +72,10 @@ def polaris_db_session() -> Generator:
     logger.info("Creating Polaris database")
     create_database(POLARIS_DATABASE_URI, template=POLARIS_TEMPLATE_DB_NAME)
     engine = create_engine(POLARIS_DATABASE_URI, poolclass=NullPool, echo=False)
-    PolarisModelBase.prepare(engine, reflect=True)
+    polaris_models.Base.prepare(autoload_with=engine)
     with sessionmaker(bind=engine)() as db_session:
         yield db_session
+    importlib.reload(polaris_models)
 
 
 @pytest.fixture(autouse=True)
@@ -85,9 +86,10 @@ def vela_db_session() -> Generator:
     logger.info("Creating Vela database")
     create_database(VELA_DATABASE_URI, template=VELA_TEMPLATE_DB_NAME)
     engine = create_engine(VELA_DATABASE_URI, poolclass=NullPool, echo=False)
-    VelaModelBase.prepare(engine, reflect=True)
+    vela_models.Base.prepare(autoload_with=engine)
     with sessionmaker(bind=engine)() as db_session:
         yield db_session
+    importlib.reload(vela_models)
 
 
 @pytest.fixture(autouse=True)
@@ -98,9 +100,10 @@ def carina_db_session() -> Generator:
     logger.info("Creating Carina database")
     create_database(CARINA_DATABASE_URI, template=CARINA_TEMPLATE_DB_NAME)
     engine = create_engine(CARINA_DATABASE_URI, poolclass=NullPool, echo=False)
-    CarinaModelBase.prepare(engine, reflect=True)
+    carina_models.Base.prepare(autoload_with=engine)
     with sessionmaker(bind=engine)() as db_session:
         yield db_session
+    importlib.reload(carina_models)
 
 
 # This is the only way I could get the cucumber plugin to work
@@ -117,9 +120,9 @@ def retailer(
     carina_db_session: "Session",
     retailer_slug: str,
     request_context: dict,
-) -> RetailerConfig:
+) -> polaris_models.RetailerConfig:
     fixture_data = load_fixture(retailer_slug)
-    retailer_config = RetailerConfig(**fixture_data.retailer_config)
+    retailer_config = polaris_models.RetailerConfig(**fixture_data.retailer_config)
     polaris_db_session.add(retailer_config)
     retailer_rewards = RetailerRewards(slug=retailer_slug)
     vela_db_session.add(retailer_rewards)
@@ -149,7 +152,7 @@ def resume_redis() -> None:
        )
 # fmt: on
 def standard_campaigns_and_reward_slugs(
-    campaign_slug: str, vela_db_session: "Session", retailer_config: RetailerConfig
+    campaign_slug: str, vela_db_session: "Session", retailer_config: "RetailerConfig"
 ) -> list[Campaign]:
     fixture_data = load_fixture(retailer_config.slug)
     campaigns: list = []
@@ -185,7 +188,7 @@ def create_campaign(
     ends_when: str,
     status: str,
     vela_db_session: "Session",
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
 ) -> None:
 
     arw = arrow.utcnow()
@@ -275,7 +278,7 @@ def add_reward_config(
     reward_slug: str,
     required_fields_values: str,
     status: str,
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     fetch_type_name: str,
 ) -> None:
     retailer_id = get_retailer_id(carina_db_session=carina_db_session, retailer_slug=retailer_config.slug)
@@ -297,7 +300,7 @@ def add_reward_config(
 # fmt: on
 def add_retailer_fetch_type_egift(
     carina_db_session: "Session",
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     fetch_type_name: str,
     brand_id: int,
 ) -> None:
@@ -319,7 +322,7 @@ def add_retailer_fetch_type_egift(
 # fmt: on
 def add_retailer_fetch_type_preloaded(
     carina_db_session: "Session",
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     fetch_type_name: str,
     agent_config: Optional[str],
 ) -> None:
@@ -347,7 +350,7 @@ def add_rewards(
     reward_slug: str,
     allocation_status: str,
     deleted_status: str,
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     rewards_n: int,
 ) -> list[Reward]:
     allocation_status_bool = allocation_status == "true"
@@ -380,7 +383,7 @@ def add_rewards(
 def standard_reward_and_reward_config(
     carina_db_session: "Session",
     reward_n: int,
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     request_context: dict,
     fetch_types: list[FetchType],
 ) -> list[RewardConfig]:
@@ -420,7 +423,7 @@ def standard_reward_and_reward_config(
        )
 # fmt: on
 def get_fetch_type(
-    carina_db_session: "Session", retailer_config: RetailerConfig, request_context: dict
+    carina_db_session: "Session", retailer_config: "RetailerConfig", request_context: dict
 ) -> list[FetchType]:
     fixture_data = load_fixture(retailer_config.slug)
     retailer_id = request_context["carina_retailer_id"]
@@ -499,7 +502,7 @@ def channel(pytestconfig: "Config") -> Generator:
 # fmt: on
 def setup_account_holder(
     status: str,
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     polaris_db_session: "Session",
     vela_db_session: "Session",
 ) -> AccountHolder:
@@ -559,7 +562,7 @@ def update_existing_account_holder_with_campaign_balance(
 # fmt: on
 def update_existing_account_holder_with_rewards(
     account_holder: AccountHolder,
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     reward_count: int,
     polaris_db_session: "Session",
 ) -> AccountHolder:
@@ -576,7 +579,7 @@ def update_existing_account_holder_with_rewards(
 # fmt: on
 def update_existing_account_holder_with_pending_rewards(
     account_holder: AccountHolder,
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     count: int,
     polaris_db_session: "Session",
     reward_goal: int,
@@ -592,7 +595,7 @@ def update_existing_account_holder_with_pending_rewards(
 
 @when(parsers.parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
 def the_account_holder_transaction_request(
-    account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
+    account_holder: AccountHolder, retailer_config: "RetailerConfig", amount: int, request_context: dict
 ) -> None:
 
     payload = {
@@ -611,7 +614,7 @@ def the_account_holder_transaction_request(
 @then(parsers.parse("{expected_num_rewards:d} {state} rewards are available to the account holder"))
 # fmt: on
 def send_get_request_to_account_holder(
-    retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int, state: str
+    retailer_config: "RetailerConfig", account_holder: AccountHolder, expected_num_rewards: int, state: str
 ) -> None:
     time.sleep(3)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
@@ -654,7 +657,7 @@ def account_holder_balance_correct(
 
 @then(parsers.parse("new enrolled account holder's {campaign_slug} balance is {amount:d}"))
 def get_account_and_check_balance(
-    polaris_db_session: "Session", campaign_slug: str, amount: int, retailer_config: RetailerConfig
+    polaris_db_session: "Session", campaign_slug: str, amount: int, retailer_config: "RetailerConfig"
 ) -> None:
     time.sleep(2)
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
@@ -712,7 +715,7 @@ def upload_reward_updates_to_blob_storage() -> Callable:
                     "with redeemed date"))
 # fmt: on
 def verify_account_holder_reward_status(
-    retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
+    retailer_config: "RetailerConfig", account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
 ) -> None:
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
     logging.info(f"Response HTTP status code: {resp.status_code}")
@@ -736,7 +739,7 @@ def verify_account_holder_reward_status(
 # fmt: on
 def update_existing_account_holder_with_rewards_for_reward_slug(
     account_holder: AccountHolder,
-    retailer_config: RetailerConfig,
+    retailer_config: "RetailerConfig",
     reward_count: int,
     reward_slug: str,
     polaris_db_session: "Session",
@@ -751,7 +754,7 @@ def update_existing_account_holder_with_rewards_for_reward_slug(
 @then(parsers.parse("there is no balance shown for {campaign_slug} for account holder"))
 # fmt: on
 def send_get_request_to_accounts_check_balance_for_campaign(
-    retailer_config: RetailerConfig, account_holder: AccountHolder, campaign_slug: str
+    retailer_config: "RetailerConfig", account_holder: AccountHolder, campaign_slug: str
 ) -> None:
     time.sleep(3)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
@@ -768,7 +771,7 @@ def send_get_request_to_accounts_check_balance_for_campaign(
 @then(parsers.parse("the balance shown for account holder is {amount:d}"))
 # fmt: on
 def send_get_request_to_accounts_check_balance(
-    polaris_db_session: "Session", retailer_config: RetailerConfig, amount: int
+    polaris_db_session: "Session", retailer_config: "RetailerConfig", amount: int
 ) -> None:
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
     time.sleep(3)
