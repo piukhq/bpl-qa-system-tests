@@ -21,14 +21,14 @@ Feature: Bink BPL - refund
 
     Then BPL responds with a HTTP 200 and awarded message
     And 2 pending rewards are available to the account holder
-    And the account holder's trenette-accumulator balance is 600
+    And the account holder's trenette-accumulator balance is returned as 600
 
     When BPL receives a transaction for the account holder for the amount of -700 pennies
     Then BPL responds with a HTTP 200 and refund_accepted message
-    And the account holder's trenette-accumulator balance is 600
+    And the account holder's trenette-accumulator balance is returned as 600
     And 1 pending rewards are available to the account holder
 
     When BPL receives a transaction for the account holder for the amount of -1400 pennies
     Then BPL responds with a HTTP 200 and refund_accepted message
-    And the account holder's trenette-accumulator balance is 0
+    And the account holder's trenette-accumulator balance is returned as 0
     And 0 pending rewards are available to the account holder

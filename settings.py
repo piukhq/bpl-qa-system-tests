@@ -52,9 +52,9 @@ LOCAL = getenv("LOCAL", default="False", conv=boolconv)
 BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN")
 REPORT_CONTAINER = getenv("REPORT_CONTAINER", default="qareports")
 REPORT_DIRECTORY = getenv("REPORT_DIRECTORY", default="bpl/isolated/")
-BLOB_IMPORT_CONTAINER = "carina-imports"
-BLOB_ARCHIVE_CONTAINER = "carina-archive"
-BLOB_ERROR_CONTAINER = "carina-errors"
+BLOB_IMPORT_CONTAINER = getenv("BLOB_IMPORT_CONTAINER", "carina-imports")
+BLOB_ARCHIVE_CONTAINER = getenv("BLOB_ARCHIVE_CONTAINER", "carina-archive")
+BLOB_ERROR_CONTAINER = getenv("BLOB_ERROR_CONTAINER", "carina-errors")
 
 TEAMS_WEBHOOK = getenv("TEAMS_WEBHOOK") if not LOCAL else None
 FRIENDLY_NAME = getenv("FRIENDLY_NAME", default="BPL")
@@ -72,6 +72,7 @@ MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")
 REDIS_URL = getenv("REDIS_URL")
 
 API_REFLECTOR_BASE_URL = getenv("API_REFLECTOR_BASE_URL", "https://reflector.staging.gb.bink.com/mock")
+SQL_DEBUG = bool(getenv("SQL_DEBUG", "False") in ["True", "true"])
 
 redis = Redis.from_url(
     REDIS_URL,

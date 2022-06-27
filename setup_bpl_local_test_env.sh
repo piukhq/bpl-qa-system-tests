@@ -24,6 +24,8 @@ set -x
 # export DB_PASSWORD=changeme
 # export DB_PORT=changeme
 # export BLOB_STORAGE_DSN='changeme'
+# export BLOB_IMPORT_CONTAINER=changeme (e.g. carina-imports-<my-name-here>)
+# export BLOB_ARCHIVE_CONTAINER=changeme (e.g. carina-archive-<my-name-here>)
 ######### /example bpl_auto_test.env #############
 
 source ~/bpl_auto_test.env
@@ -93,6 +95,8 @@ LOG_FORMATTER=brief
 POLARIS_HOST=http://localhost:8000
 REDIS_URL=redis://localhost:6379/0
 BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
+BLOB_IMPORT_CONTAINER=$BLOB_IMPORT_CONTAINER
+BLOB_ARCHIVE_CONTAINER=$BLOB_ARCHIVE_CONTAINER
 BLOB_IMPORT_SCHEDULE=* * * * *
 REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
 EOF

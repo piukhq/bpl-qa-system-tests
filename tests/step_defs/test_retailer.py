@@ -35,7 +35,6 @@ scenarios("../features/trenette")
 scenarios("../features/asos")
 
 if TYPE_CHECKING:
-    from requests import Response
     from sqlalchemy.orm import Session
 
 fake = Faker(locale="en_GB")
@@ -109,12 +108,13 @@ def only_required_credentials() -> dict:
     return payload
 
 
-@then("the account holder is activated")
-def account_holder_is_activated(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
+# fmt: off
+@then("the account holder is activated",
+      target_fixture="account_holder")
+# fmt: on
+def account_holder_is_activated(polaris_db_session: "Session", retailer_config: RetailerConfig) -> AccountHolder:
     sleep(3)
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-    polaris_db_session.refresh(account_holder)
-    assert account_holder, "account holder not found"
 
     for i in range(1, 18):  # 3 minute wait
         logging.info(
@@ -125,20 +125,22 @@ def account_holder_is_activated(polaris_db_session: "Session", retailer_config: 
         if account_holder.status == "ACTIVE":
             break
     logging.info(
-        f"\n Account holder status : {account_holder.status}\n"
-        f"Account number: {account_holder.account_number}\n"
-        f"Account UUID: {account_holder.account_holder_uuid}"
+        "\n"
+        f"  Account holder status : {account_holder.status}\n"
+        f"  Account number: {account_holder.account_number}\n"
+        f"  Account UUID: {account_holder.account_holder_uuid}"
     )
     assert account_holder.status == "ACTIVE"
     assert account_holder.account_number is not None
     assert account_holder.account_holder_uuid is not None
     assert account_holder.opt_out_token is not None
 
+    return account_holder
+
 
 @then("an enrolment callback task is saved in the database")
 def verify_callback_task_saved_in_db(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-    assert account_holder is not None
     callback_task = get_latest_callback_task_for_account_holder(polaris_db_session)
     assert callback_task is not None
     assert settings.MOCK_SERVICE_BASE_URL in callback_task.get_params()["callback_url"]
@@ -169,31 +171,6 @@ def the_account_holder_get_response(status_code: int, response_type: str, reques
     logging.info(TransactionResponses.get_json(response_type))
 
 
-@then(parse("the account holder {issued} reward"))
-def issued_reward(issued: str, get_account_response_by_uuid: "Response") -> None:
-    assert get_account_response_by_uuid is not None
-    assert issued == get_account_response_by_uuid.json()["rewards"][0]["status"]
-
-
-@then(parse("status {status} appeared"))
-def status_code_appeared(status: str, get_account_response_by_uuid: "Response") -> None:
-    assert status == get_account_response_by_uuid.json()["status"]
-
-
-@then("the account holder's balance got adjusted")
-def the_account_holder_balance_got_adjusted(request_context: dict, get_account_response_by_uuid: "Response") -> None:
-    assert (
-        request_context["account_holder_campaign_balance"].balance
-        == get_account_response_by_uuid.json()["current_balances"][0]["value"]
-    )
-
-
-@then("the account holder's UUID and account number appearing correct")
-def verify_uuid_and_account(request_context: dict, get_account_response_by_uuid: "Response") -> None:
-    assert request_context["account_holder_uuid"] == get_account_response_by_uuid.json()["UUID"]
-    assert request_context["account_number"] == get_account_response_by_uuid.json()["account_number"]
-
-
 @then(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
 def send_post_campaign_change_request(
     request_context: dict, vela_db_session: "Session", status: str, retailer_config: RetailerConfig, campaign_slug: str
@@ -218,7 +195,7 @@ def send_post_campaign_change_request(
 
 
 @then(parse("the account holder's {campaign_slug} balance no longer exists"))
-def check_account_holder_balance_is_updated(
+def check_account_holder_balance_no_longer_exists(
     campaign_slug: str,
     polaris_db_session: "Session",
     account_holder: AccountHolder,
@@ -226,12 +203,12 @@ def check_account_holder_balance_is_updated(
     for i in range(5):
         sleep(i)
         polaris_db_session.refresh(account_holder)
-        account_holder_campaign_balance = [
-            x for x in account_holder.accountholdercampaignbalance_collection if x.campaign_slug == campaign_slug
-        ]
-        if not account_holder_campaign_balance:
-            break
-    assert not account_holder_campaign_balance
+        balances_by_campaign_slug = {
+            ahcb.campaign_slug: ahcb.balance for ahcb in account_holder.accountholdercampaignbalance_collection
+        }
+        if campaign_slug in balances_by_campaign_slug:
+            continue
+    assert campaign_slug not in balances_by_campaign_slug
 
 
 @then(parse("any {retailer_slug} account holder rewards for {reward_slug} are cancelled"))
@@ -299,7 +276,6 @@ def reward_updates_upload(
     reward_status: str,
     available_rewards: list[Reward],
     upload_reward_updates_to_blob_storage: Callable,
-    carina_db_session: "Session",
 ) -> None:
     """
     The fixture should place a CSV file onto blob storage, which a running instance of
@@ -455,8 +431,6 @@ def check_file_moved(
 @then("the account holder activation is started")
 def the_account_holder_activation_is_started(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-    polaris_db_session.refresh(account_holder)
-    assert account_holder, "account holder not found"
     assert account_holder.status == "PENDING"
 
     logging.info(
