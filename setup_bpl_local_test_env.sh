@@ -11,6 +11,7 @@ set -x
 # DB_PASSWORD:        Postgres password
 # DB_PORT:            Port on which postgres is listening
 # BLOB_STORAGE_DSN:   DSN for accessing Azure blob storage services
+# BLOB_IMPORT_CONTAINER:  Blob storage container name for uploading reward updates
 
 # IMPORTANT: Put these in a file called bpl_auto_test.env in your $HOME directory
 #
@@ -24,6 +25,7 @@ set -x
 # export DB_PASSWORD=changeme
 # export DB_PORT=changeme
 # export BLOB_STORAGE_DSN='changeme'
+# export BLOB_IMPORT_CONTAINER=carina-imports-changeme
 ######### /example bpl_auto_test.env #############
 
 source ~/bpl_auto_test.env
@@ -95,6 +97,7 @@ REDIS_URL=redis://localhost:6379/0
 BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
 BLOB_IMPORT_SCHEDULE=* * * * *
 REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
+BLOB_IMPORT_CONTAINER=$BLOB_IMPORT_CONTAINER
 EOF
     )
 
