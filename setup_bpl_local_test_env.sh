@@ -20,6 +20,7 @@ set -x
 
 ########## example bpl_auto_test.env #############
 # export ROOT_DIR=$HOME/CHANGEME
+# export GIT_BRANCH=master
 # export DB_USERNAME=changeme
 # export DB_PASSWORD=changeme
 # export DB_PORT=changeme
@@ -28,7 +29,11 @@ set -x
 # export BLOB_ARCHIVE_CONTAINER=changeme (e.g. carina-archive-<my-name-here>)
 ######### /example bpl_auto_test.env #############
 
+GIT_BRANCH=master
+
 source ~/bpl_auto_test.env
+
+echo "Git branch is: $GIT_BRANCH"
 
 RUN=${1}
 
@@ -53,10 +58,8 @@ EOF
 
     POLARIS_ENV_FILE=$(
         cat <<EOF
-POSTGRES_USER=$DB_USERNAME
-POSTGRES_PASSWORD=$DB_PASSWORD
-POSTGRES_PORT=$DB_PORT
 POSTGRES_DB=polaris_auto
+SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
 LOG_FORMATTER=brief
 DISABLE_METRICS=true
 USE_CALLBACK_OAUTH2=false
@@ -72,10 +75,8 @@ EOF
 
     VELA_ENV_FILE=$(
         cat <<EOF
-POSTGRES_USER=$DB_USERNAME
-POSTGRES_PASSWORD=$DB_PASSWORD
-POSTGRES_PORT=$DB_PORT
 POSTGRES_DB=vela_auto
+SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
 LOG_FORMATTER=brief
 POLARIS_HOST=http://localhost:8000
 CARINA_HOST=http://localhost:8002
@@ -87,10 +88,8 @@ EOF
 
     CARINA_ENV_FILE=$(
         cat <<EOF
-POSTGRES_USER=$DB_USERNAME
-POSTGRES_PASSWORD=$DB_PASSWORD
-POSTGRES_PORT=$DB_PORT
 POSTGRES_DB=carina_auto
+SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
 LOG_FORMATTER=brief
 POLARIS_HOST=http://localhost:8000
 REDIS_URL=redis://localhost:6379/0
@@ -102,6 +101,16 @@ REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
 EOF
     )
 
+    HUBBLE_ENV_FILE=$(
+        cat <<EOF
+DATABASE_NAME=hubble_auto
+DATABASE_URI="$BASE_DB_URI/{}"
+SQL_DEBUG=False
+USE_NULL_POOL=True
+RABBIT_DSN=amqp://guest:guest@localhost:5672/
+ROOT_LOG_LEVEL=DEBUG
+    )
+
     cd $ROOT_DIR
 
     # install repositories and make correct databases
@@ -110,6 +119,24 @@ EOF
         git clone git@github.com:binkhq/luna.git
     fi
     cd luna && echo "$LUNA_ENV_FILE" >.env && pipenv sync --dev
+
+    cd $ROOT_DIR
+
+    if [[ ! -d "hubble" ]]; then
+        echo "- Cloning hubble ..."
+        git clone git@github.com:binkhq/hubble.git
+    fi
+    cd hubble
+    echo "- Writing sane .env"
+    echo "$HUBBLE_ENV_FILE" >.env && pipenv sync
+    echo "- Checking out and updating $GIT_BRANCH branch"
+    git checkout $GIT_BRANCH
+    git pull --ff-only origin $GIT_BRANCH
+    echo "- Resetting hubble database"
+    psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE hubble_template ;"
+    psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE hubble_template ;"
+    echo "- Running alembic migrations"
+    pipenv run alembic -x db_dsn="${BASE_DB_URI}/hubble_template" upgrade head
 
     for p_name in "polaris" "vela" "carina"; do
         if [[ ! -d $PROMETHEUS_ROOT_DIR/$p_name ]]; then
@@ -122,19 +149,19 @@ EOF
         fi
         cd "${ROOT_DIR}/${p_name}"
         echo "Working on ${p_name}"
-        echo "- Checking out and updating master branch"
-        git checkout master
-        git pull --ff-only origin master
+        echo "- Checking out and updating $GIT_BRANCH branch"
+        git checkout $GIT_BRANCH
+        git pull --ff-only origin $GIT_BRANCH
         echo "- Writing sane local.env"
         env_var_name=$(echo "${p_name}_env_file" | tr 'a-z' 'A-Z')
         echo "${!env_var_name}" >local.env
         echo "- Updating python environment"
         pipenv sync
-        echo "- Resetting database"
-        psql "${BASE_DB_URI}/postgres" -c "drop database ${p_name}_template ;"
-        psql "${BASE_DB_URI}/postgres" -c "create database ${p_name}_template ;"
+        echo "- Resetting ${p_name} database"
+        psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE ${p_name}_template ;"
+        psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE ${p_name}_template ;"
         echo "- Running alembic migrations"
-        SQLALCHEMY_DATABASE_URI="${BASE_DB_URI}/${p_name}_template" pipenv run alembic upgrade head
+        pipenv run alembic -x db_dsn="${BASE_DB_URI}/${p_name}_template" upgrade head
     done
 
 }
@@ -144,7 +171,7 @@ run_services() {
     tmux -2 new-session -d -s $TMUX_SESSION_NAME
     tmux new-window -t $TMUX_SESSION_NAME -n 'BPL'
 
-    for p in {0..8}; do
+    for p in {0..10}; do
         tmux split-pane -v
         tmux select-layout tiled
     done
@@ -167,6 +194,8 @@ run_services() {
     tmux send-keys -t 3 "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli task-worker" C-m
     tmux select-pane -t 6 -T PolarisCronScheduler
     tmux send-keys -t 6 "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli cron-scheduler" C-m
+    tmux select-pane -t 9 -T PolarisConsumer
+    tmux send-keys -t 9 "cd $ROOT_DIR/polaris && pipenv run python -m app.core.cli tx-history-consumer" C-m
 
     ## Vela
     tmux select-pane -t 1 -T VelaAPI
@@ -184,9 +213,14 @@ run_services() {
     tmux select-pane -t 8 -T CarinaCronScheduler
     tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli cron-scheduler" C-m
 
+
     ## Luna
-    tmux select-pane -t 9 -T Luna
-    tmux send-keys -t 9 "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
+    tmux select-pane -t 10 -T Luna
+    tmux send-keys -t 10 "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
+
+    ## Hubble Consumer
+    tmux select-pane -t 11 -T HubbleConsumer
+    tmux send-keys -t 11 "cd $ROOT_DIR/hubble && pipenv run python -m app.cli activity-consumer" C-m
 
     # Attach to the tmux session
     tmux attach-session -t $TMUX_SESSION_NAME

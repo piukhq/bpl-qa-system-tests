@@ -27,6 +27,7 @@ import settings
 from azure_actions.blob_storage import put_new_reward_updates_file
 from db.carina import models as carina_models
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
+from db.hubble import models as hubble_models
 from db.polaris import models as polaris_models
 from db.polaris.models import AccountHolder, AccountHolderCampaignBalance
 from db.vela import models as vela_models
@@ -35,6 +36,8 @@ from settings import (
     BLOB_STORAGE_DSN,
     CARINA_DATABASE_URI,
     CARINA_TEMPLATE_DB_NAME,
+    HUBBLE_DATABASE_URI,
+    HUBBLE_TEMPLATE_DB_NAME,
     POLARIS_DATABASE_URI,
     POLARIS_TEMPLATE_DB_NAME,
     SQL_DEBUG,
@@ -105,6 +108,20 @@ def carina_db_session() -> Generator:
     with sessionmaker(bind=engine)() as db_session:
         yield db_session
     importlib.reload(carina_models)
+
+
+@pytest.fixture(autouse=True)
+def hubble_db_session() -> Generator:
+    if database_exists(HUBBLE_DATABASE_URI):
+        logger.info("Dropping Hubble database")
+        drop_database(HUBBLE_DATABASE_URI)
+    logger.info("Creating Hubble database")
+    create_database(HUBBLE_DATABASE_URI, template=HUBBLE_TEMPLATE_DB_NAME)
+    engine = create_engine(HUBBLE_DATABASE_URI, poolclass=NullPool, echo=SQL_DEBUG)
+    hubble_models.Base.prepare(autoload_with=engine)
+    with sessionmaker(bind=engine)() as db_session:
+        yield db_session
+    importlib.reload(hubble_models)
 
 
 # This is the only way I could get the cucumber plugin to work
