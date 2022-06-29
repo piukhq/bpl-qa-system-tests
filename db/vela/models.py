@@ -12,6 +12,10 @@ class RetailerRewards(Base):
     __tablename__ = "retailer_rewards"
 
 
+class RetailerStore(Base):
+    __tablename__ = "retailer_store"
+
+
 class Campaign(Base):
     __tablename__ = "campaign"
 
@@ -32,6 +36,10 @@ class RewardRule(Base):
     __tablename__ = "reward_rule"
 
 
+class RetryTask(Base):
+    __tablename__ = "retry_task"
+
+
 class TaskType(Base):
     __tablename__ = "task_type"
 
@@ -42,10 +50,6 @@ class TaskTypeKey(Base):
 
 class TaskTypeKeyValue(Base):
     __tablename__ = "task_type_key_value"
-
-
-class RetryTask(Base):
-    __tablename__ = "retry_task"
 
 
 class CampaignStatuses(str, Enum):

@@ -17,11 +17,12 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
     And there is 1 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
     And there is 1 reward configured for the free-item-2 reward config, with allocation status set to false and deleted status set to false
 
-  @bpl @transaction @bpl-298
-  Scenario: Transaction meets earn threshold for two campaigns and one campaign is cancelled
-    Given an active account holder exists for the retailer
-    When BPL receives a transaction for the account holder for the amount of 600 pennies
-    Then the account holder's trenette-stmp-campaign-1 balance is reduced by the reward goal
-    And the retailer's trenette-stmp-campaign-1 campaign status is changed to cancelled
-    And the trenette account is not issued reward free-item
-    And the account holder's trenette-stmp-campaign-1 balance no longer exists
+# FIXME: This needs more work. It doesn't appear to address BPL-298
+# @bpl @transaction @bpl-298
+# Scenario: Transaction meets earn threshold for two campaigns and one campaign is cancelled
+#   Given an active account holder exists for the retailer
+#   When BPL receives a transaction for the account holder for the amount of 600 pennies
+#   Then the account holder's trenette-stmp-campaign-1 balance is returned as 500
+#   And the retailer's trenette-stmp-campaign-1 campaign status is changed to cancelled
+#   And the trenette account is not issued reward free-item
+#   And the account holder's trenette-stmp-campaign-1 balance no longer exists

@@ -37,9 +37,11 @@ logger.setLevel(logging.DEBUG)
 CARINA_DATABASE_URI = getenv("CARINA_DATABASE_URI")
 POLARIS_DATABASE_URI = getenv("POLARIS_DATABASE_URI")
 VELA_DATABASE_URI = getenv("VELA_DATABASE_URI")
+HUBBLE_DATABASE_URI = getenv("HUBBLE_DATABASE_URI")
 CARINA_TEMPLATE_DB_NAME = getenv("CARINA_TEMPLATE_DB_NAME")
 POLARIS_TEMPLATE_DB_NAME = getenv("POLARIS_TEMPLATE_DB_NAME")
 VELA_TEMPLATE_DB_NAME = getenv("VELA_TEMPLATE_DB_NAME")
+HUBBLE_TEMPLATE_DB_NAME = getenv("HUBBLE_TEMPLATE_DB_NAME")
 
 VAULT_URL = getenv("VAULT_URL")
 vault = KeyVault(VAULT_URL)
@@ -52,9 +54,9 @@ LOCAL = getenv("LOCAL", default="False", conv=boolconv)
 BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN")
 REPORT_CONTAINER = getenv("REPORT_CONTAINER", default="qareports")
 REPORT_DIRECTORY = getenv("REPORT_DIRECTORY", default="bpl/isolated/")
-BLOB_IMPORT_CONTAINER = "carina-imports"
-BLOB_ARCHIVE_CONTAINER = "carina-archive"
-BLOB_ERROR_CONTAINER = "carina-errors"
+BLOB_IMPORT_CONTAINER = getenv("BLOB_IMPORT_CONTAINER", "carina-imports")
+BLOB_ARCHIVE_CONTAINER = getenv("BLOB_ARCHIVE_CONTAINER", "carina-archive")
+BLOB_ERROR_CONTAINER = getenv("BLOB_ERROR_CONTAINER", "carina-errors")
 
 TEAMS_WEBHOOK = getenv("TEAMS_WEBHOOK") if not LOCAL else None
 FRIENDLY_NAME = getenv("FRIENDLY_NAME", default="BPL")
@@ -72,6 +74,7 @@ MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")
 REDIS_URL = getenv("REDIS_URL")
 
 API_REFLECTOR_BASE_URL = getenv("API_REFLECTOR_BASE_URL", "https://reflector.staging.gb.bink.com/mock")
+SQL_DEBUG = bool(getenv("SQL_DEBUG", "False") in ["True", "true"])
 
 redis = Redis.from_url(
     REDIS_URL,

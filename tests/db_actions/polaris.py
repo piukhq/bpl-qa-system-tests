@@ -11,15 +11,13 @@ if TYPE_CHECKING:
 
 
 def get_account_holder_for_retailer(polaris_db_session: "Session", retailer_id: int) -> AccountHolder:
-    account_holder = polaris_db_session.execute(select(AccountHolder).where(retailer_id == retailer_id)).scalar_one()
-    return account_holder
+    return polaris_db_session.execute(select(AccountHolder).where(retailer_id == retailer_id)).scalar_one()
 
 
 def get_account_holder_with_email(polaris_db_session: "Session", email: str, retailer_id: int) -> AccountHolder:
-    account_holder = polaris_db_session.execute(
+    return polaris_db_session.execute(
         select(AccountHolder).where(email == email, retailer_id == retailer_id)
     ).scalar_one()
-    return account_holder
 
 
 def get_account_holder_reward(

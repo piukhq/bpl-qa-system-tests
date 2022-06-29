@@ -83,6 +83,8 @@ run it again (it should be idempotent to a great degree).
     export DB_PASSWORD=postgres
     export DB_PORT=5432
     export BLOB_STORAGE_DSN="DefaultEndpointsProtocol=https;AccountName=binkuksouthdev;AccountKey=L/xU6NZswZAJbFhKjIGr0feakhY8QsCw4oUuj6bXNfxhWQv2caNkDo8czIu05DBcaZbSL7vfpYGP7OZsbpXuhw==;EndpointSuffix=core.windows.net"
+    export BLOB_IMPORT_CONTAINER=carina-import-<my-name-here>
+    export BLOB_ARCHIVE_CONTAINER=carina-archive-<my-name-here>
 
 * If you see any `KeyVaultError` errors, check that you have the VPN running, kill the tmux session and run the script again.
 * The DBs `*_auto` will not exist until you run the first pytest, so you may see warnings about that in the apps' output

@@ -17,19 +17,19 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
   Scenario Outline: Account holder is rewarded when reward threshold is met
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <amount_1> pennies
-    Then the account holder's trenette-stmp-campaign balance is 100
+    Then the account holder's trenette-stmp-campaign balance is returned as 100
     When BPL receives a transaction for the account holder for the amount of <amount_2> pennies
-    Then the account holder's trenette-stmp-campaign balance is 200
+    Then the account holder's trenette-stmp-campaign balance is returned as 200
     When BPL receives a transaction for the account holder for the amount of <amount_3> pennies
-    Then the account holder's trenette-stmp-campaign balance is 300
+    Then the account holder's trenette-stmp-campaign balance is returned as 300
     When BPL receives a transaction for the account holder for the amount of <amount_4> pennies
-    Then the account holder's trenette-stmp-campaign balance is 400
+    Then the account holder's trenette-stmp-campaign balance is returned as 400
     When BPL receives a transaction for the account holder for the amount of <amount_5> pennies
-    Then the account holder's trenette-stmp-campaign balance is 500
+    Then the account holder's trenette-stmp-campaign balance is returned as 500
     When BPL receives a transaction for the account holder for the amount of <amount_6> pennies
-    Then the account holder's trenette-stmp-campaign balance is 600
+    Then the account holder's trenette-stmp-campaign balance is returned as 600
     When BPL receives a transaction for the account holder for the amount of <amount_7> pennies
-    Then the account holder's trenette-stmp-campaign balance is 0
+    Then the account holder's trenette-stmp-campaign balance is returned as 0
     And 1 issued rewards are available to the account holder
 
     Examples:

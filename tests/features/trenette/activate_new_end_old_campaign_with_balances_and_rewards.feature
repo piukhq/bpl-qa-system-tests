@@ -20,7 +20,7 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards
     @bpl @campaign @bpl-290
     Scenario: Activate new campaign, cancel old
         Given an active account holder exists for the retailer
-        And the trenette-active-campaign account holder campaign balance is 500
+        And the account holder's trenette-active-campaign balance is 500
         And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff
         And the account has 3 pending rewards for trenette-active-campaign with value 700
 
@@ -34,7 +34,7 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards
         And the account holder's trenette-active-campaign balance no longer exists
         When the vela reward-adjustment task status is cancelled
 
-        Then the account holder's trenette-draft-campaign balance is 0
+        Then the account holder's trenette-draft-campaign balance is returned as 0
         And the account holder's trenette-active-campaign balance no longer exists
         And any pending rewards for trenette-active-campaign are deleted
         And any trenette account holder rewards for 10percentoff are cancelled

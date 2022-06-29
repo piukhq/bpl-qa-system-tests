@@ -18,7 +18,7 @@ Feature: Bink BPL - Jigshaw egift - Transaction increases user balance
     And an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 5500 pennies
     Then 0 issued rewards are available to the account holder
-    And the account holder's asos-campaign balance is 5500
+    And the account holder's asos-campaign balance is returned as 5500
     When BPL receives a transaction for the account holder for the amount of 6000 pennies
     Then 1 issued rewards are available to the account holder
-    And the account holder's asos-campaign balance is 1500
+    And the account holder's asos-campaign balance is returned as 1500

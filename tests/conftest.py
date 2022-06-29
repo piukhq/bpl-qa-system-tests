@@ -27,6 +27,7 @@ import settings
 from azure_actions.blob_storage import put_new_reward_updates_file
 from db.carina import models as carina_models
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
+from db.hubble import models as hubble_models
 from db.polaris import models as polaris_models
 from db.polaris.models import AccountHolder, AccountHolderCampaignBalance
 from db.vela import models as vela_models
@@ -35,8 +36,11 @@ from settings import (
     BLOB_STORAGE_DSN,
     CARINA_DATABASE_URI,
     CARINA_TEMPLATE_DB_NAME,
+    HUBBLE_DATABASE_URI,
+    HUBBLE_TEMPLATE_DB_NAME,
     POLARIS_DATABASE_URI,
     POLARIS_TEMPLATE_DB_NAME,
+    SQL_DEBUG,
     VELA_DATABASE_URI,
     VELA_TEMPLATE_DB_NAME,
 )
@@ -48,7 +52,7 @@ from tests.db_actions.polaris import (
     get_account_holder_for_retailer,
 )
 from tests.db_actions.retry_tasks import get_latest_task
-from tests.db_actions.vela import get_campaign_by_slug, get_reward_goal_by_campaign_id
+from tests.db_actions.vela import get_campaign_by_slug
 from tests.requests.enrolment import send_get_accounts
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
@@ -71,7 +75,7 @@ def polaris_db_session() -> Generator:
         drop_database(POLARIS_DATABASE_URI)
     logger.info("Creating Polaris database")
     create_database(POLARIS_DATABASE_URI, template=POLARIS_TEMPLATE_DB_NAME)
-    engine = create_engine(POLARIS_DATABASE_URI, poolclass=NullPool, echo=False)
+    engine = create_engine(POLARIS_DATABASE_URI, poolclass=NullPool, echo=SQL_DEBUG)
     polaris_models.Base.prepare(autoload_with=engine)
     with sessionmaker(bind=engine)() as db_session:
         yield db_session
@@ -85,7 +89,7 @@ def vela_db_session() -> Generator:
         drop_database(VELA_DATABASE_URI)
     logger.info("Creating Vela database")
     create_database(VELA_DATABASE_URI, template=VELA_TEMPLATE_DB_NAME)
-    engine = create_engine(VELA_DATABASE_URI, poolclass=NullPool, echo=False)
+    engine = create_engine(VELA_DATABASE_URI, poolclass=NullPool, echo=SQL_DEBUG)
     vela_models.Base.prepare(autoload_with=engine)
     with sessionmaker(bind=engine)() as db_session:
         yield db_session
@@ -99,11 +103,25 @@ def carina_db_session() -> Generator:
         drop_database(CARINA_DATABASE_URI)
     logger.info("Creating Carina database")
     create_database(CARINA_DATABASE_URI, template=CARINA_TEMPLATE_DB_NAME)
-    engine = create_engine(CARINA_DATABASE_URI, poolclass=NullPool, echo=False)
+    engine = create_engine(CARINA_DATABASE_URI, poolclass=NullPool, echo=SQL_DEBUG)
     carina_models.Base.prepare(autoload_with=engine)
     with sessionmaker(bind=engine)() as db_session:
         yield db_session
     importlib.reload(carina_models)
+
+
+@pytest.fixture(autouse=True)
+def hubble_db_session() -> Generator:
+    if database_exists(HUBBLE_DATABASE_URI):
+        logger.info("Dropping Hubble database")
+        drop_database(HUBBLE_DATABASE_URI)
+    logger.info("Creating Hubble database")
+    create_database(HUBBLE_DATABASE_URI, template=HUBBLE_TEMPLATE_DB_NAME)
+    engine = create_engine(HUBBLE_DATABASE_URI, poolclass=NullPool, echo=SQL_DEBUG)
+    hubble_models.Base.prepare(autoload_with=engine)
+    with sessionmaker(bind=engine)() as db_session:
+        yield db_session
+    importlib.reload(hubble_models)
 
 
 # This is the only way I could get the cucumber plugin to work
@@ -538,26 +556,6 @@ def setup_account_holder(
 
 
 # fmt: off
-@given(parsers.parse("the {campaign_slug} account holder campaign balance is {amount}"))
-# fmt: on
-def update_existing_account_holder_with_campaign_balance(
-    account_holder: AccountHolder, amount: int, polaris_db_session: "Session", campaign_slug: str
-) -> AccountHolder:
-
-    polaris_db_session.execute(
-        update(AccountHolderCampaignBalance)
-        .values(balance=amount)
-        .where(
-            AccountHolderCampaignBalance.account_holder_id == account_holder.id,
-            AccountHolderCampaignBalance.campaign_slug == campaign_slug,
-        )
-    )
-
-    polaris_db_session.commit()
-    return account_holder
-
-
-# fmt: off
 @given(parsers.parse("the account has {reward_count} issued unexpired rewards"))
 # fmt: on
 def update_existing_account_holder_with_rewards(
@@ -637,8 +635,27 @@ def send_get_request_to_account_holder(
             assert resp.json()["pending_rewards"][i]["conversion_date"] is not None
 
 
-@then(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
+# fmt: off
 @given(parsers.parse("the account holder's {campaign_slug} balance is {amount:d}"))
+# fmt: on
+def update_existing_account_holder_with_campaign_balance(
+    account_holder: AccountHolder, amount: int, polaris_db_session: "Session", campaign_slug: str
+) -> None:
+
+    polaris_db_session.execute(
+        update(AccountHolderCampaignBalance)
+        .values(balance=amount)
+        .where(
+            AccountHolderCampaignBalance.account_holder_id == account_holder.id,
+            AccountHolderCampaignBalance.campaign_slug == campaign_slug,
+        )
+    )
+
+    polaris_db_session.commit()
+    logging.info(f"Account holder balance updated to {amount}")
+
+
+@then(parsers.parse("the account holder's {campaign_slug} balance is returned as {amount:d}"))
 def account_holder_balance_correct(
     polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str, amount: int
 ) -> None:
@@ -655,7 +672,7 @@ def account_holder_balance_correct(
     logging.info(f"Account holder balance is {balances_by_slug[campaign_slug].balance}")
 
 
-@then(parsers.parse("new enrolled account holder's {campaign_slug} balance is {amount:d}"))
+@then(parsers.parse("the newly enrolled account holder's {campaign_slug} balance is {amount:d}"))
 def get_account_and_check_balance(
     polaris_db_session: "Session", campaign_slug: str, amount: int, retailer_config: "RetailerConfig"
 ) -> None:
@@ -664,26 +681,6 @@ def get_account_and_check_balance(
     polaris_db_session.refresh(account_holder)
     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
     assert balances_by_slug[campaign_slug].balance == amount
-
-
-@then(parsers.parse("the account holder's {campaign_slug} balance is reduced by the reward goal"))
-def check_account_holder_balance_reduced_by_reward_goal(
-    vela_db_session: "Session",
-    polaris_db_session: "Session",
-    campaign_slug: str,
-) -> None:
-    campaign = get_campaign_by_slug(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
-    reward_goal = get_reward_goal_by_campaign_id(vela_db_session=vela_db_session, campaign_id=campaign.id)
-    for i in range(5):
-        sleep(i)
-        campaign_balance = polaris_db_session.execute(
-            select(AccountHolderCampaignBalance.balance).where(
-                AccountHolderCampaignBalance.campaign_slug == campaign_slug
-            )
-        ).scalar_one()
-        if campaign_balance + reward_goal == reward_goal:
-            break
-    assert campaign_balance + reward_goal == reward_goal
 
 
 @pytest.fixture(scope="function")

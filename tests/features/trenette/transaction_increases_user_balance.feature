@@ -20,7 +20,7 @@ Feature: Bink BPL - Transaction increases user balance
     Then 0 issued rewards are available to the account holder
     When BPL receives a transaction for the account holder for the amount of 550 pennies
     Then 0 issued rewards are available to the account holder
-    And the account holder's trenette-stmp-campaign-1 balance is 200
+    And the account holder's trenette-stmp-campaign-1 balance is returned as 200
     When BPL receives a transaction for the account holder for the amount of 600 pennies
     Then 0 issued rewards are available to the account holder
-    And the account holder's trenette-stmp-campaign-1 balance is 300
+    And the account holder's trenette-stmp-campaign-1 balance is returned as 300
