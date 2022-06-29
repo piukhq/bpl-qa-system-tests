@@ -105,6 +105,7 @@ EOF
         cat <<EOF
 DATABASE_NAME=hubble_auto
 DATABASE_URI="$BASE_DB_URI/{}"
+PG_CONNECTION_POOLING=False
 SQL_DEBUG=False
 USE_NULL_POOL=True
 RABBIT_DSN=amqp://guest:guest@localhost:5672/
