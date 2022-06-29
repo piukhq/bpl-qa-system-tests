@@ -27,13 +27,13 @@ Feature: Transaction with no reward config setup for retailer
     And 1 issued rewards are available to the account holder
 
 
-# @transaction @bpl @bpl-297-2
-# Scenario: Two rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
-#   Given an active account holder exists for the retailer
-#   When BPL receives a transaction for the account holder for the amount of 21000 pennies
-#   Then the account holder's trenette-acc-campaign-1 balance is returned as 1000
-#   And 0 issued rewards are available to the account holder
-#   When 2 rewards are generated for the 10percentoff reward config with allocation status set to false and deleted status set to false
-#   Then 2 rewards are allocated to the account holder for the 10percentoff reward
-#   And the account holder's trenette-acc-campaign-1 balance is 1000
-#   And 2 issued rewards are available to the account holder
+  @transaction @bpl @bpl-297-2
+  Scenario: Two rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
+    Given an active account holder exists for the retailer
+    When BPL receives a transaction for the account holder for the amount of 21000 pennies
+    Then the account holder's trenette-acc-campaign-1 balance is returned as 1000
+    And 0 issued rewards are available to the account holder
+    When 2 rewards are generated for the 10percentoff reward config with allocation status set to false and deleted status set to false
+    Then 2 rewards are allocated to the account holder for the 10percentoff reward
+    And the account holder's trenette-acc-campaign-1 balance is returned as 1000
+    And 2 issued rewards are available to the account holder

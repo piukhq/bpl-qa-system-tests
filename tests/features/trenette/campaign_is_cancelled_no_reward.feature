@@ -17,6 +17,7 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
     And there is 1 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
     And there is 1 reward configured for the free-item-2 reward config, with allocation status set to false and deleted status set to false
 
+# FIXME: This needs more work. It doesn't appear to address BPL-298
 # @bpl @transaction @bpl-298
 # Scenario: Transaction meets earn threshold for two campaigns and one campaign is cancelled
 #   Given an active account holder exists for the retailer
