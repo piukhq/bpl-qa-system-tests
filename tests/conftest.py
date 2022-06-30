@@ -51,7 +51,6 @@ from tests.db_actions.polaris import (
     create_rewards_for_existing_account_holder,
     get_account_holder_for_retailer,
 )
-
 from tests.db_actions.retry_tasks import RetryTaskStatuses, get_latest_task
 from tests.db_actions.vela import get_campaign_by_slug
 from tests.requests.enrolment import send_get_accounts
