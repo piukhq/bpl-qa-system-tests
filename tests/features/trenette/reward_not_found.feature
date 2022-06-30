@@ -19,5 +19,5 @@ Feature: Reward already allocated and uploading status from 3rd party
     When the file for trenette with redeemed status is imported
     Then the trenette account is not issued reward 10percentoff
     And the reward-status-adjustment did not find rewards and return 404
-    When the reward-status-adjustment task status is failed
+    When the carina reward-status-adjustment task status is failed
     Then all rewards for 10percentoff reward config are soft deleted

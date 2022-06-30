@@ -731,24 +731,14 @@ def verify_account_holder_reward_status(
 
 
 # fmt: off
-@when(parsers.parse("the {task_name} task status is cancelled"))
-# fmt: on
-def check_retry_task_status(vela_db_session: "Session", task_name: str) -> None:
-    for i in range(5):
-        sleep(i)
-        status = get_latest_task(vela_db_session, task_name)
-        if status[0] == RetryTaskStatuses.CANCELLED:
-            break
-
-    assert status[0] == RetryTaskStatuses.CANCELLED
-
-
-# fmt: off
-@when(parsers.parse("the {task_name} task status is {retry_status}"))
+@when(parsers.parse("the carina {task_name} task status is {retry_status}"))
 # fmt: on
 def check_retry_task_status_fail(carina_db_session: "Session", task_name: str, retry_status: str) -> None:
     if retry_status == "failed":
         enum_status = RetryTaskStatuses.FAILED
+
+    if retry_status == "cancelled":
+        enum_status = RetryTaskStatuses.CANCELLED
 
     for i in range(15):
         sleep(i)
