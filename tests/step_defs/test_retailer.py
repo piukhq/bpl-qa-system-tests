@@ -21,7 +21,7 @@ from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
 from tests.api.base import Endpoints
-from tests.db_actions.carina import get_reward_config_id,get_rewards_allocation_status
+from tests.db_actions.carina import get_reward_config_id, get_rewards_allocation_status
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
 from tests.db_actions.retry_tasks import (
     get_latest_callback_task_for_account_holder,
