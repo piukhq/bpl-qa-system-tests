@@ -16,7 +16,7 @@ import yaml
 
 from azure.storage.blob import BlobClient
 from pytest_bdd import given, parsers, then, when
-from sqlalchemy import create_engine, update
+from sqlalchemy import create_engine, sql, update
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
@@ -29,7 +29,7 @@ from db.carina import models as carina_models
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
 from db.hubble import models as hubble_models
 from db.polaris import models as polaris_models
-from db.polaris.models import AccountHolder, AccountHolderCampaignBalance
+from db.polaris.models import AccountHolder, AccountHolderCampaignBalance, AccountHolderReward
 from db.vela import models as vela_models
 from db.vela.models import Campaign, EarnRule, RetailerRewards, RewardRule
 from settings import (
@@ -606,6 +606,18 @@ def the_account_holder_transaction_request(
     }
     logging.info(f"Payload of transaction : {json.dumps(payload)}")
     post_transaction_request(payload, retailer_config.slug, request_context)
+
+
+@given("an account holder reward with this reward uuid does not exist")
+def check_account_holder_reward_exists(available_rewards: list[Reward], polaris_db_session: "Session") -> None:
+    assert (
+        polaris_db_session.execute(
+            select(sql.functions.count("*"))
+            .select_from(AccountHolderReward)
+            .where(AccountHolderReward.reward_uuid.in_([str(reward.id) for reward in available_rewards]))
+        ).scalar()
+        == 0
+    )
 
 
 # fmt: off

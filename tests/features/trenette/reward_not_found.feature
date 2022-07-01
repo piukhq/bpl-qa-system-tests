@@ -12,12 +12,9 @@ Feature: Reward already allocated and uploading status from 3rd party
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 reward configured for the 10percentoff reward config, with allocation status set to true and deleted status set to false
+    And an account holder reward with this reward uuid does not exist
 
   @reward @bpl @bpl_299
-  Scenario: Handle importing already allocated reward codes from a 3rd party
-    Given an active account holder exists for the retailer
+  Scenario: Reward allocated in carina not found in polaris
     When the file for trenette with redeemed status is imported
-    Then the trenette account is not issued reward 10percentoff
-    And the reward-status-adjustment did not find rewards and return 404
-    When the carina reward-status-adjustment task status is failed
     Then all rewards for 10percentoff reward config are soft deleted
