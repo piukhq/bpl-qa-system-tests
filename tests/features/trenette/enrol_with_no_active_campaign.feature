@@ -20,7 +20,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
     Then the account holder activation is started
     And an enrolment callback task is saved in the database
     And the polaris account-holder-activation task status is waiting
-    And the polaris send-welcome-email task status is pending
+    And the polaris send-email task status is pending
     And the polaris enrolment-callback task status is pending
 
     Then the retailer's trenette-active-campaign campaign status is changed to active
@@ -28,7 +28,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
     Then the account holder is activated
     And the account holder's trenette-active-campaign balance is returned as 0
     And the polaris account-holder-activation task status is success
-    And the polaris send-welcome-email task status is success
+    And the polaris send-email task status is success
     And the polaris enrolment-callback task status is success
 
 
