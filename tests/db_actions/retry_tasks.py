@@ -59,6 +59,7 @@ def get_retry_task_audit_data(
     db_session: "Session",
     task_name: str,
 ) -> RetryTaskStatuses:
-    audit_data = db_session.execute(select(RetryTask.audit_data).where(RetryTask.task_type_id == TaskType.task_type_id,
-                                                                       TaskType.name == task_name)).first()
+    audit_data = db_session.execute(
+        select(RetryTask.audit_data).where(RetryTask.task_type_id == TaskType.task_type_id, TaskType.name == task_name)
+    ).first()
     return audit_data
