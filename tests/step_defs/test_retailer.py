@@ -347,7 +347,7 @@ def check_unallocated_rewards_deleted(
     reward_slug: str,
 ) -> None:
     reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
-    unallocated_rewards = get_rewards(carina_db_session, reward_config_id, False)
+    unallocated_rewards = get_rewards(carina_db_session, reward_config_id, allocated=False)
     for i in range(3):
         time.sleep(i)  # Need to allow enough time for the task to soft delete rewards
         rewards_deleted = []
@@ -477,7 +477,7 @@ def retry_task_not_found_rewards(carina_db_session: "Session", retry_task: str, 
 def reward_gets_soft_deleted(carina_db_session: "Session", reward_slug: str) -> None:
     reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
     rewards = get_rewards(carina_db_session, reward_config_id, allocated=True)
-    for i in range(3):
+    for i in range(10):
         sleep(i)  # Need to allow enough time for the task to soft delete rewards
         for reward in rewards:
             carina_db_session.refresh(reward)
