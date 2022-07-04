@@ -35,9 +35,7 @@ def get_retailer_id(
 
 def get_rewards(carina_db_session: "Session", reward_ids: list[str], allocated: bool) -> list[Reward]:
     rewards = (
-        carina_db_session.execute(
-            select(Reward).where(Reward.id.in_(reward_ids), Reward.allocated.is_(allocated))
-        )
+        carina_db_session.execute(select(Reward).where(Reward.id.in_(reward_ids), Reward.allocated.is_(allocated)))
         .scalars()
         .all()
     )

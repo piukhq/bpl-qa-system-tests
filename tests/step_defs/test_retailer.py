@@ -274,7 +274,11 @@ def check_reward_issuance(
         raise ValueError(f"{issued} is not an acceptable value")
 
 
-@when(parse("the file for {retailer_slug} with {reward_status} status is imported"), target_fixture= "imported_reward_ids")
+# fmt: off
+@when(
+    parse("the file for {retailer_slug} with {reward_status} status is imported"), target_fixture="imported_reward_ids"
+)
+# fmt: on
 def reward_updates_upload(
     retailer_slug: str,
     reward_status: str,
