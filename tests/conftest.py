@@ -743,7 +743,7 @@ def verify_account_holder_reward_status(
 
 
 # fmt: off
-@when(parsers.parse("the carina {task_name} task status is {retry_status}"))
+@then(parsers.parse("the carina {task_name} task status is {retry_status}"))
 # fmt: on
 def check_retry_task_status_fail(carina_db_session: "Session", task_name: str, retry_status: str) -> None:
 
@@ -753,6 +753,7 @@ def check_retry_task_status_fail(carina_db_session: "Session", task_name: str, r
         sleep(i)
         status = get_latest_task(carina_db_session, task_name)
         if status is not None and status.status == enum_status:
+            logging.info(f"the carina {status.status} is {retry_status}")
             break
 
     assert status.status == enum_status
@@ -819,7 +820,7 @@ def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_n
     for i in range(5):
         sleep(i)
         if task.status.value == task_status:
-            logging.info(f"{task.status} is {task_status}")
+            logging.info(f"the vela {task.status} is {task_status}")
             break
         vela_db_session.refresh(task)
     assert task.status.value == task_status
@@ -833,7 +834,7 @@ def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", ta
     for i in range(5):
         sleep(i)
         if task.status.value == task_status:
-            logging.info(f"{task.status} is {task_status}")
+            logging.info(f"the polaris {task.status} is {task_status}")
             break
         polaris_db_session.refresh(task)
     assert task.status.value == task_status

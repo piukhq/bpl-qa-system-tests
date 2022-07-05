@@ -4,7 +4,7 @@ Feature: Bink BPL - Jigshaw egift - Transaction increases user balance
   I am doing transaction to asos egift and it meets earn threshold
   So I make sure that I got balance increased
 
-  @bpl @transaction @bpl-571
+  @bpl @asos @bpl-571
   Scenario: jigshaw egift - Transaction meets earn threshold (>0)
 
     Given the asos retailer exists
