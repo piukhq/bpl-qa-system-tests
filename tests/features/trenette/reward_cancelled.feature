@@ -18,7 +18,7 @@ Feature: Reward code status updated to cancelled from 3rd party
     When BPL receives a transaction for the account holder for the amount of 701 pennies
     Then the account holder's trenette-acc-campaign-1 balance is returned as 1
     And 1 issued rewards are available to the account holder
-    When the file for trenette with cancelled status is imported
+    When the trenette retailer updates selected rewards to cancelled status
     Then the file is moved to the archive container by the reward importer
     And the status of the allocated account holder for trenette rewards are updated with CANCELLED
     And 1 reward for the account holder shows as cancelled with redeemed date

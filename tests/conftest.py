@@ -16,7 +16,7 @@ import yaml
 
 from azure.storage.blob import BlobClient
 from pytest_bdd import given, parsers, then, when
-from sqlalchemy import create_engine, update
+from sqlalchemy import create_engine, sql, update
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
@@ -29,7 +29,7 @@ from db.carina import models as carina_models
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
 from db.hubble import models as hubble_models
 from db.polaris import models as polaris_models
-from db.polaris.models import AccountHolder, AccountHolderCampaignBalance
+from db.polaris.models import AccountHolder, AccountHolderCampaignBalance, AccountHolderReward
 from db.vela import models as vela_models
 from db.vela.models import Campaign, EarnRule, RetailerRewards, RewardRule
 from settings import (
@@ -51,7 +51,7 @@ from tests.db_actions.polaris import (
     create_rewards_for_existing_account_holder,
     get_account_holder_for_retailer,
 )
-from tests.db_actions.retry_tasks import get_latest_task
+from tests.db_actions.retry_tasks import RetryTaskStatuses, get_latest_task
 from tests.db_actions.vela import get_campaign_by_slug
 from tests.requests.enrolment import send_get_accounts
 from tests.requests.transaction import post_transaction_request
@@ -608,6 +608,18 @@ def the_account_holder_transaction_request(
     post_transaction_request(payload, retailer_config.slug, request_context)
 
 
+@given("an account holder reward with this reward uuid does not exist")
+def check_account_holder_reward_exists(available_rewards: list[Reward], polaris_db_session: "Session") -> None:
+    assert (
+        polaris_db_session.execute(
+            select(sql.functions.count("*"))
+            .select_from(AccountHolderReward)
+            .where(AccountHolderReward.reward_uuid.in_([str(reward.id) for reward in available_rewards]))
+        ).scalar()
+        == 0
+    )
+
+
 # fmt: off
 @then(parsers.parse("{expected_num_rewards:d} {state} rewards are available to the account holder"))
 # fmt: on
@@ -728,6 +740,22 @@ def verify_account_holder_reward_status(
         elif reward_status == "cancelled":
             assert redeemed_date is None
         assert resp.json()["rewards"][i]["status"] == reward_status
+
+
+# fmt: off
+@when(parsers.parse("the carina {task_name} task status is {retry_status}"))
+# fmt: on
+def check_retry_task_status_fail(carina_db_session: "Session", task_name: str, retry_status: str) -> None:
+
+    enum_status = RetryTaskStatuses(retry_status)
+
+    for i in range(15):
+        sleep(i)
+        status = get_latest_task(carina_db_session, task_name)
+        if status is not None and status.status == enum_status:
+            break
+
+    assert status.status == enum_status
 
 
 # fmt: off

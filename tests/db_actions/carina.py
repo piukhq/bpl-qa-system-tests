@@ -33,8 +33,21 @@ def get_retailer_id(
     return carina_db_session.execute(select(Retailer.id).where(Retailer.slug == retailer_slug)).scalar_one()
 
 
-def get_unallocated_rewards(carina_db_session: "Session", reward_config_id: int) -> list[Reward]:
-    unallocated_rewards = (
-        carina_db_session.execute(select(Reward).where(Reward.reward_config_id == reward_config_id)).scalars().all()
+def get_rewards(carina_db_session: "Session", reward_ids: list[str], allocated: bool) -> list[Reward]:
+    rewards = (
+        carina_db_session.execute(select(Reward).where(Reward.id.in_(reward_ids), Reward.allocated.is_(allocated)))
+        .scalars()
+        .all()
     )
-    return unallocated_rewards
+    return rewards
+
+
+def get_rewards_by_reward_config(carina_db_session: "Session", reward_config_id: int, allocated: bool) -> list[Reward]:
+    rewards = (
+        carina_db_session.execute(
+            select(Reward).where(Reward.reward_config_id == reward_config_id, Reward.allocated.is_(allocated))
+        )
+        .scalars()
+        .all()
+    )
+    return rewards

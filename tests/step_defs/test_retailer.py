@@ -21,9 +21,13 @@ from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
 from tests.api.base import Endpoints
-from tests.db_actions.carina import get_reward_config_id, get_unallocated_rewards
+from tests.db_actions.carina import get_reward_config_id, get_rewards, get_rewards_by_reward_config
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
-from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
+from tests.db_actions.retry_tasks import (
+    get_latest_callback_task_for_account_holder,
+    get_latest_task,
+    get_retry_task_audit_data,
+)
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
 from tests.requests.enrolment import send_get_accounts, send_post_enrolment
@@ -270,13 +274,16 @@ def check_reward_issuance(
         raise ValueError(f"{issued} is not an acceptable value")
 
 
-@when(parse("the file for {retailer_slug} with {reward_status} status is imported"))
+# fmt: off
+@when(parse("the {retailer_slug} retailer updates selected rewards to {reward_status} status"),
+      target_fixture="imported_reward_ids")
+# fmt: on
 def reward_updates_upload(
     retailer_slug: str,
     reward_status: str,
     available_rewards: list[Reward],
     upload_reward_updates_to_blob_storage: Callable,
-) -> None:
+) -> list[str]:
     """
     The fixture should place a CSV file onto blob storage, which a running instance of
     carina (the scheduler job for doing these imports) will pick up and process, putting rows into carina's DB
@@ -286,6 +293,7 @@ def reward_updates_upload(
         retailer_slug=retailer_slug, rewards=available_rewards, reward_status=reward_status
     )
     assert blob
+    return [reward.id for reward in available_rewards]
 
 
 @then(parse("the status of the allocated account holder for {retailer_slug} rewards are updated with {reward_status}"))
@@ -343,7 +351,7 @@ def check_unallocated_rewards_deleted(
     reward_slug: str,
 ) -> None:
     reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
-    unallocated_rewards = get_unallocated_rewards(carina_db_session, reward_config_id)
+    unallocated_rewards = get_rewards_by_reward_config(carina_db_session, reward_config_id, allocated=False)
     for i in range(3):
         time.sleep(i)  # Need to allow enough time for the task to soft delete rewards
         rewards_deleted = []
@@ -454,3 +462,33 @@ def the_account_holder_activation_is_started(polaris_db_session: "Session", reta
     assert resp.json()["transaction_history"] == []
     assert resp.json()["rewards"] == []
     assert resp.json()["pending_rewards"] == []
+
+
+@then(parse("the {retry_task} did not find rewards and return {status_code:d}"))
+def retry_task_not_found_rewards(carina_db_session: "Session", retry_task: str, status_code: int) -> None:
+
+    for i in range(15):
+        sleep(i)
+        audit_data = get_retry_task_audit_data(carina_db_session, task_name=retry_task)
+        if audit_data is not None:
+            break
+
+    logging.info(f"{retry_task} returned : {audit_data[0][0]['response']['status']} ")
+    assert audit_data[0][0]["response"]["status"] == status_code
+
+
+@then(parse("the imported rewards are soft deleted"))
+def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: list[str]) -> None:
+    rewards = get_rewards(carina_db_session, imported_reward_ids, allocated=True)
+    for i in range(10):
+        logging.info(f"Sleeping for {i} seconds...")
+        sleep(i)  # Need to allow enough time for the task to soft delete rewards
+        for reward in rewards:
+            carina_db_session.refresh(reward)
+
+        if all([reward.deleted for reward in rewards]):
+            break
+        logging.info("Not all rewards deleted yet...")
+
+    assert all([reward.deleted for reward in rewards]), "All rewards not soft deleted"
+    logging.info("All Rewards were soft deleted")

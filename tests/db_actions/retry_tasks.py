@@ -2,7 +2,7 @@ import time
 
 from typing import TYPE_CHECKING
 
-from retry_tasks_lib.db.models import RetryTask, TaskType
+from retry_tasks_lib.db.models import RetryTask, RetryTaskStatuses, TaskType
 from sqlalchemy import select
 
 if TYPE_CHECKING:
@@ -53,3 +53,13 @@ def get_latest_task(
         .scalars()
         .first()
     )
+
+
+def get_retry_task_audit_data(
+    db_session: "Session",
+    task_name: str,
+) -> RetryTaskStatuses:
+    audit_data = db_session.execute(
+        select(RetryTask.audit_data).where(RetryTask.task_type_id == TaskType.task_type_id, TaskType.name == task_name)
+    ).first()
+    return audit_data
