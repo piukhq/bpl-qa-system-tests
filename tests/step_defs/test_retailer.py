@@ -275,7 +275,7 @@ def check_reward_issuance(
 
 
 # fmt: off
-@when(parse("the file for {retailer_slug} with {reward_status} status is imported"),
+@when(parse("the {retailer_slug} retailer updates selected rewards to {reward_status} status"),
       target_fixture="imported_reward_ids")
 # fmt: on
 def reward_updates_upload(

@@ -16,5 +16,5 @@ Feature: Reward already allocated and uploading status from 3rd party
   @reward @bpl @bpl_299
   Scenario: Reward allocated in carina not found in polaris
     Given an account holder reward with this reward uuid does not exist
-    When the file for trenette with redeemed status is imported
+    When the trenette retailer updates selected rewards to redeemed status
     Then the imported rewards are soft deleted
