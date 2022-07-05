@@ -494,13 +494,24 @@ def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: 
     logging.info("All Rewards were soft deleted")
 
 
-@then(parse("the retailer's requested {campaign_slug} to {campaign_requested_status} the campaign and {reward_status} pending rewards"))
-def retailers_requested_to_convert_rewards(request_context: dict, campaign_slug:str, campaign_requested_status: str, reward_status:str, retailer_config: "RetailerConfig") -> None:
+@then(
+    parse(
+        "the retailer's requested {campaign_slug} to {campaign_requested_status} "
+        "the campaign and {reward_status} pending rewards"
+    )
+)
+def retailers_requested_to_convert_rewards(
+    request_context: dict,
+    campaign_slug: str,
+    campaign_requested_status: str,
+    reward_status: str,
+    retailer_config: "RetailerConfig",
+) -> None:
     if reward_status == "delete":
         payload = {
             "requested_status": campaign_requested_status,
             "campaign_slugs": [campaign_slug],
-            "issue_pending_rewards": False
+            "issue_pending_rewards": False,
         }
 
     request = send_post_campaign_status_change(
