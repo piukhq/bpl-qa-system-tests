@@ -21,7 +21,7 @@ from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
 from tests.api.base import Endpoints
-from tests.db_actions.carina import get_reward_config_id, get_rewards, get_unallocated_rewards
+from tests.db_actions.carina import get_reward_config_id, get_rewards, get_rewards_by_reward_config
 from tests.db_actions.polaris import get_account_holder_for_retailer, get_account_holder_reward, get_pending_rewards
 from tests.db_actions.retry_tasks import (
     get_latest_callback_task_for_account_holder,
@@ -275,9 +275,8 @@ def check_reward_issuance(
 
 
 # fmt: off
-@when(
-    parse("the file for {retailer_slug} with {reward_status} status is imported"), target_fixture="imported_reward_ids"
-)
+@when(parse("the file for {retailer_slug} with {reward_status} status is imported"),
+      target_fixture="imported_reward_ids")
 # fmt: on
 def reward_updates_upload(
     retailer_slug: str,
@@ -352,7 +351,7 @@ def check_unallocated_rewards_deleted(
     reward_slug: str,
 ) -> None:
     reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
-    unallocated_rewards = get_unallocated_rewards(carina_db_session, reward_config_id, allocated=False)
+    unallocated_rewards = get_rewards_by_reward_config(carina_db_session, reward_config_id, allocated=False)
     for i in range(3):
         time.sleep(i)  # Need to allow enough time for the task to soft delete rewards
         rewards_deleted = []
