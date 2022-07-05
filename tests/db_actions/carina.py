@@ -43,11 +43,11 @@ def get_rewards(carina_db_session: "Session", reward_ids: list[str], allocated: 
 
 
 def get_rewards_by_reward_config(carina_db_session: "Session", reward_config_id: int, allocated: bool) -> list[Reward]:
-    unallocated_rewards = (
+    rewards = (
         carina_db_session.execute(
-            select(Reward).where(Reward.reward_config_id == reward_config_id, Reward.allocated is allocated)
+            select(Reward).where(Reward.reward_config_id == reward_config_id, Reward.allocated.is_(allocated))
         )
         .scalars()
         .all()
     )
-    return unallocated_rewards
+    return rewards
