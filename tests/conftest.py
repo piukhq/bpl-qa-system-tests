@@ -216,7 +216,7 @@ def create_email_template(
     account_number: str,
     marketing_token: str,
     retailer_config: "RetailerConfig",
-)-> None:
+) -> None:
 
     keys = (
         polaris_db_session.execute(
