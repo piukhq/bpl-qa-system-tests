@@ -480,7 +480,7 @@ def retry_task_not_found_rewards(carina_db_session: "Session", retry_task: str, 
 @then(parse("the imported rewards are soft deleted"))
 def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: list[str]) -> None:
     rewards = get_rewards(carina_db_session, imported_reward_ids, allocated=True)
-    for i in range(10):
+    for i in range(15):
         logging.info(f"Sleeping for {i} seconds...")
         sleep(i)  # Need to allow enough time for the task to soft delete rewards
         for reward in rewards:
