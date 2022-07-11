@@ -29,7 +29,14 @@ from db.carina import models as carina_models
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
 from db.hubble import models as hubble_models
 from db.polaris import models as polaris_models
-from db.polaris.models import AccountHolder, AccountHolderCampaignBalance, AccountHolderReward
+from db.polaris.models import (
+    AccountHolder,
+    AccountHolderCampaignBalance,
+    AccountHolderReward,
+    EmailTemplate,
+    EmailTemplateKey,
+    EmailTemplateRequiredKey,
+)
 from db.vela import models as vela_models
 from db.vela.models import Campaign, EarnRule, RetailerRewards, RewardRule
 from settings import (
@@ -193,6 +200,45 @@ def standard_campaigns_and_reward_slugs(
 
     vela_db_session.commit()
     return campaigns
+
+
+# fmt: off
+@given(parsers.parse("the retailer has a {email_type} email template configured with template id "
+                     "{template_id} and {first_name}, {last_name}, {account_number}, {marketing_token} variables"),
+       target_fixture="email_template")
+# fmt: on
+def create_email_template(
+    email_type: str,
+    template_id: str,
+    polaris_db_session: "Session",
+    first_name: str,
+    last_name: str,
+    account_number: str,
+    marketing_token: str,
+    retailer_config: "RetailerConfig",
+) -> None:
+
+    keys = (
+        polaris_db_session.execute(
+            select(EmailTemplateKey.id).where(
+                EmailTemplateKey.name.in_([first_name, last_name, account_number, marketing_token])
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    template = EmailTemplate(template_id=template_id, type=email_type, retailer_id=retailer_config.id)
+    polaris_db_session.add(template)
+
+    email_template_id = polaris_db_session.execute(
+        select(EmailTemplate.id).where(template_id == template_id)
+    ).scalar_one()
+    for key in keys:
+        required_key = EmailTemplateRequiredKey(email_template_id=email_template_id, email_template_key_id=key)
+        polaris_db_session.add(required_key)
+
+    polaris_db_session.commit()
 
 
 # fmt: off
@@ -830,7 +876,7 @@ def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_n
 # fmt: on
 def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", task_name: str, task_status: str) -> None:
     task = get_latest_task(polaris_db_session, task_name)
-    for i in range(5):
+    for i in range(10):
         sleep(i)
         if task.status.value == task_status:
             logging.info(f"{task.status} is {task_status}")

@@ -48,6 +48,10 @@ class EmailTemplateKey(Base):
     __tablename__ = "email_template_key"
 
 
+class EmailTemplateRequiredKey(Base):
+    __tablename__ = "email_template_required_key"
+
+
 class RetailerConfig(Base):
     __tablename__ = "retailer_config"
 
