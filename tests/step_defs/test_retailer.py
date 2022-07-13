@@ -492,3 +492,39 @@ def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: 
 
     assert all([reward.deleted for reward in rewards]), "All rewards not soft deleted"
     logging.info("All Rewards were soft deleted")
+
+
+@then(
+    parse(
+        "there is {expected_num_transaction:d} transaction record with amount {transaction_amount} "
+        "for {campaign_type} campaign"
+    )
+)
+def verify_transaction_history_balance(
+    expected_num_transaction: int,
+    retailer_config: RetailerConfig,
+    account_holder: AccountHolder,
+    transaction_amount: str,
+    campaign_type: str,
+) -> None:
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid} transaction history: "
+        f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
+    )
+    assert len(resp.json()["transaction_history"]) == expected_num_transaction
+    for i in range(expected_num_transaction):
+        if resp.json()["transaction_history"][i]["amount"] == transaction_amount:
+            assert resp.json()["transaction_history"][i]["datetime"] is not None
+            assert resp.json()["transaction_history"][i]["amount"] == transaction_amount
+            assert resp.json()["transaction_history"][i]["amount_currency"] == "GBP"
+            assert resp.json()["transaction_history"][i]["location"] == "N/A"
+            assert resp.json()["transaction_history"][i]["loyalty_earned_type"] == campaign_type
+            if transaction_amount.startswith("-"):
+                assert resp.json()["transaction_history"][i]["loyalty_earned_value"][2:] == transaction_amount[1:]
+            else:
+                assert resp.json()["transaction_history"][i]["loyalty_earned_value"][1:] == transaction_amount
+        else:
+            logging.info(f"{transaction_amount} is not in transaction history table")
