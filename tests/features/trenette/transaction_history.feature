@@ -37,7 +37,7 @@ Feature: Bink BPL - Transaction history
     And there is 1 transaction record with amount -7.99 for ACCUMULATOR campaign
 
   @bpl @transaction_history-3 @bpl-596
-  Scenario: Transaction history table with amount showing
+  Scenario: Transaction history table with maximum 10 record showing
     Given an active account holder exists for the retailer
 
     When BPL receives a transaction for the account holder for the amount of 150 pennies
@@ -67,3 +67,22 @@ Feature: Bink BPL - Transaction history
 
     When BPL receives a transaction for the account holder for the amount of -310 pennies
     Then there is 10 transaction record with amount -3.10 for ACCUMULATOR campaign
+
+  @bpl @transaction_history-4 @bpl-596
+  Scenario: Transaction history table with amount showing for getbycredential
+    Given an active account holder exists for the retailer
+
+    When BPL receives a transaction for the account holder for the amount of 150 pennies
+    And BPL receives a transaction for the account holder for the amount of 250 pennies
+    And BPL receives a transaction for the account holder for the amount of 350 pennies
+    And BPL receives a transaction for the account holder for the amount of 450 pennies
+    And BPL receives a transaction for the account holder for the amount of 550 pennies
+    And BPL receives a transaction for the account holder for the amount of 650 pennies
+    And BPL receives a transaction for the account holder for the amount of 750 pennies
+    And BPL receives a transaction for the account holder for the amount of 850 pennies
+    And BPL receives a transaction for the account holder for the amount of 950 pennies
+    And BPL receives a transaction for the account holder for the amount of 1050 pennies
+
+    Then there is 10 transaction history in array
+    When BPL receives a transaction for the account holder for the amount of 1050 pennies
+    Then there is 10 transaction history in array

@@ -30,7 +30,7 @@ from tests.db_actions.retry_tasks import (
 )
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
-from tests.requests.enrolment import send_get_accounts, send_post_enrolment
+from tests.requests.enrolment import send_get_accounts, send_get_accounts_by_credential, send_post_enrolment
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
@@ -494,12 +494,14 @@ def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: 
     logging.info("All Rewards were soft deleted")
 
 
+# fmt: off
 @then(
     parse(
         "there is {expected_num_transaction:d} transaction record with amount {transaction_amount} "
         "for {campaign_type} campaign"
     )
 )
+# fmt: on
 def verify_transaction_history_balance(
     expected_num_transaction: int,
     retailer_config: RetailerConfig,
@@ -514,17 +516,45 @@ def verify_transaction_history_balance(
         f"{account_holder.account_holder_uuid} transaction history: "
         f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
     )
-    assert len(resp.json()["transaction_history"]) == expected_num_transaction
-    for i in range(expected_num_transaction):
-        if resp.json()["transaction_history"][i]["amount"] == transaction_amount:
-            assert resp.json()["transaction_history"][i]["datetime"] is not None
-            assert resp.json()["transaction_history"][i]["amount"] == transaction_amount
-            assert resp.json()["transaction_history"][i]["amount_currency"] == "GBP"
-            assert resp.json()["transaction_history"][i]["location"] == "N/A"
-            assert resp.json()["transaction_history"][i]["loyalty_earned_type"] == campaign_type
-            if transaction_amount.startswith("-"):
-                assert resp.json()["transaction_history"][i]["loyalty_earned_value"][2:] == transaction_amount[1:]
-            else:
-                assert resp.json()["transaction_history"][i]["loyalty_earned_value"][1:] == transaction_amount
+
+    # Sorting the transaction history in the response. using delay to make sure there is different datetime
+    time.sleep(3)
+    tx_history_list = resp.json()["transaction_history"]
+    tx_history_sorted = sorted(tx_history_list, key=lambda d: d["datetime"])
+
+    assert len(tx_history_list) == expected_num_transaction
+    if campaign_type == "ACCUMULATOR":
+        assert tx_history_sorted[expected_num_transaction - 1]["datetime"] is not None
+        assert tx_history_sorted[expected_num_transaction - 1]["amount"] == transaction_amount
+        assert tx_history_sorted[expected_num_transaction - 1]["amount_currency"] == "GBP"
+        assert tx_history_sorted[expected_num_transaction - 1]["location"] == "N/A"
+        assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_type"] == campaign_type
+        if transaction_amount.startswith("-"):
+            assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_value"][1:] == transaction_amount
         else:
-            logging.info(f"{transaction_amount} is not in transaction history table")
+            assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_value"] == transaction_amount
+
+    elif campaign_type == "STAMPS":
+        assert tx_history_sorted[expected_num_transaction - 1]["datetime"] is not None
+        assert tx_history_sorted[expected_num_transaction - 1]["amount"] == transaction_amount
+        assert tx_history_sorted[expected_num_transaction - 1]["amount_currency"] == "GBP"
+        assert tx_history_sorted[expected_num_transaction - 1]["location"] == "N/A"
+        assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_value"] == 1
+        assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_type"] == campaign_type
+
+
+# fmt: off
+@then(parse("there is {expected_num_transaction:d} transaction history in array"))
+# fmt: on
+def verify_transaction_history_in_get_by_credential(
+    expected_num_transaction: int, retailer_config: RetailerConfig, account_holder: AccountHolder
+) -> None:
+    request_body = {"email": account_holder.email, "account_number": account_holder.account_number}
+    resp = send_get_accounts_by_credential(retailer_config.slug, request_body)
+    logging.info(f"Response for POST getbycredential HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.GETBYCREDENTIALS} transaction history: "
+        f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
+    )
+    assert resp.status_code == 200
+    assert len(resp.json()["transaction_history"]) == expected_num_transaction

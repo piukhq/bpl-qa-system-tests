@@ -23,3 +23,12 @@ def send_get_accounts(retailer_slug: str, uuid: str, *, headers: dict = None) ->
     url = get_polaris_url(retailer_slug, Endpoints.ACCOUNTS) + uuid
     session = retry_session()
     return session.get(url, headers=headers)
+
+
+def send_get_accounts_by_credential(retailer_slug: str, request_body: dict, headers: dict = None) -> "Response":
+    if headers is None:
+        headers = get_polaris_headers()
+
+    url = get_polaris_url(retailer_slug, Endpoints.GETBYCREDENTIALS)
+    session = retry_session()
+    return session.post(url, headers=headers, json=request_body)
