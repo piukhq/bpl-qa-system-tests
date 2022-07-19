@@ -560,7 +560,7 @@ def verify_transaction_history_in_get_by_credential(
 
 
 # fmt: off
-@then(parse("BPL set up to receive only {num_of_transaction} transaction appeared into transaction history with "
+@then(parse("BPL set up to receive only {num_of_transaction} recent transaction appeared into transaction history with "
             "{get_by_account} for the account holder"))
 # fmt: on
 def set_up_number_of_transaction(
@@ -582,6 +582,6 @@ def set_up_number_of_transaction(
             f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
         )
     else:
-        logging.info("Couldn't find correct GET call")
+        logging.info("Couldn't find correct call services")
     assert resp.status_code == 200
     assert len(resp.json()["transaction_history"]) == int(num_of_transaction)
