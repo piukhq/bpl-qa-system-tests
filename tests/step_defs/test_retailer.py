@@ -30,7 +30,13 @@ from tests.db_actions.retry_tasks import (
 )
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
-from tests.requests.enrolment import send_get_accounts, send_post_enrolment
+from tests.requests.enrolment import (
+    send_get_accounts,
+    send_get_accounts_by_credential,
+    send_number_of_accounts,
+    send_number_of_accounts_by_post_credential,
+    send_post_enrolment,
+)
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
@@ -492,3 +498,90 @@ def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: 
 
     assert all([reward.deleted for reward in rewards]), "All rewards not soft deleted"
     logging.info("All Rewards were soft deleted")
+
+
+# fmt: off
+@then(
+    parse(
+        "there is {expected_num_transaction:d} transaction record with amount {transaction_amount} "
+        "for {campaign_type} campaign"
+    )
+)
+# fmt: on
+def verify_transaction_history_balance(
+    expected_num_transaction: int,
+    retailer_config: RetailerConfig,
+    account_holder: AccountHolder,
+    transaction_amount: str,
+    campaign_type: str,
+) -> None:
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid} transaction history: "
+        f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
+    )
+
+    # Sorting the transaction history in the response. using delay to make sure there is different datetime
+    time.sleep(3)
+    tx_history_list = resp.json()["transaction_history"]
+    tx_history_sorted = sorted(tx_history_list, key=lambda d: d["datetime"])
+
+    assert len(tx_history_list) == expected_num_transaction
+    assert tx_history_sorted[expected_num_transaction - 1]["datetime"] is not None
+    assert tx_history_sorted[expected_num_transaction - 1]["amount"] == transaction_amount
+    assert tx_history_sorted[expected_num_transaction - 1]["amount_currency"] == "GBP"
+    assert tx_history_sorted[expected_num_transaction - 1]["location"] == "N/A"
+    assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_type"] == campaign_type
+
+    if campaign_type == "ACCUMULATOR":
+        assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_value"] == transaction_amount
+
+    elif campaign_type == "STAMPS":
+        assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_value"] == 1
+
+
+# fmt: off
+@then(parse("there is {expected_num_transaction:d} transaction history in array"))
+# fmt: on
+def verify_transaction_history_in_get_by_credential(
+    expected_num_transaction: int, retailer_config: RetailerConfig, account_holder: AccountHolder
+) -> None:
+    request_body = {"email": account_holder.email, "account_number": account_holder.account_number}
+    resp = send_get_accounts_by_credential(retailer_config.slug, request_body)
+    logging.info(f"Response for POST getbycredential HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.GETBYCREDENTIALS} transaction history: "
+        f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
+    )
+    assert resp.status_code == 200
+    assert len(resp.json()["transaction_history"]) == expected_num_transaction
+
+
+# fmt: off
+@then(parse("BPL set up to receive only {num_of_transaction} recent transaction appeared into transaction history with "
+            "{get_by_account} for the account holder"))
+# fmt: on
+def set_up_number_of_transaction(
+    num_of_transaction: str, get_by_account: str, retailer_config: RetailerConfig, account_holder: AccountHolder
+) -> None:
+    if get_by_account == "get by account":
+        resp = send_number_of_accounts(num_of_transaction, retailer_config.slug, account_holder.account_holder_uuid)
+        logging.info(f"Response HTTP status code: {resp.status_code}")
+        logging.info(
+            f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+            f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+        )
+    elif get_by_account == "get by credential":
+        payload = {"email": account_holder.email, "account_number": account_holder.account_number}
+        resp = send_number_of_accounts_by_post_credential(num_of_transaction, retailer_config.slug, payload)
+        logging.info(f"Response HTTP status code: {resp.status_code}")
+        logging.info(
+            f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+            f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+        )
+    else:
+        logging.info("Couldn't find correct call services")
+    assert resp.status_code == 200
+    assert len(resp.json()["transaction_history"]) == int(num_of_transaction)
