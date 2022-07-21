@@ -24,7 +24,8 @@ Feature: Bink BPL - Transaction history
     When BPL receives a transaction for the account holder for the amount of 650 pennies
     Then 0 issued rewards are available to the account holder
     And the account holder's trenette-acc-campaign balance is returned as 2650
-    And there is 1 transaction record with amount 6.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 1 transactions, and the latest transaction is 6.50
+
 
   @bpl @transaction_history-2 @bpl-596
   Scenario: Transaction history with refund
@@ -35,39 +36,47 @@ Feature: Bink BPL - Transaction history
     When BPL receives a transaction for the account holder for the amount of -799 pennies
     Then 0 issued rewards are available to the account holder
     And the account holder's trenette-acc-campaign balance is returned as 1851
-    And there is 1 transaction record with amount -7.99 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 1 transactions, and the latest transaction is -7.99
 
   @bpl @transaction_history-3 @bpl-596
   Scenario: Transaction history with maximum 10 record
     Given an active account holder exists for the retailer
 
     When BPL receives a transaction for the account holder for the amount of 150 pennies
-    Then there is 1 transaction record with amount 1.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 1 transactions, and the latest transaction is 1.50
 
     When BPL receives a transaction for the account holder for the amount of 250 pennies
-    Then there is 2 transaction record with amount 2.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 2 transactions, and the latest transaction is 2.50
+
     When BPL receives a transaction for the account holder for the amount of 350 pennies
-    Then there is 3 transaction record with amount 3.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 3 transactions, and the latest transaction is 3.50
+
     When BPL receives a transaction for the account holder for the amount of 450 pennies
-    Then there is 4 transaction record with amount 4.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 4 transactions, and the latest transaction is 4.50
+
     When BPL receives a transaction for the account holder for the amount of 550 pennies
-    Then there is 5 transaction record with amount 5.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 5 transactions, and the latest transaction is 5.50
+
     When BPL receives a transaction for the account holder for the amount of 650 pennies
-    Then there is 6 transaction record with amount 6.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 6 transactions, and the latest transaction is 6.50
+
     When BPL receives a transaction for the account holder for the amount of 750 pennies
-    Then there is 7 transaction record with amount 7.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 7 transactions, and the latest transaction is 7.50
+
     When BPL receives a transaction for the account holder for the amount of 850 pennies
-    Then there is 8 transaction record with amount 8.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 8 transactions, and the latest transaction is 8.50
+
     When BPL receives a transaction for the account holder for the amount of 950 pennies
-    Then there is 9 transaction record with amount 9.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 9 transactions, and the latest transaction is 9.50
+
     When BPL receives a transaction for the account holder for the amount of 1050 pennies
-    Then there is 10 transaction record with amount 10.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 10 transactions, and the latest transaction is 10.50
 
     When BPL receives a transaction for the account holder for the amount of -210 pennies
-    Then there is 10 transaction record with amount -2.10 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 10 transactions, and the latest transaction is -2.10
 
     When BPL receives a transaction for the account holder for the amount of -310 pennies
-    Then there is 10 transaction record with amount -3.10 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 10 transactions, and the latest transaction is -3.10
 
   @bpl @transaction_history-4 @bpl-596
   Scenario: Transaction history with amount showing for getbycredential
@@ -89,49 +98,49 @@ Feature: Bink BPL - Transaction history
     Then there is 10 transaction history in array
 
   @bpl @transaction_history-5 @bpl-596
-  Scenario: Number of transactions to appeare for transaction history - For get by credential POST call
+  Scenario: Number of transactions to appear for transaction history - For get by credential POST call
     Given an active account holder exists for the retailer
 
 
     When BPL receives a transaction for the account holder for the amount of 150 pennies
-    Then there is 1 transaction record with amount 1.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 1 transactions, and the latest transaction is 1.50
 
     When BPL receives a transaction for the account holder for the amount of 250 pennies
-    Then there is 2 transaction record with amount 2.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 2 transactions, and the latest transaction is 2.50
 
     When BPL receives a transaction for the account holder for the amount of 350 pennies
-    Then there is 3 transaction record with amount 3.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 3 transactions, and the latest transaction is 3.50
 
     When BPL receives a transaction for the account holder for the amount of 450 pennies
-    Then there is 4 transaction record with amount 4.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 4 transactions, and the latest transaction is 4.50
 
     And BPL set up to receive only 3 recent transaction appeared into transaction history with get by credential for the account holder
 
     When BPL receives a transaction for the account holder for the amount of 550 pennies
-    Then there is 5 transaction record with amount 5.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 5 transactions, and the latest transaction is 5.50
 
     And BPL set up to receive only 4 recent transaction appeared into transaction history with get by credential for the account holder
 
   @bpl @transaction_history-6 @bpl-596
-  Scenario: Number of transactions to appeare for transaction history - For get account GET call
+  Scenario: Number of transactions to appear for transaction history - For get account GET call
     Given an active account holder exists for the retailer
 
 
     When BPL receives a transaction for the account holder for the amount of 150 pennies
-    Then there is 1 transaction record with amount 1.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 1 transactions, and the latest transaction is 1.50
 
     When BPL receives a transaction for the account holder for the amount of 250 pennies
-    Then there is 2 transaction record with amount 2.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 2 transactions, and the latest transaction is 2.50
 
     When BPL receives a transaction for the account holder for the amount of 350 pennies
-    Then there is 3 transaction record with amount 3.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 3 transactions, and the latest transaction is 3.50
 
     When BPL receives a transaction for the account holder for the amount of 450 pennies
-    Then there is 4 transaction record with amount 4.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 4 transactions, and the latest transaction is 4.50
 
     And BPL set up to receive only 3 recent transaction appeared into transaction history with get by account for the account holder
 
     When BPL receives a transaction for the account holder for the amount of 550 pennies
-    Then there is 5 transaction record with amount 5.50 for ACCUMULATOR campaign
+    Then The account holder's transaction history has 5 transactions, and the latest transaction is 5.50
 
     And BPL set up to receive only 4 recent transaction appeared into transaction history with get by account for the account holder

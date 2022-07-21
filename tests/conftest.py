@@ -260,8 +260,8 @@ def add_vars_to_email_template(
 
 
 # fmt: off
-@given(parsers.parse("the retailer's {campaign_slug} {loyalty_type} campaign starts {starts_when} "
-                     "and ends {ends_when} and is {status}"))
+@given(parsers.parse("the retailer's {campaign_slug} {loyalty_type} campaign starts {starts_when} and ends "
+                     "{ends_when} and is {status}"), target_fixture="standard_campaign")
 # fmt: on
 def create_campaign(
     campaign_slug: str,
@@ -270,8 +270,8 @@ def create_campaign(
     ends_when: str,
     status: str,
     vela_db_session: "Session",
-    retailer_config: RetailerConfig,
-) -> None:
+    retailer_config: "RetailerConfig",
+) -> Campaign:
 
     arw = arrow.utcnow()
     start_date = arw.dehumanize(starts_when).date()
@@ -288,11 +288,12 @@ def create_campaign(
     vela_db_session.add(campaign)
     vela_db_session.commit()
 
+    return campaign
+
 
 # fmt: off
-@given(parsers.parse("the {campaign_slug} campaign has an "
-                     "earn rule with a threshold of {threshold}, an increment of {inc} and "
-                     "a multiplier of {mult}"))
+@given(parsers.parse("the {campaign_slug} campaign has an earn rule with a threshold of {threshold}, an increment "
+                     "of {inc} and a multiplier of {mult}"))
 # fmt: on
 def create_stamps_earn_rule(
     vela_db_session: "Session",
@@ -977,7 +978,7 @@ def check_retry_task_status_fail(carina_db_session: "Session", task_name: str, r
 
     enum_status = RetryTaskStatuses(retry_status)
 
-    for i in range(15):
+    for i in range(20):
         sleep(i)
         status = get_latest_task(carina_db_session, task_name)
         if status is not None and status.status == enum_status:
