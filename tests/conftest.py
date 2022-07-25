@@ -790,6 +790,7 @@ def verify_account_holder_reward_status(
 
 # fmt: off
 @when(parsers.parse("the carina {task_name} task status is {retry_status}"))
+@then(parsers.parse("the carina {task_name} task status is {retry_status}"))
 # fmt: on
 def check_retry_task_status_fail(carina_db_session: "Session", task_name: str, retry_status: str) -> None:
 

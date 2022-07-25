@@ -38,3 +38,13 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards
         And the account holder's trenette-active-campaign balance no longer exists
         And any pending rewards for trenette-active-campaign are deleted
         And any trenette account holder rewards for 10percentoff are cancelled
+
+
+    @bpl @campaign @bpl-512
+    Scenario: Activate new campaign, cancel old with no allocated rewards
+        Given an active account holder exists for the retailer
+
+        Then the retailer's trenette-draft-campaign campaign status is changed to active
+        And the retailer's trenette-active-campaign campaign status is changed to cancelled
+
+        And the carina cancel-rewards task status is success
