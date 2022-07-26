@@ -2,11 +2,11 @@ name: ci
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
   tests:
@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - run: pip install pipenv
       - run: pipenv install --dev --system --deploy --ignore-pipfile
       - run: flake8 .
