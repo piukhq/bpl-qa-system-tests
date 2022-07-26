@@ -64,6 +64,7 @@ LOG_FORMATTER=brief
 DISABLE_METRICS=true
 USE_CALLBACK_OAUTH2=false
 VELA_HOST=http://localhost:8001
+CARINA_HOST=http://localhost:8002
 REDIS_URL=redis://localhost:6379/0
 BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
 TASK_RETRY_BACKOFF_BASE="0.2"
@@ -110,6 +111,7 @@ SQL_DEBUG=False
 USE_NULL_POOL=True
 RABBIT_DSN=amqp://guest:guest@localhost:5672/
 ROOT_LOG_LEVEL=DEBUG
+EOF
     )
 
     cd $ROOT_DIR

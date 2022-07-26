@@ -4,20 +4,20 @@ import time
 
 from datetime import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 from uuid import uuid4
 
 from faker import Faker
 from pytest_bdd import scenarios, then, when
 from pytest_bdd.parsers import parse
 from retry_tasks_lib.enums import RetryTaskStatuses
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 import settings
 
 from azure_actions.blob_storage import check_archive_blobcontainer
-from db.carina.models import Reward, RewardConfig
-from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
+from db.carina.models import Retailer, Reward, RewardConfig
+from db.polaris.models import AccountHolder, AccountHolderCampaignBalance, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from settings import MOCK_SERVICE_BASE_URL
 from tests.api.base import Endpoints
@@ -27,6 +27,7 @@ from tests.db_actions.retry_tasks import (
     get_latest_callback_task_for_account_holder,
     get_latest_task,
     get_retry_task_audit_data,
+    get_tasks_by_type_and_key_value,
 )
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.db_actions.vela import get_campaign_status, get_reward_adjustment_task_status
@@ -41,11 +42,11 @@ from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
 
-scenarios("../features/trenette")
-scenarios("../features/asos")
-
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
+
+scenarios("../features/trenette")
+scenarios("../features/asos")
 
 fake = Faker(locale="en_GB")
 
@@ -181,11 +182,47 @@ def the_account_holder_get_response(status_code: int, response_type: str, reques
     logging.info(TransactionResponses.get_json(response_type))
 
 
-@then(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
-def send_post_campaign_change_request(
-    request_context: dict, vela_db_session: "Session", status: str, retailer_config: RetailerConfig, campaign_slug: str
+# fmt: off
+@when(parse("the retailer's {campaign_slug} campaign status is changed to ended with pending rewards to be "
+            "{issued_or_deleted}"))
+# fmt: on
+def cancel_end_campaign(
+    request_context: dict,
+    vela_db_session: "Session",
+    # status: Literal['cancelled'] | Literal['ended'],
+    retailer_config: RetailerConfig,
+    campaign_slug: str,
+    issued_or_deleted: Literal["deleted"] | Literal["issued"],
 ) -> None:
-    payload = {
+    payload: dict[str, Any] = {
+        "requested_status": "ended",
+        "campaign_slugs": [campaign_slug],
+    }
+    if issued_or_deleted == "issued":
+        payload.update({"issue_pending_rewards": True})
+
+    request = send_post_campaign_status_change(
+        request_context=request_context, retailer_slug=retailer_config.slug, request_body=payload
+    )
+    assert request.status_code == 200
+    for _ in range(5):
+        logging.info("Waiting for campaign status to change")
+        campaign_status = get_campaign_status(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
+        if not campaign_status == CampaignStatuses.ENDED:
+            continue
+    assert campaign_status == CampaignStatuses.ENDED
+
+
+# fmt: off
+@then(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
+# fmt: on
+def send_post_campaign_change_request(
+    request_context: dict,
+    status: str,
+    retailer_config: RetailerConfig,
+    campaign_slug: str,
+) -> None:
+    payload: dict[str, Any] = {
         "requested_status": status,
         "campaign_slugs": [campaign_slug],
     }
@@ -194,14 +231,6 @@ def send_post_campaign_change_request(
         request_context=request_context, retailer_slug=retailer_config.slug, request_body=payload
     )
     assert request.status_code == 200
-
-    if status in ("ended", "cancelled"):
-        for i in range(5):
-            campaign_status = get_campaign_status(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
-            if status == "ended":
-                assert campaign_status == CampaignStatuses.ENDED
-            else:
-                assert campaign_status == CampaignStatuses.CANCELLED
 
 
 @then(parse("the account holder's {campaign_slug} balance no longer exists"))
@@ -501,12 +530,8 @@ def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: 
 
 
 # fmt: off
-@then(
-    parse(
-        "there is {expected_num_transaction:d} transaction record with amount {transaction_amount} "
-        "for {campaign_type} campaign"
-    )
-)
+@then(parse("there is {expected_num_transaction:d} transaction record with amount {transaction_amount} "
+            "for {campaign_type} campaign"))
 # fmt: on
 def verify_transaction_history_balance(
     expected_num_transaction: int,
@@ -585,3 +610,141 @@ def set_up_number_of_transaction(
         logging.info("Couldn't find correct call services")
     assert resp.status_code == 200
     assert len(resp.json()["transaction_history"]) == int(num_of_transaction)
+
+
+# fmt: off
+@then(parse("queued reward-adjustment tasks for the account holders for the {campaign_slug} campaign are in status "
+            "of {status}"))
+# fmt: on
+def check_reward_adjustment_tasks_for_campaign_change_status(
+    account_holders: list[AccountHolder], vela_db_session: "Session", campaign_slug: str, status: str
+) -> None:
+    adjustment_tasks = get_tasks_by_type_and_key_value(
+        vela_db_session, "reward-adjustment", "campaign_slug", campaign_slug
+    )
+    account_holder_uuids = [ah.account_holder_uuid for ah in account_holders]
+    tasks_belonging_to_account_holders = [
+        task for task in adjustment_tasks if task.get_params()["account_holder_uuid"] in account_holder_uuids
+    ]
+    for i in range(10):
+        logging.info(f"Waiting {i} secs for reward-adjustment tasks to move to {status}")
+        sleep(i)
+        task_statuses = [task.status == RetryTaskStatuses[status] for task in tasks_belonging_to_account_holders]
+        done = all(task_statuses)
+        if done:
+            break
+        for task in tasks_belonging_to_account_holders:
+            vela_db_session.refresh(task)
+    assert done
+
+
+# fmt: off
+@then(parse("queued reward-issuance tasks for the account holders for the {reward_slug} reward are in status "
+            "of {status}"))
+# fmt: on
+def check_reward_issuance_tasks_for_reward_slug_change_status(
+    retailer_config: RetailerConfig,
+    account_holders: list[AccountHolder],
+    carina_db_session: "Session",
+    reward_slug: str,
+    status: str,
+) -> None:
+    adjustment_tasks = get_tasks_by_type_and_key_value(carina_db_session, "reward-issuance", "reward_slug", reward_slug)
+    account_holder_uuids = [ah.account_holder_uuid for ah in account_holders]
+    account_url_template = f"{settings.POLARIS_BASE_URL}/{retailer_config.slug}/accounts/%s/rewards"
+    tasks_belonging_to_account_holders = [
+        task
+        for task in adjustment_tasks
+        if task.get_params()["account_url"] in [account_url_template % ah_uuid for ah_uuid in account_holder_uuids]
+    ]
+    for i in range(10):
+        logging.info(f"Waiting {i} secs for reward-issuance tasks to move to {status}")
+        sleep(i)
+        task_statuses = [task.status == RetryTaskStatuses[status] for task in tasks_belonging_to_account_holders]
+        done = all(task_statuses)
+        if done:
+            break
+        for task in tasks_belonging_to_account_holders:
+            carina_db_session.refresh(task)
+    assert done
+
+
+# fmt: off
+@then(parse("there are {rewards_n:d} rewards for the {reward_slug} reward config, with allocated set to "
+            "{allocation_status} and deleted set to {deleted_status}"))
+# fmt: on
+def check_rewards(
+    carina_db_session: "Session",
+    reward_slug: str,
+    allocation_status: str,
+    deleted_status: str,
+    retailer_config: RetailerConfig,
+    rewards_n: int,
+) -> None:
+    allocation_status_bool = allocation_status == "true"
+    deleted_status_bool = deleted_status == "true"
+
+    for i in range(10):
+        logging.info(f"Sleeping for {i} seconds...")
+        sleep(i)
+        count = carina_db_session.execute(
+            select(func.count("*"))
+            .select_from(Reward)
+            .join(Reward.rewardconfig)
+            .join(Reward.retailer)
+            .where(
+                Reward.allocated.is_(allocation_status_bool),
+                Reward.deleted.is_(deleted_status_bool),
+                RewardConfig.reward_slug == reward_slug,
+                Retailer.slug == retailer_config.slug,
+            )
+        ).scalar()
+        if count == rewards_n:
+            break
+        logging.info(f"Reward count for query is {count}")
+    assert count == rewards_n
+
+
+@when(parse("the {reward_slug} reward config status has been updated to {status}"))
+def check_reward_config_status(
+    retailer_config: RetailerConfig, carina_db_session: "Session", reward_slug: str, status: str
+) -> None:
+    reward_config = carina_db_session.execute(
+        select(RewardConfig)
+        .join(Retailer)
+        .where(Retailer.slug == retailer_config.slug, RewardConfig.reward_slug == reward_slug)
+    ).scalar_one()
+    for i in range(10):
+        sleep(i)
+        logging.info(f"Sleeping for {i} seconds")
+        carina_db_session.refresh(reward_config)
+        logging.info(f"Reward config status is {reward_config.status}")
+        if reward_config.status == status:
+            break
+
+    assert reward_config.status == status
+
+
+def get_account_holder_balances_for_campaign(
+    polaris_db_session: "Session", account_holders: list[AccountHolder], campaign_slug: str
+) -> list[AccountHolderCampaignBalance]:
+    return (
+        polaris_db_session.execute(
+            select(AccountHolderCampaignBalance).where(
+                AccountHolderCampaignBalance.account_holder_id.in_([ah.id for ah in account_holders]),
+                AccountHolderCampaignBalance.campaign_slug == campaign_slug,
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+@then(parse("no balance is shown for each account holder for the {campaign_slug} campaign"))
+def check_balance_is_is_not_present(
+    polaris_db_session: "Session",
+    account_holders: list[AccountHolder],
+    campaign_slug: str,
+) -> None:
+    balances = get_account_holder_balances_for_campaign(polaris_db_session, account_holders, campaign_slug)
+    assert not balances

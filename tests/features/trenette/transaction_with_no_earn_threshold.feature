@@ -11,7 +11,7 @@ Feature: Transaction with no earn threshold
     And the trenette-acc-campaign-1 campaign has reward rule of 10000, with reward slug 10percentoff and allocation window 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-    And there is 2 reward configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
+    And there is 2 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 
   @transaction @bpl
   Scenario Outline: Transaction with 0 threshold to verify balance and rewards

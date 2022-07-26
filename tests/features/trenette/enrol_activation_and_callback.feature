@@ -15,7 +15,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and that activation
     And the account holder's trenette-active-campaign balance is returned as 0
     And an enrolment callback task is saved in the database
     And the polaris enrolment-callback task status is success
-    And the balance shown for account holder is 0
+    And the account holder balance shown for trenette-active-campaign is 0
 
 
   @bpl @enrol_callback_retry @bpl-303
@@ -27,4 +27,4 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and that activation
     And the polaris enrolment-callback task status is success
     And the enrolment-callback is retried 2 time and successful on attempt 3
     And a enrolment-callback retryable error is received 2 time with 500 responses
-    And the balance shown for account holder is 0
+    And the account holder balance shown for trenette-active-campaign is 0

@@ -13,7 +13,7 @@ Feature: Bink BPL - Jigshaw egift - Transaction increases user balance
     And the asos-campaign campaign has reward rule of 10000, with reward slug free-item and allocation window 0
     And a JIGSAW_EGIFT fetch type is configured for the current retailer with an agent config brand id 30
     And the retailer has a free-item reward config configured with transaction_value: 10, and a status of ACTIVE and a JIGSAW_EGIFT fetch type
-    And there is 2 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
+    And there is 2 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
     And an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 5500 pennies

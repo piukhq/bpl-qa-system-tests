@@ -3,7 +3,7 @@ import uuid
 
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import yaml
 
@@ -26,7 +26,7 @@ class FixtureData(BaseModel):
         extra = "forbid"
 
 
-def _generate_datetime(loader: "FullLoader" | "Loader" | "UnsafeLoader", node: "Node") -> str:
+def _generate_datetime(loader: Union["FullLoader", "Loader", "UnsafeLoader"], node: "Node") -> str:
     params = loader.construct_mapping(node)
     now = datetime.now(tz=timezone.utc)
     if "timedelta" in params:
@@ -37,12 +37,12 @@ def _generate_datetime(loader: "FullLoader" | "Loader" | "UnsafeLoader", node: "
     return time.isoformat()
 
 
-def _yaml_as_string(loader: "FullLoader" | "Loader" | "UnsafeLoader", node: "Node") -> str:
+def _yaml_as_string(loader: Union["FullLoader", "Loader", "UnsafeLoader"], node: "Node") -> str:
     content = loader.construct_mapping(node, deep=True)
     return yaml.dump(content, indent=2)
 
 
-def _generate_uuid(loader: "FullLoader" | "Loader" | "UnsafeLoader", node: "Node") -> str:
+def _generate_uuid(loader: Union["FullLoader", "Loader", "UnsafeLoader"], node: "Node") -> str:
     return str(uuid.uuid4())
 
 

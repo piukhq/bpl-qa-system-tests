@@ -4,7 +4,13 @@ from uuid import uuid4
 
 from sqlalchemy.future import select
 
-from db.polaris.models import AccountHolder, AccountHolderPendingReward, AccountHolderReward
+from db.polaris.models import (
+    AccountHolder,
+    AccountHolderCampaignBalance,
+    AccountHolderPendingReward,
+    AccountHolderReward,
+)
+from db.vela.models import Campaign
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -49,15 +55,17 @@ def create_rewards_for_existing_account_holder(
     reward_count: int,
     account_holder_id: int,
     reward_slug: str | None = "reward-test-slug",
+    status: str = "ISSUED",
+    expiry_date: datetime | None = None,
 ) -> None:
     rewards = []
-    for count in range(1, int(reward_count) + 1):
+    for _ in range(1, int(reward_count) + 1):
         reward = AccountHolderReward(
             reward_uuid=str(uuid4()),
-            code=f"reward-code-{count}",
+            code=str(uuid4()),
             issued_date=datetime.now() - timedelta(days=1),
-            expiry_date=datetime.now() + timedelta(days=1),
-            status="ISSUED",
+            expiry_date=expiry_date if expiry_date else datetime.now() + timedelta(days=1),
+            status=status,
             reward_slug=reward_slug,
             retailer_slug=retailer_slug,
             idempotency_token=str(uuid4()),
@@ -90,4 +98,12 @@ def create_pending_rewards_for_existing_account_holder(
         )
         polaris_db_session.add(pending_reward)
 
+    polaris_db_session.commit()
+
+
+def create_balance_for_account_holder(
+    polaris_db_session: "Session", account_holder: AccountHolder, campaign: Campaign, balance: int = 0
+) -> None:
+    balance = AccountHolderCampaignBalance(account_holder_id=account_holder.id, campaign_slug=campaign.slug, balance=0)
+    polaris_db_session.add(balance)
     polaris_db_session.commit()

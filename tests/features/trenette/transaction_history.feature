@@ -11,8 +11,9 @@ Feature: Bink BPL - Transaction history
     And the trenette-acc-campaign campaign has reward rule of 10000, with reward slug free-item and allocation window 1
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-    And there is 5 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
-    And the retailer has a WELCOME_EMAIL email template configured with template id template-id and first_name, last_name, account_number, marketing_token variables
+    And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
+    And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
+    And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
 
 
   @bpl @transaction_history-1 @bpl-596
