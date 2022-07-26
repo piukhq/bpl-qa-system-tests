@@ -4,7 +4,7 @@ import time
 
 from datetime import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Callable, Literal, Optional, Union
+from typing import TYPE_CHECKING, Callable, Literal
 from uuid import uuid4
 
 from faker import Faker
@@ -68,7 +68,7 @@ def enrol_accountholder_with_all_required_fields(retailer_config: RetailerConfig
 def enrol_account_holder(
     retailer_config: RetailerConfig,
     incl_optional_fields: bool = True,
-    callback_url: Optional[str] = None,
+    callback_url: str | None = None,
 ) -> None:
     if incl_optional_fields:
         request_body = all_required_and_all_optional_credentials(callback_url=callback_url)
@@ -84,7 +84,7 @@ def enrol_account_holder(
     logging.info(f"Account holder response: {resp}")
 
 
-def all_required_and_all_optional_credentials(callback_url: Optional[str] = None) -> dict:
+def all_required_and_all_optional_credentials(callback_url: str | None = None) -> dict:
     payload = {
         "credentials": _get_credentials(),
         "marketing_preferences": [{"key": "marketing_pref", "value": True}],
@@ -398,9 +398,9 @@ def post_enrolment_with_known_repeated_callback(
 
 def get_callback_url(
     *,
-    num_failures: Optional[int] = None,
-    status_code: Optional[int] = None,
-    timeout_seconds: Optional[int] = 60,
+    num_failures: int | None = None,
+    status_code: int | None = None,
+    timeout_seconds: int | None = 60,
 ) -> str:
     if status_code is None:
         location = f"/enrol/callback/timeout-{timeout_seconds}"
@@ -433,7 +433,7 @@ def retry_task_error_received(
 
 @then(parse("the file is moved to the {container_type} container by the reward importer"))
 def check_file_moved(
-    container_type: Union[Literal["archive"], Literal["error"]],
+    container_type: Literal["archive"] | Literal["error"],
 ) -> None:
     blobs, container = check_archive_blobcontainer(container_type)
 

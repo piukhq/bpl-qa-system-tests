@@ -7,7 +7,7 @@ import uuid
 
 from datetime import datetime
 from time import sleep
-from typing import TYPE_CHECKING, Any, Callable, Generator, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
 from uuid import uuid4
 
 import arrow
@@ -247,7 +247,7 @@ def create_email_template(
 # fmt: on
 def create_campaign(
     campaign_slug: str,
-    loyalty_type: Union[Literal["STAMPS"], Literal["ACCUMULATOR"]],
+    loyalty_type: Literal["STAMPS"] | Literal["ACCUMULATOR"],
     starts_when: str,
     ends_when: str,
     status: str,
@@ -388,7 +388,7 @@ def add_retailer_fetch_type_preloaded(
     carina_db_session: "Session",
     retailer_config: "RetailerConfig",
     fetch_type_name: str,
-    agent_config: Optional[str],
+    agent_config: str | None,
 ) -> None:
 
     retailer_fetch_type = RetailerFetchType(
@@ -743,9 +743,7 @@ def get_account_and_check_balance(
 
 @pytest.fixture(scope="function")
 def upload_reward_updates_to_blob_storage() -> Callable:
-    def func(
-        retailer_slug: str, rewards: list[Reward], reward_status: str, blob_name: str = None
-    ) -> Optional[BlobClient]:
+    def func(retailer_slug: str, rewards: list[Reward], reward_status: str, blob_name: str = None) -> BlobClient | None:
         """Upload some reward updates to blob storage to test end-to-end import"""
         blob = None
         if blob_name is None:

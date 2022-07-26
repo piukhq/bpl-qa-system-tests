@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy.future import select
@@ -48,7 +48,7 @@ def create_rewards_for_existing_account_holder(
     retailer_slug: str,
     reward_count: int,
     account_holder_id: int,
-    reward_slug: Optional[str] = "reward-test-slug",
+    reward_slug: str | None = "reward-test-slug",
 ) -> None:
     rewards = []
     for count in range(1, int(reward_count) + 1):
