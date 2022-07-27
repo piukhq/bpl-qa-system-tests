@@ -110,6 +110,7 @@ SQL_DEBUG=False
 USE_NULL_POOL=True
 RABBIT_DSN=amqp://guest:guest@localhost:5672/
 ROOT_LOG_LEVEL=DEBUG
+EOF
     )
 
     cd $ROOT_DIR
@@ -213,7 +214,6 @@ run_services() {
     tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli task-worker" C-m
     tmux select-pane -t 8 -T CarinaCronScheduler
     tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli cron-scheduler" C-m
-
 
     ## Luna
     tmux select-pane -t 10 -T Luna
