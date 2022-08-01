@@ -63,6 +63,7 @@ SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
 LOG_FORMATTER=brief
 DISABLE_METRICS=true
 USE_CALLBACK_OAUTH2=false
+POLARIS_HOST=http://localhost:8000
 VELA_HOST=http://localhost:8001
 CARINA_HOST=http://localhost:8002
 REDIS_URL=redis://localhost:6379/0
