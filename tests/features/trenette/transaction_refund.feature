@@ -11,7 +11,7 @@ Feature: Bink BPL - refund
     And the trenette-accumulator campaign has reward rule of 700, with reward slug free-item and allocation window 1
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-    And there is 1 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
+    And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
   @bpl @refund @bpl-540
   Scenario: Refund accepted and balance updated with 0

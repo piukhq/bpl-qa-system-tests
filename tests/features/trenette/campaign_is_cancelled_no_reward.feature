@@ -14,8 +14,8 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And the retailer has a free-item-2 reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-    And there is 1 reward configured for the free-item reward config, with allocation status set to false and deleted status set to false
-    And there is 1 reward configured for the free-item-2 reward config, with allocation status set to false and deleted status set to false
+    And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
+    And there is 1 rewards configured for the free-item-2 reward config, with allocation status set to false and deleted status set to false
 
 # FIXME: This needs more work. It doesn't appear to address BPL-298
 # @bpl @transaction @bpl-298

@@ -3,7 +3,7 @@ import os
 
 from datetime import datetime, timedelta
 from time import sleep
-from typing import List, Literal, Tuple, Union
+from typing import Literal
 
 from azure.core.exceptions import HttpResponseError, ResourceExistsError
 from azure.storage.blob import BlobClient, BlobProperties, BlobServiceClient, BlobType, ContainerClient, ContentSettings
@@ -71,8 +71,8 @@ def upload_blob(blob_path: str, content: str) -> BlobClient:
 
 
 def check_archive_blobcontainer(
-    container_type: Union[Literal["archive"], Literal["error"]]
-) -> Tuple[List[BlobProperties], ContainerClient]:
+    container_type: Literal["archive"] | Literal["error"],
+) -> tuple[list[BlobProperties], ContainerClient]:
     blob_service_client: BlobServiceClient = BlobServiceClient.from_connection_string(BLOB_STORAGE_DSN)
     now = datetime.utcnow()
     # Note: possible timing issue with looking for %H%M (hour/minute) if test is behind or ahead of file_agent.py

@@ -2,7 +2,7 @@ import time
 
 from typing import TYPE_CHECKING
 
-from retry_tasks_lib.db.models import RetryTask, RetryTaskStatuses, TaskType
+from retry_tasks_lib.db.models import RetryTask, RetryTaskStatuses, TaskType, TaskTypeKey, TaskTypeKeyValue
 from sqlalchemy import select
 
 if TYPE_CHECKING:
@@ -63,3 +63,30 @@ def get_retry_task_audit_data(
         select(RetryTask.audit_data).where(RetryTask.task_type_id == TaskType.task_type_id, TaskType.name == task_name)
     ).first()
     return audit_data
+
+
+def get_tasks_by_type_and_key_value(
+    db_session: "Session", task_type_name: str, task_type_key_name: str, task_type_key_value_value: str
+) -> list[RetryTask]:
+    tasks = (
+        db_session.execute(
+            select(RetryTask)
+            .join(TaskType)
+            .join(TaskTypeKey)
+            .join(
+                TaskTypeKeyValue,
+                (TaskTypeKeyValue.task_type_key_id == TaskTypeKey.task_type_key_id)
+                & (TaskTypeKeyValue.retry_task_id == RetryTask.retry_task_id),
+            )
+            .where(
+                TaskType.name == task_type_name,
+                TaskTypeKey.name == task_type_key_name,
+                TaskTypeKeyValue.value == task_type_key_value_value,
+            )
+        )
+        .unique()
+        .scalars()
+        .all()
+    )
+    db_session.rollback()  # this is quite important :D
+    return tasks
