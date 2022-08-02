@@ -530,15 +530,15 @@ def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: 
 
 
 # fmt: off
-@then(parse("there is {expected_num_transaction:d} transaction record with amount {transaction_amount} "
-            "for {campaign_type} campaign"))
+@then(parse("The account holder's transaction history has {expected_num_transaction:d} transactions, "
+            "and the latest transaction is {transaction_amount}"))
 # fmt: on
 def verify_transaction_history_balance(
     expected_num_transaction: int,
     retailer_config: RetailerConfig,
     account_holder: AccountHolder,
     transaction_amount: str,
-    campaign_type: str,
+    standard_campaign: Campaign,
 ) -> None:
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
     logging.info(f"Response HTTP status code: {resp.status_code}")
@@ -551,20 +551,22 @@ def verify_transaction_history_balance(
     # Sorting the transaction history in the response. using delay to make sure there is different datetime
     time.sleep(3)
     tx_history_list = resp.json()["transaction_history"]
-    tx_history_sorted = sorted(tx_history_list, key=lambda d: d["datetime"])
 
     assert len(tx_history_list) == expected_num_transaction
-    assert tx_history_sorted[expected_num_transaction - 1]["datetime"] is not None
-    assert tx_history_sorted[expected_num_transaction - 1]["amount"] == transaction_amount
-    assert tx_history_sorted[expected_num_transaction - 1]["amount_currency"] == "GBP"
-    assert tx_history_sorted[expected_num_transaction - 1]["location"] == "N/A"
-    assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_type"] == campaign_type
+    assert resp.json()["transaction_history"][0]["datetime"] is not None
+    assert resp.json()["transaction_history"][0]["amount"] == transaction_amount
+    assert resp.json()["transaction_history"][0]["amount_currency"] == "GBP"
+    assert resp.json()["transaction_history"][0]["location"] == "N/A"
+    assert resp.json()["transaction_history"][0]["loyalty_earned_type"] == standard_campaign.loyalty_type
 
-    if campaign_type == "ACCUMULATOR":
-        assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_value"] == transaction_amount
+    if standard_campaign.loyalty_type == "ACCUMULATOR":
+        assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == transaction_amount
 
-    elif campaign_type == "STAMPS":
-        assert tx_history_sorted[expected_num_transaction - 1]["loyalty_earned_value"] == 1
+    elif standard_campaign.loyalty_type == "STAMPS":
+        if transaction_amount.startswith("-"):
+            assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == "0"
+        else:
+            assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == "1"
 
 
 # fmt: off
