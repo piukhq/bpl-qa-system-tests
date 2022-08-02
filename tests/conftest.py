@@ -671,7 +671,7 @@ def make_account_holder_rewards(
 
 # fmt: off
 @given(parsers.parse("the account holders each have {num_rewards:d} pending rewards for the {campaign_slug} campaign "
-                     "with a value of {value:d}"))
+                     "and {reward_slug} reward slug with a value of {value:d}"))
 # fmt: on
 def make_account_holder_pending_rewards(
     retailer_config: RetailerConfig,
@@ -679,11 +679,12 @@ def make_account_holder_pending_rewards(
     polaris_db_session: "Session",
     num_rewards: int,
     campaign_slug: str,
+    reward_slug: str,
     value: int,
 ) -> None:
     for account_holder in account_holders:
         create_pending_rewards_for_existing_account_holder(
-            polaris_db_session, retailer_config.slug, num_rewards, account_holder.id, campaign_slug, value
+            polaris_db_session, retailer_config.slug, num_rewards, account_holder.id, campaign_slug, reward_slug, value
         )
 
 
@@ -783,7 +784,8 @@ def update_existing_account_holder_with_rewards(
 
 
 # fmt: off
-@given(parsers.parse("the account has {count} pending rewards for {campaign_slug} with value {reward_goal}"))
+@given(parsers.parse("the account has {count} pending rewards for the {campaign_slug} campaign and {reward_slug} "
+                     "reward slug with value {reward_goal}"))
 # fmt: on
 def update_existing_account_holder_with_pending_rewards(
     account_holder: AccountHolder,
@@ -792,10 +794,11 @@ def update_existing_account_holder_with_pending_rewards(
     polaris_db_session: "Session",
     reward_goal: int,
     campaign_slug: str,
+    reward_slug: str,
 ) -> AccountHolder:
 
     create_pending_rewards_for_existing_account_holder(
-        polaris_db_session, retailer_config.slug, count, account_holder.id, campaign_slug, reward_goal
+        polaris_db_session, retailer_config.slug, count, account_holder.id, campaign_slug, reward_slug, reward_goal
     )
 
     return account_holder

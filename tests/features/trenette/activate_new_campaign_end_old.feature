@@ -26,7 +26,7 @@ Feature: Bink BPL - Activate new campaign, end old
     Scenario: Active campaign is ended and draft campaign is activated
         Given an active account holder exists for the retailer
         And the account holder's trenette-active-campaign balance is 500
-        And the account has 3 pending rewards for trenette-active-campaign with value 700
+        And the account has 3 pending rewards for the trenette-active-campaign campaign and 10percentoff reward slug with value 700
         And the account has 3 issued unexpired rewards
 
         Then the retailer's trenette-draft-campaign campaign status is changed to active

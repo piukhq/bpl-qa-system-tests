@@ -83,6 +83,7 @@ def create_pending_rewards_for_existing_account_holder(
     count: int,
     account_holder_id: int,
     campaign_slug: str,
+    reward_slug: str | None,
     reward_goal: int,
 ) -> None:
     for count in range(1, int(count) + 1):
@@ -91,7 +92,7 @@ def create_pending_rewards_for_existing_account_holder(
             conversion_date=datetime.now() + timedelta(days=1),
             value=reward_goal,
             campaign_slug=campaign_slug,
-            reward_slug=f"pending_reward-slug-{count}",
+            reward_slug=reward_slug,
             retailer_slug=retailer_slug,
             account_holder_id=account_holder_id,
             idempotency_token=str(uuid4()),
