@@ -3,8 +3,6 @@ retailer_config:
   slug: "asos"
   account_number_prefix: "ASOS"
   loyalty_name: "Asos"
-  welcome_email_from: "asos@bink.com"
-  welcome_email_subject: "Welcome"
   profile_config:
     !as_yaml_string
     email:

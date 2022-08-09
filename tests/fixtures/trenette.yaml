@@ -3,8 +3,6 @@ retailer_config:
   slug: "trenette"
   account_number_prefix: "TRNT"
   loyalty_name: "Trenette"
-  welcome_email_from: "potato@potato.com"
-  welcome_email_subject: "potatoes"
   profile_config:
     !as_yaml_string
     email:
