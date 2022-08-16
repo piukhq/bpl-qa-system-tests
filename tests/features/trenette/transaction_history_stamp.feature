@@ -7,7 +7,7 @@ Feature: Bink BPL - Transaction history for stamp campaign
   Background:
     Given the trenette retailer exists
     And the retailer's trenette-acc-campaign STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
-    And the trenette-acc-campaign campaign has an earn rule with a threshold of 5, an increment of 1 and a multiplier of 1
+    And the trenette-acc-campaign campaign has an earn rule with a threshold of 5, an increment of 100 and a multiplier of 1
     And the trenette-acc-campaign campaign has reward rule of 700, with reward slug free-item and allocation window 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
@@ -18,11 +18,11 @@ Feature: Bink BPL - Transaction history for stamp campaign
   @bpl @transaction_history-stamp1 @bpl-600
   Scenario: Transaction history with amount - stamp campaign
     Given an active account holder exists for the retailer
-    And the account holder's trenette-acc-campaign balance is 200
-    Then the account holder's trenette-acc-campaign balance is returned as 200
+    And the account holder's trenette-acc-campaign balance is 300
+    Then the account holder's trenette-acc-campaign balance is returned as 300
     When BPL receives a transaction for the account holder for the amount of 600 pennies
     Then 0 issued rewards are available to the account holder
-    And the account holder's trenette-acc-campaign balance is returned as 201
+    And the account holder's trenette-acc-campaign balance is returned as 400
     Then The account holder's transaction history has 1 transactions, and the latest transaction is 6.00
 
   @bpl @transaction_history-stamp2 @bpl-600

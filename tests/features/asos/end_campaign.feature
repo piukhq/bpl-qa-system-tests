@@ -33,7 +33,7 @@ Feature: Bink BPL - Jigshaw egift - End campaign and delete/issue pending reward
     And each account holder has a queued reward-adjustment task for the new-campaign campaign with an adjustment amount of 100
     And there are reward-issuance tasks for the account holders for the old-campaign reward slug on the queue
     And there are reward-issuance tasks for the account holders for the new-campaign reward slug on the queue
-    Then there are 2 rewards for the old-campaign reward config, with allocated set to false and deleted set to true
+    Then there are 2 rewards for the old-campaign reward config, with allocated set to false and deleted set to false
     And there are 2 rewards for the new-campaign reward config, with allocated set to false and deleted set to false
     And queued reward-adjustment tasks for the account holders for the old-campaign campaign are in status of CANCELLED
     And queued reward-adjustment tasks for the account holders for the new-campaign campaign are in status of SUCCESS
