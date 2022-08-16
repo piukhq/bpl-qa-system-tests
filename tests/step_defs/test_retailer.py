@@ -200,6 +200,8 @@ def cancel_end_campaign(
     }
     if issued_or_deleted == "issued":
         payload.update({"issue_pending_rewards": True})
+    else:
+        payload.update({"issue_pending_rewards": False})
 
     request = send_post_campaign_status_change(
         request_context=request_context, retailer_slug=retailer_config.slug, request_body=payload
@@ -380,24 +382,25 @@ def check_async_reward_allocation(
     assert reward.id
 
 
-@then(parse("all unallocated rewards for {reward_slug} reward config are soft deleted"))
+@then(parse("all unallocated rewards for {reward_slug} reward config are soft deleted and deleted status as {status}"))
 def check_unallocated_rewards_deleted(
     carina_db_session: "Session",
     reward_slug: str,
+    status: str,
 ) -> None:
     reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
     unallocated_rewards = get_rewards_by_reward_config(carina_db_session, reward_config_id, allocated=False)
-    for i in range(3):
+    for i in range(5):
         time.sleep(i)  # Need to allow enough time for the task to soft delete rewards
         rewards_deleted = []
         for reward in unallocated_rewards:
             carina_db_session.refresh(reward)
             rewards_deleted.append(reward.deleted)
 
-        if all(rewards_deleted):
+        if all(rewards_deleted) == eval(status):
             break
 
-    assert all(rewards_deleted), "All rewards not soft deleted"
+    assert all(rewards_deleted)== eval(status), f"All rewards are soft deleted as {eval(status)}"
 
 
 @then(parse("any pending rewards for {campaign_slug} are deleted"))

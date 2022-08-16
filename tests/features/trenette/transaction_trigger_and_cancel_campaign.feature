@@ -34,7 +34,7 @@ Feature: Bink BPL - Trigger transaction and cancel campaign while balance adjust
         When the task worker queue is ready
         And the vela reward-adjustment task status is cancelled
 
-        Then all unallocated rewards for 10percentoff reward config are soft deleted
+        Then all unallocated rewards for 10percentoff reward config are soft deleted and deleted status as True
         And the account holder's trenette-active-campaign balance no longer exists
         And the account holder's trenette-draft-campaign balance is returned as 0
         And 3 cancelled rewards are available to the account holder
