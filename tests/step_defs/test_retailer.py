@@ -361,10 +361,8 @@ def check_account_holder_reward_statuses(
         assert account_holder_reward.status == reward_status
 
 
-@then(parse("{num_rewards:d} rewards are allocated to the account holder for the {reward_slug} reward"))
-def check_async_reward_allocation(
-    num_rewards: int, carina_db_session: "Session", request_context: dict, reward_slug: str
-) -> None:
+@then(parse("rewards are allocated to the account holder for the {reward_slug} reward"))
+def check_async_reward_allocation(carina_db_session: "Session", reward_slug: str) -> None:
     """Check that the reward in the Reward table has been marked as 'allocated' and that it has an id"""
     reward_config_id = get_reward_config_id(carina_db_session=carina_db_session, reward_slug=reward_slug)
 
@@ -382,12 +380,13 @@ def check_async_reward_allocation(
     assert reward.id
 
 
-@then(parse("all unallocated rewards for {reward_slug} reward config are soft deleted and deleted status as {status}"))
+@then(parse("all unallocated rewards for {reward_slug} reward config {are_arenot} soft deleted"))
 def check_unallocated_rewards_deleted(
     carina_db_session: "Session",
     reward_slug: str,
-    status: str,
+    are_arenot: Literal["are"] | Literal["are not"],
 ) -> None:
+    deleted = are_arenot == "are"
     reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
     unallocated_rewards = get_rewards_by_reward_config(carina_db_session, reward_config_id, allocated=False)
     for i in range(5):
@@ -397,10 +396,10 @@ def check_unallocated_rewards_deleted(
             carina_db_session.refresh(reward)
             rewards_deleted.append(reward.deleted)
 
-        if all(rewards_deleted) == eval(status):
+        if all(rewards_deleted) == deleted:
             break
 
-    assert all(rewards_deleted)== eval(status), f"All rewards are soft deleted as {eval(status)}"
+    assert all(rewards_deleted)== deleted, f"All rewards are soft deleted as {deleted}"
 
 
 @then(parse("any pending rewards for {campaign_slug} are deleted"))
