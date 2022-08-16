@@ -399,7 +399,7 @@ def check_unallocated_rewards_deleted(
         if all(rewards_deleted) == deleted:
             break
 
-    assert all(rewards_deleted)== deleted, f"All rewards are soft deleted as {deleted}"
+    assert all(rewards_deleted) == deleted, f"All rewards are soft deleted as {deleted}"
 
 
 @then(parse("any pending rewards for {campaign_slug} are deleted"))
