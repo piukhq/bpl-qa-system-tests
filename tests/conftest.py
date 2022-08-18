@@ -6,7 +6,6 @@ import time
 import uuid
 
 from datetime import datetime, timedelta, timezone
-from re import I
 from time import sleep
 from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
 from uuid import uuid4

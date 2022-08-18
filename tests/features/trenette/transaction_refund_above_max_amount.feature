@@ -29,3 +29,4 @@ Feature: Bink BPL - refund (max amount set)
         When BPL receives a transaction for the account holder for the amount of -300 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
         And the account holder's trenette-accumulator balance is returned as 200
+        And 0 pending rewards are available to the account holder
