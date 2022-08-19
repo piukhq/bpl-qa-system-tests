@@ -292,19 +292,24 @@ def create_campaign(
 
 
 # fmt: off
-@given(parsers.parse("the {campaign_slug} campaign has an earn rule with a threshold of {threshold}, an increment "
-                     "of {inc} and a multiplier of {mult}"))
+@given(parsers.parse("the {campaign_slug} campaign has an earn rule with a threshold of {threshold:d}, an increment "
+                     "of {inc} and a multiplier of {mult:d}"))
 # fmt: on
 def create_stamps_earn_rule(
     vela_db_session: "Session",
     campaign_slug: str,
     threshold: int,
-    inc: int,
+    inc: str,
     mult: int,
 ) -> None:
+    converted_inc = None if inc == "None" else int(inc)
     campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
     earn_rule = EarnRule(
-        campaign_id=campaign.id, threshold=threshold, increment=inc, increment_multiplier=mult, max_amount=None
+        campaign_id=campaign.id,
+        threshold=threshold,
+        increment=converted_inc,
+        increment_multiplier=mult,
+        max_amount=None,
     )
 
     vela_db_session.add(earn_rule)
@@ -312,22 +317,23 @@ def create_stamps_earn_rule(
 
 
 # fmt: off
-@given(parsers.parse("the {campaign_slug} campaign has an earn rule with a threshold of {threshold}, "
-                     "an increment of {inc}, a multiplier of {mult} and max amount of {earn_max_amount}"))
+@given(parsers.parse("the {campaign_slug} campaign has an earn rule with a threshold of {threshold:d}, "
+                     "an increment of {inc}, a multiplier of {mult:d} and max amount of {earn_max_amount:d}"))
 # fmt: on
 def create_accumulator_earn_rule(
     vela_db_session: "Session",
     campaign_slug: str,
     threshold: int,
-    inc: int,
+    inc: str,
     mult: int,
     earn_max_amount: int,
 ) -> None:
+    converted_inc = None if inc == "None" else int(inc)
     campaign = vela_db_session.execute(select(Campaign).where(Campaign.slug == campaign_slug)).scalar_one()
     earn_rule = EarnRule(
         campaign_id=campaign.id,
         threshold=threshold,
-        increment=inc,
+        increment=converted_inc,
         increment_multiplier=mult,
         max_amount=earn_max_amount,
     )
@@ -413,7 +419,7 @@ def add_retailer_fetch_type_preloaded(
     retailer_fetch_type = RetailerFetchType(
         retailer_id=get_retailer_id(carina_db_session=carina_db_session, retailer_slug=retailer_config.slug),
         fetch_type_id=get_fetch_type_id(carina_db_session=carina_db_session, fetch_type_name=fetch_type_name),
-        agent_config=None,
+        agent_config=agent_config,
     )
     carina_db_session.add(retailer_fetch_type)
     carina_db_session.commit()
