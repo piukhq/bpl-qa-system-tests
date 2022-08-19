@@ -29,8 +29,6 @@ set -x
 # export BLOB_ARCHIVE_CONTAINER=changeme (e.g. carina-archive-<my-name-here>)
 ######### /example bpl_auto_test.env #############
 
-GIT_BRANCH=master
-
 source ~/bpl_auto_test.env
 
 echo "Git branch is: $GIT_BRANCH"
@@ -131,11 +129,19 @@ EOF
         git clone git@github.com:binkhq/hubble.git
     fi
     cd hubble
+    git fetch
     echo "- Writing sane .env"
     echo "$HUBBLE_ENV_FILE" >.env && pipenv sync
-    echo "- Checking out and updating $GIT_BRANCH branch"
-    git checkout $GIT_BRANCH
-    git pull --ff-only origin $GIT_BRANCH
+    if [[ -n ${HUBBLE_REF} ]]; then
+        GIT_REF=${HUBBLE_REF}
+    elif [[ -n ${GIT_BRANCH} ]]; then
+        GIT_REF=${GIT_BRANCH}
+    else
+        GIT_REF=$(git describe --tags $(git rev-list --tags --max-count=1))
+    fi
+    echo "- Checking out and updating $GIT_REF branch/ref"
+    git checkout $HUBBLE_REF
+    git pull --ff-only origin $GIT_REF
     echo "- Resetting hubble database"
     psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE hubble_template ;"
     psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE hubble_template ;"
@@ -153,9 +159,18 @@ EOF
         fi
         cd "${ROOT_DIR}/${p_name}"
         echo "Working on ${p_name}"
-        echo "- Checking out and updating $GIT_BRANCH branch"
-        git checkout $GIT_BRANCH
-        git pull --ff-only origin $GIT_BRANCH
+        git fetch
+        tag_var_name="$(echo $p_name | tr 'a-z' 'A-Z')_REF"
+        if [[ -n ${!tag_var_name} ]]; then
+           GIT_REF=${!tag_var_name}
+        elif [[ -n ${GIT_BRANCH} ]]; then
+           GIT_REF=${GIT_BRANCH}
+        else
+           GIT_REF=$(git describe --tags $(git rev-list --tags --max-count=1))
+        fi
+        echo "- Checking out and updating $GIT_REF branch/ref"
+        git checkout $GIT_REF
+        git pull --ff-only origin $GIT_REF
         echo "- Writing sane local.env"
         env_var_name=$(echo "${p_name}_env_file" | tr 'a-z' 'A-Z')
         echo "${!env_var_name}" >local.env
