@@ -96,6 +96,9 @@ def create_pending_rewards_for_existing_account_holder(
             retailer_slug=retailer_slug,
             account_holder_id=account_holder_id,
             idempotency_token=str(uuid4()),
+            count=1,
+            total_value=reward_goal,
+            total_cost_to_user=reward_goal,
         )
         polaris_db_session.add(pending_reward)
 
