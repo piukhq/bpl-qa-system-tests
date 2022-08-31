@@ -276,7 +276,7 @@ def check_returned_account_holder_campaign_balance(
     balance_for_campaign = {balance["campaign_slug"]: balance["value"] for balance in resp.json()["current_balances"]}[
         campaign_slug
     ]
-    assert balance_for_campaign == expected_amount
+    assert int(balance_for_campaign * 100) == expected_amount
 
 
 # fmt: off
@@ -285,6 +285,7 @@ def check_returned_account_holder_campaign_balance(
 def check_account_balance(
     polaris_db_session: "Session", retailer_config: RetailerConfig, campaign_slug: str, expected_balance: int
 ) -> None:
+    time.sleep(3)
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
     check_returned_account_holder_campaign_balance(retailer_config, account_holder, campaign_slug, expected_balance)
 
