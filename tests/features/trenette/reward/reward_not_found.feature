@@ -13,7 +13,7 @@ Feature: Reward already allocated and uploading status from 3rd party
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 2 rewards configured for the 10percentoff reward config, with allocation status set to true and deleted status set to false
 
-  @reward @bpl @bpl_299
+  @reward @bpl @bpl-299
   Scenario: Reward allocated in carina not found in polaris
     Given an account holder reward with this reward uuid does not exist
     When the trenette retailer updates selected rewards to redeemed status

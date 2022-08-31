@@ -111,3 +111,18 @@ def create_balance_for_account_holder(
     balance = AccountHolderCampaignBalance(account_holder_id=account_holder.id, campaign_slug=campaign.slug, balance=0)
     polaris_db_session.add(balance)
     polaris_db_session.commit()
+
+
+def get_account_holder_balances_for_campaign(
+    polaris_db_session: "Session", account_holders: list[AccountHolder], campaign_slug: str
+) -> list[AccountHolderCampaignBalance]:
+    return (
+        polaris_db_session.execute(
+            select(AccountHolderCampaignBalance).where(
+                AccountHolderCampaignBalance.account_holder_id.in_([ah.id for ah in account_holders]),
+                AccountHolderCampaignBalance.campaign_slug == campaign_slug,
+            )
+        )
+        .scalars()
+        .all()
+    )

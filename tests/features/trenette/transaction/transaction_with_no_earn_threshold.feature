@@ -13,7 +13,7 @@ Feature: Transaction with no earn threshold
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 2 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 
-  @transaction @bpl
+  @bpl @transaction
   Scenario Outline: Transaction with 0 threshold to verify balance and rewards
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <tx_amount_1> pennies

@@ -13,7 +13,7 @@ Feature: Bink BPL - refund
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
-  @bpl @refund @bpl-540
+  @bpl @transaction @refund @bpl-540 @new
   Scenario: Refund accepted and balance updated with 0
     Given an active account holder exists for the retailer
 
