@@ -12,7 +12,7 @@ Feature: Bink BPL - refund (max amount set)
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
         And there is 0 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
-    @bpl @refund @bpl-670
+    @bpl @transaction @refund @bpl-670
     Scenario: Refund accepted above max amount
         Given an active account holder exists for the retailer
         When BPL receives a transaction for the account holder for the amount of 2000 pennies

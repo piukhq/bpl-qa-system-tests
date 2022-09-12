@@ -12,7 +12,7 @@ Feature: Transaction with no reward config setup for retailer
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
 
-  @transaction @bpl @bpl-297-1
+  @bpl @transaction @bpl-297
   Scenario: single rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 7500 pennies
@@ -27,7 +27,7 @@ Feature: Transaction with no reward config setup for retailer
     And 1 issued rewards are available to the account holder
 
 
-  @transaction @bpl @bpl-297-2
+  @bpl @transaction @bpl-297
   Scenario: Two rewards become available after the transaction is processed [No rewards available prior to transaction arriving]
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 21000 pennies

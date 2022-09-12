@@ -3,6 +3,8 @@ import logging
 
 from enum import Enum
 
+import settings
+
 from settings import POLARIS_API_AUTH_TOKEN, POLARIS_BASE_URL, VELA_API_AUTH_TOKEN, VELA_BASE_URL
 
 
@@ -60,3 +62,20 @@ def get_vela_headers(channel_header: bool = True, valid_token: bool = True) -> d
 
 def get_vela_url(retailer_slug: str, endpoint: Endpoints) -> str:
     return f"{VELA_BASE_URL}/{retailer_slug}" + endpoint
+
+
+def get_callback_url(
+    *,
+    num_failures: int | None = None,
+    status_code: int | None = None,
+    timeout_seconds: int | None = 60,
+) -> str:
+    if status_code is None:
+        location = f"/enrol/callback/timeout-{timeout_seconds}"
+    elif status_code == 200:
+        location = "/enrol/callback/success"
+    elif status_code == 500 and num_failures is not None:
+        location = f"/enrol/callback/retry-{num_failures}"
+    else:
+        location = f"/enrol/callback/error-{status_code}"
+    return f"{settings.MOCK_SERVICE_BASE_URL}{location}"

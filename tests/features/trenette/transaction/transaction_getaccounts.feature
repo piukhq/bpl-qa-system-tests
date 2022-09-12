@@ -7,13 +7,13 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
   Background:
     Given the trenette retailer exists
     And the retailer's trenette-stmp-campaign STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
-    And the trenette-stmp-campaign campaign has an earn rule with a threshold of 500, an increment of 100 and a multiplier of 1
+    And the trenette-stmp-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
     And the trenette-stmp-campaign campaign has reward rule of 700, with reward slug free-item and allocation window 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
-  @transaction @bpl
+  @bpl @transaction
   Scenario Outline: Account holder is rewarded when reward threshold is met
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <amount_1> pennies
