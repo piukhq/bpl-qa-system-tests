@@ -13,9 +13,9 @@ Feature: Bink BPL - Jigshaw egift - End campaign and delete/issue pending reward
     And the retailer has a old-campaign reward config configured with transaction_value: 100, and a status of ACTIVE and a JIGSAW_EGIFT fetch type
     And the retailer has a new-campaign reward config configured with transaction_value: 100, and a status of ACTIVE and a JIGSAW_EGIFT fetch type
     And the old-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
-    And the old-campaign campaign has reward rule of 10000, with reward slug old-campaign and allocation window 1
+    And the old-campaign campaign has reward rule with reward goal: 10000, reward slug: old-campaign, allocation window: 1 and reward cap: 0
     And the new-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
-    And the new-campaign campaign has reward rule of 10000, with reward slug new-campaign and allocation window 1
+    And the new-campaign campaign has reward rule with reward goal: 10000, reward slug: new-campaign, allocation window: 1 and reward cap: 0
     And the retailer has 5 active account holders
     And the account holders each have 2 ISSUED rewards with the old-campaign reward slug expiring in 5 days
     And the account holders each have 2 ISSUED rewards with the new-campaign reward slug expiring in 5 days
@@ -41,7 +41,7 @@ Feature: Bink BPL - Jigshaw egift - End campaign and delete/issue pending reward
     And queued reward-issuance tasks for the account holders for the new-campaign reward are in status of SUCCESS
     And <num_pending_rewards> pending rewards are available to each account holder
     And <num_issued_rewards> issued rewards are available to each account holder
-    And the balance shown for each account holder for the new-campaign campaign is 1
+    And the balance shown for each account holder for the new-campaign campaign is 100
     And no balance is shown for each account holder for the old-campaign campaign
 
     Examples:

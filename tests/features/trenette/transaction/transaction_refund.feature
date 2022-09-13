@@ -8,12 +8,12 @@ Feature: Bink BPL - refund
     Given the trenette retailer exists
     And the retailer's trenette-accumulator ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-accumulator campaign has an earn rule with a threshold of 200, an increment of 100, a multiplier of 1 and max amount of 0
-    And the trenette-accumulator campaign has reward rule of 700, with reward slug free-item and allocation window 1
+    And the trenette-accumulator campaign has reward rule with reward goal: 700, reward slug: free-item, allocation window: 1 and reward cap: 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
-  @bpl @transaction @refund @bpl-540 @new
+  @bpl @transaction @refund @bpl-540
   Scenario: Refund accepted and balance updated with 0
     Given an active account holder exists for the retailer
 
@@ -21,14 +21,14 @@ Feature: Bink BPL - refund
 
     Then BPL responds with a HTTP 200 and awarded message
     And 2 pending rewards are available to the account holder
-    And the account holder's trenette-accumulator balance is returned as 600
+    And the account holder balance shown for trenette-accumulator is 600
 
     When BPL receives a transaction for the account holder for the amount of -700 pennies
     Then BPL responds with a HTTP 200 and refund_accepted message
-    And the account holder's trenette-accumulator balance is returned as 600
+    And the account holder balance shown for trenette-accumulator is 600
     And 1 pending rewards are available to the account holder
 
     When BPL receives a transaction for the account holder for the amount of -1400 pennies
     Then BPL responds with a HTTP 200 and refund_accepted message
-    And the account holder's trenette-accumulator balance is returned as 0
+    And the account holder balance shown for trenette-accumulator is 0
     And 0 pending rewards are available to the account holder

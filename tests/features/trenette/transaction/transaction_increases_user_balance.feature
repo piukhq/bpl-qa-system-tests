@@ -8,7 +8,7 @@ Feature: Bink BPL - Transaction increases user balance
     Given the trenette retailer exists
     And the retailer's trenette-stmp-campaign-1 STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-stmp-campaign-1 campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
-    And the trenette-stmp-campaign-1 campaign has reward rule of 700, with reward slug free-item and allocation window 0
+    And the trenette-stmp-campaign-1 campaign has reward rule with reward goal: 700, reward slug: free-item, allocation window: 0 and reward cap: 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
@@ -20,7 +20,7 @@ Feature: Bink BPL - Transaction increases user balance
     Then 0 issued rewards are available to the account holder
     When BPL receives a transaction for the account holder for the amount of 550 pennies
     Then 0 issued rewards are available to the account holder
-    And the account holder's trenette-stmp-campaign-1 balance is returned as 200
+    And the account holder balance shown for trenette-stmp-campaign-1 is 200
     When BPL receives a transaction for the account holder for the amount of 600 pennies
     Then 0 issued rewards are available to the account holder
-    And the account holder's trenette-stmp-campaign-1 balance is returned as 300
+    And the account holder balance shown for trenette-stmp-campaign-1 is 300

@@ -729,23 +729,6 @@ def update_existing_account_holder_with_campaign_balance(
     logging.info(f"Account holder balance updated to {amount}")
 
 
-@then(parse("the account holder's {campaign_slug} balance is returned as {amount:d}"))
-def account_holder_balance_correct(
-    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str, amount: int
-) -> None:
-    time.sleep(2)
-    polaris_db_session.refresh(account_holder)
-    balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
-    for i in range(5):
-        sleep(i)
-        if balances_by_slug[campaign_slug].balance == amount:
-            break
-        logging.info(f"Account holder balance is {balances_by_slug[campaign_slug].balance} didnt match")
-
-    assert balances_by_slug[campaign_slug].balance == amount
-    logging.info(f"Account holder balance is {balances_by_slug[campaign_slug].balance}")
-
-
 # fmt: off
 @then(parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status} "
             "with redeemed date"))
@@ -877,24 +860,26 @@ def create_earn_rule(
 
 
 # fmt: off
-@given(parse("the {campaign_slug} campaign has reward rule of {reward_rule}, with reward slug {reward_slug} "
-             "and allocation window {allocation_window}"))
+@given(parse("the {campaign_slug} campaign has reward rule with reward goal: {reward_goal:d}, reward slug: "
+             "{reward_slug}, allocation window: {allocation_window:d} and reward cap: {reward_cap}"))
 # fmt: on
 def create_reward_rule(
+    vela_db_session: "Session",
     campaign_slug: str,
-    reward_rule: int,
+    reward_goal: int,
     reward_slug: str,
     allocation_window: int,
-    vela_db_session: "Session",
+    reward_cap: str,
 ) -> None:
     campaign = get_campaign_by_slug(vela_db_session=vela_db_session, campaign_slug=campaign_slug)
-    reward_rule = RewardRule(
+    reward_goal = RewardRule(
         campaign_id=campaign.id,
-        reward_goal=reward_rule,
+        reward_goal=reward_goal,
         reward_slug=reward_slug,
         allocation_window=allocation_window,
+        reward_cap=reward_cap if int(reward_cap) > 0 else None,
     )
-    vela_db_session.add(reward_rule)
+    vela_db_session.add(reward_goal)
     vela_db_session.commit()
 
 
