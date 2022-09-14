@@ -1,7 +1,7 @@
+from datetime import timedelta, timezone, datetime
 import json
 import logging
 import time
-
 from time import sleep
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -559,6 +559,34 @@ def check_account_holder_rewards_are_cancelled(
         if str(reward.status) == "CANCELLED":
             continue
         assert str(reward.status) == "CANCELLED"
+
+
+@then(
+    parse(
+        "the account holder has a single pending reward for {campaign_slug} with count of {count:d}, total cost to user of "
+        "{total_cost_to_user:d}, value of {value:d} and total value of {total_value:d} with conversation date {num_days:d} "
+        "day in future"
+    )
+)
+def account_holder_has_pending_reward_with_trc(
+    polaris_db_session: "Session",
+    account_holder: AccountHolder,
+    campaign_slug: str,
+    count: int,
+    total_cost_to_user: int,
+    value: int,
+    total_value: int,
+    num_days: int,
+):
+    pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
+
+    assert pending_rewards.count == count
+    assert pending_rewards.total_cost_to_user == total_cost_to_user
+    assert pending_rewards.value == value
+    assert pending_rewards.total_value == total_value
+
+    logging.info("Conversion date for pending reward is :" + str(pending_rewards.conversion_date.date()))
+    assert pending_rewards.conversion_date.date() == (datetime.now(tz=timezone.utc) + timedelta(days=num_days)).date()
 
 
 # VELA CHECKS
