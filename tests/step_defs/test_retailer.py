@@ -1,7 +1,8 @@
-from datetime import timedelta, timezone, datetime
 import json
 import logging
 import time
+
+from datetime import datetime, timedelta, timezone
 from time import sleep
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -474,11 +475,14 @@ def check_rewards_for_each_account_holder(
 @then(parse("any pending rewards for {campaign_slug} are deleted"))
 def check_for_pending_rewards(
     polaris_db_session: "Session",
+    account_holder: AccountHolder,
     campaign_slug: str,
 ) -> None:
     for i in range(5):
         sleep(i)
-        pending_rewards = get_pending_rewards(polaris_db_session=polaris_db_session, campaign_slug=campaign_slug)
+        pending_rewards = get_pending_rewards(
+            polaris_db_session=polaris_db_session, account_holder=account_holder, campaign_slug=campaign_slug
+        )
         if pending_rewards == []:
             break
     assert pending_rewards == []
@@ -563,9 +567,9 @@ def check_account_holder_rewards_are_cancelled(
 
 @then(
     parse(
-        "the account holder has a single pending reward for {campaign_slug} with count of {count:d}, total cost to user of "
-        "{total_cost_to_user:d}, value of {value:d} and total value of {total_value:d} with conversation date {num_days:d} "
-        "day in future"
+        "the account holder has a single pending reward for {campaign_slug} with count of {count:d}, "
+        "total cost to user of {total_cost_to_user:d}, value of {value:d} and total value of {total_value:d} "
+        "with conversation date {num_days:d} day in future"
     )
 )
 def account_holder_has_pending_reward_with_trc(
@@ -577,7 +581,7 @@ def account_holder_has_pending_reward_with_trc(
     value: int,
     total_value: int,
     num_days: int,
-):
+) -> None:
     pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
 
     assert pending_rewards.count == count

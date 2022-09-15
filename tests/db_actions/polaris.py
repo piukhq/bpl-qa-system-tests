@@ -42,10 +42,19 @@ def get_pending_rewards(
     polaris_db_session: "Session",
     account_holder: AccountHolder,
     campaign_slug: str,
-) -> list[AccountHolderPendingReward]:
-    return (polaris_db_session.execute(
-        select(AccountHolderPendingReward).where(AccountHolderPendingReward.campaign_slug == campaign_slug,
-        AccountHolderPendingReward.account_holder_id == account_holder.id).order_by(AccountHolderPendingReward.created_at.desc())).scalars().first())
+) -> AccountHolderPendingReward:
+    return (
+        polaris_db_session.execute(
+            select(AccountHolderPendingReward)
+            .where(
+                AccountHolderPendingReward.campaign_slug == campaign_slug,
+                AccountHolderPendingReward.account_holder_id == account_holder.id,
+            )
+            .order_by(AccountHolderPendingReward.created_at.desc())
+        )
+        .scalars()
+        .first()
+    )
 
 
 def create_rewards_for_existing_account_holder(
