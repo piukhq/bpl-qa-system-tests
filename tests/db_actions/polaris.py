@@ -44,26 +44,34 @@ def get_pending_rewards(
     campaign_slug: str,
 ) -> list[AccountHolderPendingReward]:
     return (
-        polaris_db_session.execute(select(AccountHolderPendingReward).where
-                                   (campaign_slug == campaign_slug,
-                                    AccountHolderPendingReward.account_holder_id == account_holder.id)).scalars().all()
+        polaris_db_session.execute(
+            select(AccountHolderPendingReward).where(
+                campaign_slug == campaign_slug, AccountHolderPendingReward.account_holder_id == account_holder.id
+            )
+        )
+        .scalars()
+        .all()
     )
 
 
 def get_latest_created_pending_reward(
-        polaris_db_session: "Session", account_holder: AccountHolder,campaign_slug: str,) -> AccountHolderPendingReward:
+    polaris_db_session: "Session",
+    account_holder: AccountHolder,
+    campaign_slug: str,
+) -> AccountHolderPendingReward:
     return (
         polaris_db_session.execute(
             select(AccountHolderPendingReward)
-                .where(
+            .where(
                 AccountHolderPendingReward.campaign_slug == campaign_slug,
                 AccountHolderPendingReward.account_holder_id == account_holder.id,
             )
-                .order_by(AccountHolderPendingReward.created_at.desc())
+            .order_by(AccountHolderPendingReward.created_at.desc())
         )
-            .scalars()
-            .first()
+        .scalars()
+        .first()
     )
+
 
 def create_rewards_for_existing_account_holder(
     polaris_db_session: "Session",

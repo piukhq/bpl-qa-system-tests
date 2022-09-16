@@ -24,7 +24,8 @@ from tests.db_actions.polaris import (
     get_account_holder_balances_for_campaign,
     get_account_holder_for_retailer,
     get_account_holder_reward,
-    get_pending_rewards, get_latest_created_pending_reward,
+    get_latest_created_pending_reward,
+    get_pending_rewards,
 )
 from tests.db_actions.retry_tasks import (
     get_latest_callback_task_for_account_holder,
