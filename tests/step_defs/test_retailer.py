@@ -24,7 +24,7 @@ from tests.db_actions.polaris import (
     get_account_holder_balances_for_campaign,
     get_account_holder_for_retailer,
     get_account_holder_reward,
-    get_pending_rewards,
+    get_pending_rewards, get_latest_created_pending_reward,
 )
 from tests.db_actions.retry_tasks import (
     get_latest_callback_task_for_account_holder,
@@ -438,7 +438,7 @@ def check_rewards_for_account_holder(
     expected_num_rewards: int,
     state: str,
 ) -> None:
-    time.sleep(10)
+    time.sleep(2)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(
@@ -582,15 +582,16 @@ def account_holder_has_pending_reward_with_trc(
     total_value: int,
     num_days: int,
 ) -> None:
-    pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
+    time.sleep(3)
+    pending_reward = get_latest_created_pending_reward(polaris_db_session, account_holder, campaign_slug)
 
-    assert pending_rewards.count == count
-    assert pending_rewards.total_cost_to_user == total_cost_to_user
-    assert pending_rewards.value == value
-    assert pending_rewards.total_value == total_value
+    assert pending_reward.count == count
+    assert pending_reward.total_cost_to_user == total_cost_to_user
+    assert pending_reward.value == value
+    assert pending_reward.total_value == total_value
 
-    logging.info("Conversion date for pending reward is :" + str(pending_rewards.conversion_date.date()))
-    assert pending_rewards.conversion_date.date() == (datetime.now(tz=timezone.utc) + timedelta(days=num_days)).date()
+    logging.info("Conversion date for pending reward is :" + str(pending_reward.conversion_date.date()))
+    assert pending_reward.conversion_date.date() == (datetime.now(tz=timezone.utc) + timedelta(days=num_days)).date()
 
 
 # VELA CHECKS

@@ -887,7 +887,7 @@ def create_reward_rule(
 def the_account_holder_transaction_request(
     account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
 ) -> None:
-
+    time.sleep(3)
     payload = {
         "id": str(uuid4()),
         "transaction_total": int(amount),

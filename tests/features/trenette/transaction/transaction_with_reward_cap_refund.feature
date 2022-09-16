@@ -134,6 +134,7 @@ Feature: Bink BPL - Transaction with a reward cap with allocation window
 
         When BPL receives a transaction for the account holder for the amount of -25000 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
+#        uncomment below once bpl-727 will address
 #        And the account holder balance shown for trenette-acc-campaign is 0
 #        And the account holder has a single pending reward for trenette-acc-campaign with count of 2, total cost to user of 50000, value of 10000 and total value of 20000 with conversation date 5 day in future
 
@@ -157,7 +158,6 @@ Feature: Bink BPL - Transaction with a reward cap with allocation window
         When BPL receives a transaction for the account holder for the amount of 2500 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 7500
-        And 0 pending rewards are available to the account holder
 
         When BPL receives a transaction for the account holder for the amount of 25000 pennies
         Then BPL responds with a HTTP 200 and awarded message
@@ -168,4 +168,10 @@ Feature: Bink BPL - Transaction with a reward cap with allocation window
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 5000
         And the account holder has a single pending reward for trenette-acc-campaign with count of 1, total cost to user of 10000, value of 10000 and total value of 10000 with conversation date 5 day in future
-        And 1 pending rewards are available to the account holder
+        And 3 pending rewards are available to the account holder
+
+         When BPL receives a transaction for the account holder for the amount of 15000 pennies
+        Then BPL responds with a HTTP 200 and awarded message
+        And the account holder balance shown for trenette-acc-campaign is 0
+        And the account holder has a single pending reward for trenette-acc-campaign with count of 2, total cost to user of 20000, value of 10000 and total value of 20000 with conversation date 5 day in future
+        And 5 pending rewards are available to the account holder
