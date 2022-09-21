@@ -972,6 +972,7 @@ def enqueue_reward_issuance_tasks_for_account_holders(
             "expiry_date": (datetime.now(tz=timezone.utc) + timedelta(days=1)).timestamp(),
             "reward_uuid": str(uuid4()),
             "reward_slug": reward_slug,
+            "retailer_slug": retailer_config.slug,
             "reward_config_id": reward_config_id,
             "issued_date": datetime.now(tz=timezone.utc).timestamp(),
             "account_url": (
