@@ -439,7 +439,7 @@ def check_rewards_for_account_holder(
     expected_num_rewards: int,
     state: str,
 ) -> None:
-    time.sleep(2)
+    time.sleep(10)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(
@@ -568,7 +568,7 @@ def check_account_holder_rewards_are_cancelled(
 
 @then(
     parse(
-        "the account holder has a single pending reward for {campaign_slug} with count of {count:d}, "
+        "the account holder has a pending reward for {campaign_slug} with count of {count:d}, "
         "total cost to user of {total_cost_to_user:d}, value of {value:d} and total value of {total_value:d} "
         "with conversation date {num_days:d} day in future"
     )
@@ -584,15 +584,21 @@ def account_holder_has_pending_reward_with_trc(
     num_days: int,
 ) -> None:
     time.sleep(3)
-    pending_reward = get_latest_created_pending_reward(polaris_db_session, account_holder, campaign_slug)
 
+    pending_reward = get_latest_created_pending_reward(polaris_db_session, account_holder, campaign_slug)
+    assert pending_reward
     assert pending_reward.count == count
     assert pending_reward.total_cost_to_user == total_cost_to_user
     assert pending_reward.value == value
     assert pending_reward.total_value == total_value
 
-    logging.info("Conversion date for pending reward is :" + str(pending_reward.conversion_date.date()))
     assert pending_reward.conversion_date.date() == (datetime.now(tz=timezone.utc) + timedelta(days=num_days)).date()
+    logging.info(
+        f"\nThe latest pending reward conversion date is : {str(pending_reward.conversion_date.date())} "
+        f"\nThe latest pending reward count is : {pending_reward.count} "
+        f"\nThe latest pending reward value is : {pending_reward.value} "
+        f"\nThe latest pending reward total cost to user is : {pending_reward.total_cost_to_user}"
+    )
 
 
 # VELA CHECKS

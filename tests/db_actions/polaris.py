@@ -55,22 +55,21 @@ def get_pending_rewards(
 
 
 def get_latest_created_pending_reward(
-    polaris_db_session: "Session",
-    account_holder: AccountHolder,
-    campaign_slug: str,
-) -> AccountHolderPendingReward:
-    return (
-        polaris_db_session.execute(
-            select(AccountHolderPendingReward)
-            .where(
-                AccountHolderPendingReward.campaign_slug == campaign_slug,
-                AccountHolderPendingReward.account_holder_id == account_holder.id,
+    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str
+) -> AccountHolderPendingReward | None:
+    pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
+    if pending_rewards:
+        return next(
+            iter(
+                sorted(
+                    pending_rewards,
+                    key=lambda x: x.created_at,
+                    reverse=True,
+                )
             )
-            .order_by(AccountHolderPendingReward.created_at.desc())
         )
-        .scalars()
-        .first()
-    )
+    else:
+        return None
 
 
 def create_rewards_for_existing_account_holder(
@@ -111,7 +110,7 @@ def create_pending_rewards_for_existing_account_holder(
     reward_goal: int,
 ) -> None:
     count = 1
-    for _ in range(1, int(num_rewards) + 1):
+    for _ in range(int(num_rewards)):
         pending_reward = AccountHolderPendingReward(
             created_date=datetime.now() - timedelta(days=1),
             conversion_date=datetime.now() + timedelta(days=1),
