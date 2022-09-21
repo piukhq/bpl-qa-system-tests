@@ -887,7 +887,7 @@ def create_reward_rule(
 def the_account_holder_transaction_request(
     account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
 ) -> None:
-
+    time.sleep(3)
     payload = {
         "id": str(uuid4()),
         "transaction_total": int(amount),
@@ -972,6 +972,7 @@ def enqueue_reward_issuance_tasks_for_account_holders(
             "expiry_date": (datetime.now(tz=timezone.utc) + timedelta(days=1)).timestamp(),
             "reward_uuid": str(uuid4()),
             "reward_slug": reward_slug,
+            "retailer_slug": retailer_config.slug,
             "reward_config_id": reward_config_id,
             "issued_date": datetime.now(tz=timezone.utc).timestamp(),
             "account_url": (

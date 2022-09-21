@@ -40,13 +40,36 @@ def get_account_holder_reward(
 
 def get_pending_rewards(
     polaris_db_session: "Session",
+    account_holder: AccountHolder,
     campaign_slug: str,
 ) -> list[AccountHolderPendingReward]:
     return (
-        polaris_db_session.execute(select(AccountHolderPendingReward).where(campaign_slug == campaign_slug))
+        polaris_db_session.execute(
+            select(AccountHolderPendingReward).where(
+                campaign_slug == campaign_slug, AccountHolderPendingReward.account_holder_id == account_holder.id
+            )
+        )
         .scalars()
         .all()
     )
+
+
+def get_latest_created_pending_reward(
+    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str
+) -> AccountHolderPendingReward | None:
+    pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
+    if pending_rewards:
+        return next(
+            iter(
+                sorted(
+                    pending_rewards,
+                    key=lambda x: x.created_at,
+                    reverse=True,
+                )
+            )
+        )
+    else:
+        return None
 
 
 def create_rewards_for_existing_account_holder(
@@ -80,13 +103,14 @@ def create_rewards_for_existing_account_holder(
 def create_pending_rewards_for_existing_account_holder(
     polaris_db_session: "Session",
     retailer_slug: str,
-    count: int,
+    num_rewards: int,
     account_holder_id: int,
     campaign_slug: str,
     reward_slug: str | None,
     reward_goal: int,
 ) -> None:
-    for count in range(1, int(count) + 1):
+    count = 1
+    for _ in range(int(num_rewards)):
         pending_reward = AccountHolderPendingReward(
             created_date=datetime.now() - timedelta(days=1),
             conversion_date=datetime.now() + timedelta(days=1),
@@ -96,9 +120,10 @@ def create_pending_rewards_for_existing_account_holder(
             retailer_slug=retailer_slug,
             account_holder_id=account_holder_id,
             idempotency_token=str(uuid4()),
-            count=1,
-            total_value=reward_goal,
+            count=count,
+            total_value=count * reward_goal,
             total_cost_to_user=reward_goal,
+            pending_reward_uuid=str(uuid4()),
         )
         polaris_db_session.add(pending_reward)
 

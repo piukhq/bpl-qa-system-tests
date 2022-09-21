@@ -14,7 +14,7 @@ Feature: Bink BPL - Transaction with a reward cap with no allocation window
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
         And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
-    @bpl @trc
+    @bpl @trc @bpl-702
     Scenario Outline: Transaction with reward cap
         Given an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is <starting_balance>

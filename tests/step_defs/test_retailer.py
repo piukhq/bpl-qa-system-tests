@@ -2,6 +2,7 @@ import json
 import logging
 import time
 
+from datetime import datetime, timedelta, timezone
 from time import sleep
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -23,6 +24,7 @@ from tests.db_actions.polaris import (
     get_account_holder_balances_for_campaign,
     get_account_holder_for_retailer,
     get_account_holder_reward,
+    get_latest_created_pending_reward,
     get_pending_rewards,
 )
 from tests.db_actions.retry_tasks import (
@@ -474,11 +476,14 @@ def check_rewards_for_each_account_holder(
 @then(parse("any pending rewards for {campaign_slug} are deleted"))
 def check_for_pending_rewards(
     polaris_db_session: "Session",
+    account_holder: AccountHolder,
     campaign_slug: str,
 ) -> None:
     for i in range(5):
         sleep(i)
-        pending_rewards = get_pending_rewards(polaris_db_session=polaris_db_session, campaign_slug=campaign_slug)
+        pending_rewards = get_pending_rewards(
+            polaris_db_session=polaris_db_session, account_holder=account_holder, campaign_slug=campaign_slug
+        )
         if pending_rewards == []:
             break
     assert pending_rewards == []
@@ -559,6 +564,41 @@ def check_account_holder_rewards_are_cancelled(
         if str(reward.status) == "CANCELLED":
             continue
         assert str(reward.status) == "CANCELLED"
+
+
+@then(
+    parse(
+        "the account holder has a pending reward for {campaign_slug} with count of {count:d}, "
+        "total cost to user of {total_cost_to_user:d}, value of {value:d} and total value of {total_value:d} "
+        "with conversation date {num_days:d} day in future"
+    )
+)
+def account_holder_has_pending_reward_with_trc(
+    polaris_db_session: "Session",
+    account_holder: AccountHolder,
+    campaign_slug: str,
+    count: int,
+    total_cost_to_user: int,
+    value: int,
+    total_value: int,
+    num_days: int,
+) -> None:
+    time.sleep(3)
+
+    pending_reward = get_latest_created_pending_reward(polaris_db_session, account_holder, campaign_slug)
+    assert pending_reward
+    assert pending_reward.count == count
+    assert pending_reward.total_cost_to_user == total_cost_to_user
+    assert pending_reward.value == value
+    assert pending_reward.total_value == total_value
+
+    assert pending_reward.conversion_date.date() == (datetime.now(tz=timezone.utc) + timedelta(days=num_days)).date()
+    logging.info(
+        f"\nThe latest pending reward conversion date is : {str(pending_reward.conversion_date.date())} "
+        f"\nThe latest pending reward count is : {pending_reward.count} "
+        f"\nThe latest pending reward value is : {pending_reward.value} "
+        f"\nThe latest pending reward total cost to user is : {pending_reward.total_cost_to_user}"
+    )
 
 
 # VELA CHECKS
