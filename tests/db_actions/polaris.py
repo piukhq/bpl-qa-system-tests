@@ -54,20 +54,30 @@ def get_pending_rewards(
     )
 
 
-def get_latest_created_pending_reward(
-    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str
+def get_pending_reward_by_order(
+    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str, pending_reward_order: str
 ) -> AccountHolderPendingReward | None:
     pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
-    if pending_rewards:
-        return next(
-            iter(
-                sorted(
-                    pending_rewards,
-                    key=lambda x: x.created_at,
-                    reverse=True,
+    if pending_reward_order == "newest":
+        if pending_rewards:
+            return next(
+                iter(
+                    sorted(
+                        pending_rewards,
+                        key=lambda x: x.created_at,
+                        reverse=True,
+                    )
                 )
             )
-        )
+        else:
+            return next(
+                iter(
+                    sorted(
+                        pending_rewards,
+                        key=lambda x: x.created_at,
+                    )
+                )
+            )
     else:
         return None
 
@@ -126,6 +136,37 @@ def create_pending_rewards_for_existing_account_holder(
             pending_reward_uuid=str(uuid4()),
         )
         polaris_db_session.add(pending_reward)
+
+    polaris_db_session.commit()
+
+
+def create_pending_rewards_with_all_value_for_existing_account_holder(
+    polaris_db_session: "Session",
+    retailer_slug: str,
+    prr_count: int,
+    value: int,
+    total_value: int,
+    total_cost_to_user: int,
+    account_holder_id: int,
+    campaign_slug: str,
+    reward_slug: str | None,
+) -> None:
+
+    pending_reward = AccountHolderPendingReward(
+        created_date=datetime.now() - timedelta(days=1),
+        conversion_date=datetime.now() + timedelta(days=1),
+        value=value,
+        campaign_slug=campaign_slug,
+        reward_slug=reward_slug,
+        retailer_slug=retailer_slug,
+        account_holder_id=account_holder_id,
+        idempotency_token=str(uuid4()),
+        count=prr_count,
+        total_value=total_value,
+        total_cost_to_user=total_cost_to_user,
+        pending_reward_uuid=str(uuid4()),
+    )
+    polaris_db_session.add(pending_reward)
 
     polaris_db_session.commit()
 
