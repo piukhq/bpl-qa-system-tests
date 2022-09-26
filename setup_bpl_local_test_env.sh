@@ -210,27 +210,27 @@ run_services() {
     tmux select-pane -t 0 -T PolarisAPI
     tmux send-keys -t 0 "cd $ROOT_DIR/polaris && pipenv run uvicorn asgi:app --port 8000" C-m
     tmux select-pane -t 3 -T PolarisWorker
-    tmux send-keys -t 3 "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli task-worker" C-m
+    tmux send-keys -t 3 "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m polaris.core.cli task-worker" C-m
     tmux select-pane -t 6 -T PolarisCronScheduler
-    tmux send-keys -t 6 "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m app.core.cli cron-scheduler" C-m
+    tmux send-keys -t 6 "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m polaris.core.cli cron-scheduler" C-m
     tmux select-pane -t 9 -T PolarisConsumer
-    tmux send-keys -t 9 "cd $ROOT_DIR/polaris && pipenv run python -m app.core.cli tx-history-consumer" C-m
+    tmux send-keys -t 9 "cd $ROOT_DIR/polaris && pipenv run python -m polaris.core.cli tx-history-consumer" C-m
 
     ## Vela
     tmux select-pane -t 1 -T VelaAPI
     tmux send-keys -t 1 "cd $ROOT_DIR/vela && pipenv run uvicorn asgi:app --port 8001" C-m
     tmux select-pane -t 4 -T VelaWorker
-    tmux send-keys -t 4 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.core.cli task-worker" C-m
+    tmux send-keys -t 4 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m vela.core.cli task-worker" C-m
     tmux select-pane -t 7 -T VelaCronScheduler
-    tmux send-keys -t 7 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m app.core.cli cron-scheduler" C-m
+    tmux send-keys -t 7 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m vela.core.cli cron-scheduler" C-m
 
     ## Carina
     tmux select-pane -t 2 -T CarinaAPI
     tmux send-keys -t 2 "cd $ROOT_DIR/carina && pipenv run uvicorn asgi:app --port 8002" C-m
     tmux select-pane -t 5 -T CarinaWorker
-    tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli task-worker" C-m
+    tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m carina.core.cli task-worker" C-m
     tmux select-pane -t 8 -T CarinaCronScheduler
-    tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m app.core.cli cron-scheduler" C-m
+    tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m carina.core.cli cron-scheduler" C-m
 
     ## Luna
     tmux select-pane -t 10 -T Luna
