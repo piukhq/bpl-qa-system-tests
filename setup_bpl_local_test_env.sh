@@ -39,7 +39,7 @@ TMUX_SESSION_NAME=bpl
 
 BASE_DB_URI="postgresql://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT"
 PROMETHEUS_ROOT_DIR=$ROOT_DIR/_prometheus_
-export PIPENV_VENV_IN_PROJECT=1
+export poetry_VENV_IN_PROJECT=1
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 setup_projects() {
@@ -120,7 +120,7 @@ EOF
         echo "- Cloning luna ..."
         git clone git@github.com:binkhq/luna.git
     fi
-    cd luna && echo "$LUNA_ENV_FILE" >.env && pipenv sync --dev
+    cd luna && echo "$LUNA_ENV_FILE" >.env && poetry sync --dev
 
     cd $ROOT_DIR
 
@@ -131,7 +131,7 @@ EOF
     cd hubble
     git fetch
     echo "- Writing sane .env"
-    echo "$HUBBLE_ENV_FILE" >.env && pipenv sync
+    echo "$HUBBLE_ENV_FILE" >.env && poetry sync
     if [[ -n ${HUBBLE_REF} ]]; then
         GIT_REF=${HUBBLE_REF}
     elif [[ -n ${GIT_BRANCH} ]]; then
@@ -146,7 +146,7 @@ EOF
     psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE hubble_template ;"
     psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE hubble_template ;"
     echo "- Running alembic migrations"
-    pipenv run alembic -x db_dsn="${BASE_DB_URI}/hubble_template" upgrade head
+    poetry run alembic -x db_dsn="${BASE_DB_URI}/hubble_template" upgrade head
 
     for p_name in "polaris" "vela" "carina"; do
         if [[ ! -d $PROMETHEUS_ROOT_DIR/$p_name ]]; then
@@ -175,12 +175,12 @@ EOF
         env_var_name=$(echo "${p_name}_env_file" | tr 'a-z' 'A-Z')
         echo "${!env_var_name}" >local.env
         echo "- Updating python environment"
-        pipenv sync
+        poetry sync
         echo "- Resetting ${p_name} database"
         psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE ${p_name}_template ;"
         psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE ${p_name}_template ;"
         echo "- Running alembic migrations"
-        pipenv run alembic -x db_dsn="${BASE_DB_URI}/${p_name}_template" upgrade head
+        poetry run alembic -x db_dsn="${BASE_DB_URI}/${p_name}_template" upgrade head
     done
 
 }
@@ -208,37 +208,37 @@ run_services() {
     # create tmux panes with the following layout example
     ## Polaris
     tmux select-pane -t 0 -T PolarisAPI
-    tmux send-keys -t 0 "cd $ROOT_DIR/polaris && pipenv run uvicorn asgi:app --port 8000" C-m
+    tmux send-keys -t 0 "cd $ROOT_DIR/polaris && poetry run uvicorn asgi:app --port 8000" C-m
     tmux select-pane -t 3 -T PolarisWorker
-    tmux send-keys -t 3 "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m polaris.core.cli task-worker" C-m
+    tmux send-keys -t 3 "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris poetry run python -m polaris.core.cli task-worker" C-m
     tmux select-pane -t 6 -T PolarisCronScheduler
-    tmux send-keys -t 6 "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris pipenv run python -m polaris.core.cli cron-scheduler" C-m
+    tmux send-keys -t 6 "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris poetry run python -m polaris.core.cli cron-scheduler" C-m
     tmux select-pane -t 9 -T PolarisConsumer
-    tmux send-keys -t 9 "cd $ROOT_DIR/polaris && pipenv run python -m polaris.core.cli tx-history-consumer" C-m
+    tmux send-keys -t 9 "cd $ROOT_DIR/polaris && poetry run python -m polaris.core.cli tx-history-consumer" C-m
 
     ## Vela
     tmux select-pane -t 1 -T VelaAPI
-    tmux send-keys -t 1 "cd $ROOT_DIR/vela && pipenv run uvicorn asgi:app --port 8001" C-m
+    tmux send-keys -t 1 "cd $ROOT_DIR/vela && poetry run uvicorn asgi:app --port 8001" C-m
     tmux select-pane -t 4 -T VelaWorker
-    tmux send-keys -t 4 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m vela.core.cli task-worker" C-m
+    tmux send-keys -t 4 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela poetry run python -m vela.core.cli task-worker" C-m
     tmux select-pane -t 7 -T VelaCronScheduler
-    tmux send-keys -t 7 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela pipenv run python -m vela.core.cli cron-scheduler" C-m
+    tmux send-keys -t 7 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela poetry run python -m vela.core.cli cron-scheduler" C-m
 
     ## Carina
     tmux select-pane -t 2 -T CarinaAPI
-    tmux send-keys -t 2 "cd $ROOT_DIR/carina && pipenv run uvicorn asgi:app --port 8002" C-m
+    tmux send-keys -t 2 "cd $ROOT_DIR/carina && poetry run uvicorn asgi:app --port 8002" C-m
     tmux select-pane -t 5 -T CarinaWorker
-    tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m carina.core.cli task-worker" C-m
+    tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli task-worker" C-m
     tmux select-pane -t 8 -T CarinaCronScheduler
-    tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina pipenv run python -m carina.core.cli cron-scheduler" C-m
+    tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli cron-scheduler" C-m
 
     ## Luna
     tmux select-pane -t 10 -T Luna
-    tmux send-keys -t 10 "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
+    tmux send-keys -t 10 "cd $ROOT_DIR/luna && poetry run python wsgi.py" C-m
 
     ## Hubble Consumer
     tmux select-pane -t 11 -T HubbleConsumer
-    tmux send-keys -t 11 "cd $ROOT_DIR/hubble && pipenv run python -m hubble.cli activity-consumer" C-m
+    tmux send-keys -t 11 "cd $ROOT_DIR/hubble && poetry run python -m hubble.cli activity-consumer" C-m
 
     # Attach to the tmux session
     tmux attach-session -t $TMUX_SESSION_NAME
