@@ -39,7 +39,7 @@ TMUX_SESSION_NAME=bpl
 
 BASE_DB_URI="postgresql://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT"
 PROMETHEUS_ROOT_DIR=$ROOT_DIR/_prometheus_
-export poetry_VENV_IN_PROJECT=1
+export PIPENV_VENV_IN_PROJECT=1
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 setup_projects() {
@@ -120,7 +120,10 @@ EOF
         echo "- Cloning luna ..."
         git clone git@github.com:binkhq/luna.git
     fi
-    cd luna && echo "$LUNA_ENV_FILE" >.env && poetry sync --dev
+    cd luna
+    echo "$LUNA_ENV_FILE" >.env && pipenv sync --dev
+    # poetry config --local virtualenvs.in-project true
+    # poetry install --sync --without dev
 
     cd $ROOT_DIR
 
@@ -131,7 +134,9 @@ EOF
     cd hubble
     git fetch
     echo "- Writing sane .env"
-    echo "$HUBBLE_ENV_FILE" >.env && poetry sync
+    echo "$HUBBLE_ENV_FILE" >.env
+    poetry config --local virtualenvs.in-project true
+    poetry install --sync --without dev
     if [[ -n ${HUBBLE_REF} ]]; then
         GIT_REF=${HUBBLE_REF}
     elif [[ -n ${GIT_BRANCH} ]]; then
@@ -175,7 +180,8 @@ EOF
         env_var_name=$(echo "${p_name}_env_file" | tr 'a-z' 'A-Z')
         echo "${!env_var_name}" >local.env
         echo "- Updating python environment"
-        poetry sync
+        poetry config --local virtualenvs.in-project true
+        poetry install --sync --without dev
         echo "- Resetting ${p_name} database"
         psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE ${p_name}_template ;"
         psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE ${p_name}_template ;"
@@ -234,7 +240,7 @@ run_services() {
 
     ## Luna
     tmux select-pane -t 10 -T Luna
-    tmux send-keys -t 10 "cd $ROOT_DIR/luna && poetry run python wsgi.py" C-m
+    tmux send-keys -t 10 "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
 
     ## Hubble Consumer
     tmux select-pane -t 11 -T HubbleConsumer
