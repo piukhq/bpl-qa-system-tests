@@ -238,7 +238,7 @@ run_services() {
 
     ## Hubble Consumer
     tmux select-pane -t 11 -T HubbleConsumer
-    tmux send-keys -t 11 "cd $ROOT_DIR/hubble && pipenv run python -m app.cli activity-consumer" C-m
+    tmux send-keys -t 11 "cd $ROOT_DIR/hubble && pipenv run python -m hubble.cli activity-consumer" C-m
 
     # Attach to the tmux session
     tmux attach-session -t $TMUX_SESSION_NAME
