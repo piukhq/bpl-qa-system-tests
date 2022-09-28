@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -54,21 +54,14 @@ def get_pending_rewards(
     )
 
 
-def get_pending_reward_by_order(
-    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str, pending_reward_order: str
-) -> AccountHolderPendingReward | None:
+def get_ordered_pending_rewards(
+    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str
+) -> list[AccountHolderPendingReward]:
     pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
-    sorted_pending_rewards = sorted(
+    return sorted(
         pending_rewards,
         key=lambda x: x.created_at,
-        reverse=True,
     )
-    if pending_reward_order == "newest":
-        return sorted_pending_rewards[0]
-    elif pending_reward_order == "older":
-        return sorted_pending_rewards[1]
-    else:
-        return None
 
 
 def create_rewards_for_existing_account_holder(
@@ -132,7 +125,7 @@ def create_pending_rewards_for_existing_account_holder(
 def create_pending_rewards_with_all_value_for_existing_account_holder(
     polaris_db_session: "Session",
     retailer_slug: str,
-    conversion_day: int,
+    conversion_date: date,
     prr_count: int,
     value: int,
     total_cost_to_user: int,
@@ -143,7 +136,7 @@ def create_pending_rewards_with_all_value_for_existing_account_holder(
 
     pending_reward = AccountHolderPendingReward(
         created_date=datetime.now() - timedelta(days=1),
-        conversion_date=datetime.now() + timedelta(days=conversion_day),
+        conversion_date=conversion_date,
         value=value,
         campaign_slug=campaign_slug,
         reward_slug=reward_slug,

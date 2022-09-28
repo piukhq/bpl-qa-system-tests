@@ -20,19 +20,22 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         When BPL receives a transaction for the account holder for the amount of 55000 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 0
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 55000 with conversation date 1 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 55000 with a conversion date in a day
         And 2 pending rewards are available to the account holder
 
         When BPL receives a transaction for the account holder for the amount of -20000 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
         And the account holder balance shown for trenette-acc-campaign is 0
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 35000 with conversation date 1 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 35000 with a conversion date in a day
         And 2 pending rewards are available to the account holder
 
         When BPL receives a transaction for the account holder for the amount of -20000 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
         And the account holder balance shown for trenette-acc-campaign is 5000
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with conversation date 1 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with a conversion date in a day
         And 1 pending rewards are available to the account holder
 
     @bpl @trc @AC-4-5 @bpl-690
@@ -52,13 +55,15 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         When BPL receives a transaction for the account holder for the amount of 25000 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 7500
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 25000 with conversation date 1 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 25000 with a conversion date in a day
         And 2 pending rewards are available to the account holder
 
         When BPL receives a transaction for the account holder for the amount of -20000 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
         And the account holder balance shown for trenette-acc-campaign is 2500
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with conversation date 1 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with a conversion date in a day
         And 1 pending rewards are available to the account holder
 
 
@@ -79,7 +84,8 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         When BPL receives a transaction for the account holder for the amount of 15000 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 2500
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 20000 with conversation date 1 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 20000 with a conversion date in a day
         And 2 pending rewards are available to the account holder
 
     @bpl @trc @AC-7 @bpl-690
@@ -97,12 +103,14 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         When BPL receives a transaction for the account holder for the amount of 50000 pennies
         Then BPL responds with a HTTP 200 and awarded message
         Then the account holder balance shown for trenette-acc-campaign is 0
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 100000 with conversation date 1 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 100000 with a conversion date in a day
 
         When BPL receives a transaction for the account holder for the amount of -25000 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
         And the account holder balance shown for trenette-acc-campaign is 0
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 50000 with conversation date 1 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 50000 with a conversion date in a day
         And 2 pending rewards are available to the account holder
 
     @bpl @trc @AC-8 @bpl-690
@@ -120,7 +128,8 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         When BPL receives a transaction for the account holder for the amount of 5500 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 1000
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with conversation date 5 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with a conversion date in 5 days
 
         When BPL receives a transaction for the account holder for the amount of -5000 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
@@ -130,13 +139,14 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         When BPL receives a transaction for the account holder for the amount of 50000 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 1000
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 100000 with conversation date 5 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 100000 with a conversion date in 5 days
 
         When BPL receives a transaction for the account holder for the amount of -25000 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
-#        uncomment below once bpl-727 will address
-#        And the account holder balance shown for trenette-acc-campaign is 0
-#        And the account holder has a single pending reward for trenette-acc-campaign with count of 2, total cost to user of 50000, value of 10000 and total value of 20000 with conversation date 5 day in future
+    #        uncomment below once bpl-727 will address
+    #        And the account holder balance shown for trenette-acc-campaign is 0
+    #        And the account holder has a single pending reward for trenette-acc-campaign with count of 2, total cost to user of 50000, value of 10000 and total value of 20000 with a conversion date in 5 days
 
 
     @bpl @trc @AC-9 @bpl-690
@@ -162,16 +172,19 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         When BPL receives a transaction for the account holder for the amount of 25000 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 7500
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 25000 with conversation date 5 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 25000 with a conversion date in 5 days
 
         When BPL receives a transaction for the account holder for the amount of 7500 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 5000
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with conversation date 5 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with a conversion date in 5 days
         And 3 pending rewards are available to the account holder
 
-         When BPL receives a transaction for the account holder for the amount of 15000 pennies
+        When BPL receives a transaction for the account holder for the amount of 15000 pennies
         Then BPL responds with a HTTP 200 and awarded message
         And the account holder balance shown for trenette-acc-campaign is 0
-        And the account holder's newest pending reward for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 20000 with conversation date 5 day in future
+        And the account holder has 1 pending reward records for the trenette-acc-campaign campaign
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 20000 with a conversion date in 5 days
         And 5 pending rewards are available to the account holder
