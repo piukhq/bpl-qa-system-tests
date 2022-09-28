@@ -121,7 +121,6 @@ def create_pending_rewards_for_existing_account_holder(
             account_holder_id=account_holder_id,
             idempotency_token=str(uuid4()),
             count=count,
-            total_value=count * reward_goal,
             total_cost_to_user=reward_goal,
             pending_reward_uuid=str(uuid4()),
         )
