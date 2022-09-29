@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -54,22 +54,14 @@ def get_pending_rewards(
     )
 
 
-def get_latest_created_pending_reward(
+def get_ordered_pending_rewards(
     polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str
-) -> AccountHolderPendingReward | None:
+) -> list[AccountHolderPendingReward]:
     pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
-    if pending_rewards:
-        return next(
-            iter(
-                sorted(
-                    pending_rewards,
-                    key=lambda x: x.created_at,
-                    reverse=True,
-                )
-            )
-        )
-    else:
-        return None
+    return sorted(
+        pending_rewards,
+        key=lambda x: x.created_at,
+    )
 
 
 def create_rewards_for_existing_account_holder(
@@ -121,13 +113,43 @@ def create_pending_rewards_for_existing_account_holder(
             account_holder_id=account_holder_id,
             idempotency_token=str(uuid4()),
             count=count,
-            total_value=count * reward_goal,
             total_cost_to_user=reward_goal,
             pending_reward_uuid=str(uuid4()),
         )
         polaris_db_session.add(pending_reward)
 
     polaris_db_session.commit()
+
+
+def create_pending_rewards_with_all_value_for_existing_account_holder(
+    polaris_db_session: "Session",
+    retailer_slug: str,
+    conversion_date: date,
+    prr_count: int,
+    value: int,
+    total_cost_to_user: int,
+    account_holder_id: int,
+    campaign_slug: str,
+    reward_slug: str | None,
+) -> AccountHolderPendingReward:
+
+    pending_reward = AccountHolderPendingReward(
+        created_date=datetime.now() - timedelta(days=1),
+        conversion_date=conversion_date,
+        value=value,
+        campaign_slug=campaign_slug,
+        reward_slug=reward_slug,
+        retailer_slug=retailer_slug,
+        account_holder_id=account_holder_id,
+        idempotency_token=str(uuid4()),
+        count=prr_count,
+        total_cost_to_user=total_cost_to_user,
+        pending_reward_uuid=str(uuid4()),
+    )
+    polaris_db_session.add(pending_reward)
+
+    polaris_db_session.commit()
+    return pending_reward
 
 
 def create_balance_for_account_holder(

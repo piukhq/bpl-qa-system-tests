@@ -2,9 +2,11 @@ import json
 import logging
 import time
 
-from datetime import datetime, timedelta, timezone
 from time import sleep
 from typing import TYPE_CHECKING, Any, Literal
+
+import arrow
+import pytest
 
 from faker import Faker
 from pytest_bdd import given, scenarios, then, when
@@ -16,15 +18,16 @@ import settings
 
 from azure_actions.blob_storage import check_archive_blobcontainer
 from db.carina.models import Retailer, Reward, RewardConfig
-from db.polaris.models import AccountHolder, AccountHolderReward, RetailerConfig
+from db.polaris.models import AccountHolder, AccountHolderPendingReward, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from tests.api.base import Endpoints
 from tests.db_actions.carina import get_reward_config_id, get_rewards, get_rewards_by_reward_config
 from tests.db_actions.polaris import (
+    create_pending_rewards_with_all_value_for_existing_account_holder,
     get_account_holder_balances_for_campaign,
     get_account_holder_for_retailer,
     get_account_holder_reward,
-    get_latest_created_pending_reward,
+    get_ordered_pending_rewards,
     get_pending_rewards,
 )
 from tests.db_actions.retry_tasks import (
@@ -43,6 +46,7 @@ from tests.requests.enrolment import (
 )
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
+from utils import word_pos_to_list_item
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -278,6 +282,7 @@ def check_returned_account_holder_campaign_balance(
     balance_for_campaign = {balance["campaign_slug"]: balance["value"] for balance in resp.json()["current_balances"]}[
         campaign_slug
     ]
+    logging.info(f"the account holder's balance is: {int(balance_for_campaign * 100)}")
     assert int(balance_for_campaign * 100) == expected_amount
 
 
@@ -566,39 +571,82 @@ def check_account_holder_rewards_are_cancelled(
         assert str(reward.status) == "CANCELLED"
 
 
-@then(
-    parse(
-        "the account holder has a pending reward for {campaign_slug} with count of {count:d}, "
-        "total cost to user of {total_cost_to_user:d}, value of {value:d} and total value of {total_value:d} "
-        "with conversation date {num_days:d} day in future"
-    )
-)
+@then(parse("the account holder has {num:d} pending reward records for the {campaign_slug} campaign"))
+def account_holder_has_num_pending_reward_records(
+    polaris_db_session: "Session",
+    account_holder: AccountHolder,
+    campaign_slug: str,
+    num: int,
+) -> None:
+    assert len(get_ordered_pending_rewards(polaris_db_session, account_holder, campaign_slug)) == num
+
+
+# fmt: off
+@then(parse("the account holder's {list_position} pending reward record for {campaign_slug} has count of "
+            "{count:d}, value of {value:d} and total cost to user of {total_cost_to_user:d} with a conversion "
+            "date {converting}"))
+# fmt: on
 def account_holder_has_pending_reward_with_trc(
     polaris_db_session: "Session",
     account_holder: AccountHolder,
+    list_position: str,
     campaign_slug: str,
     count: int,
     total_cost_to_user: int,
     value: int,
-    total_value: int,
-    num_days: int,
+    converting: str,
 ) -> None:
     time.sleep(3)
 
-    pending_reward = get_latest_created_pending_reward(polaris_db_session, account_holder, campaign_slug)
+    try:
+        pending_reward = word_pos_to_list_item(
+            list_position, get_ordered_pending_rewards(polaris_db_session, account_holder, campaign_slug)
+        )
+    except IndexError:
+        pytest.fail(f"No '{list_position}' pending reward found.")
+
     assert pending_reward
     assert pending_reward.count == count
     assert pending_reward.total_cost_to_user == total_cost_to_user
     assert pending_reward.value == value
-    assert pending_reward.total_value == total_value
-
-    assert pending_reward.conversion_date.date() == (datetime.now(tz=timezone.utc) + timedelta(days=num_days)).date()
+    assert pending_reward.conversion_date.date() == arrow.utcnow().dehumanize(converting).date()
     logging.info(
-        f"\nThe latest pending reward conversion date is : {str(pending_reward.conversion_date.date())} "
-        f"\nThe latest pending reward count is : {pending_reward.count} "
-        f"\nThe latest pending reward value is : {pending_reward.value} "
-        f"\nThe latest pending reward total cost to user is : {pending_reward.total_cost_to_user}"
+        f"\nThe {list_position} pending reward conversion date is : {str(pending_reward.conversion_date.date())} "
+        f"\nThe {list_position} pending reward count is : {pending_reward.count} "
+        f"\nThe {list_position} pending reward value is : {pending_reward.value} "
+        f"\nThe {list_position} pending reward total cost to user is : {pending_reward.total_cost_to_user}"
     )
+
+
+# fmt: off
+@when(parse("the account has a pending rewards with count of {prr_count:d}, value {value:d}, "
+            "total cost to user {total_cost_to_user:d} for {campaign_slug} campaign and {reward_slug} "
+            "reward slug with a conversion date {converting}"))
+# fmt: on
+def update_existing_account_holder_with_pending_rewards(
+    account_holder: AccountHolder,
+    retailer_config: RetailerConfig,
+    prr_count: int,
+    value: int,
+    total_cost_to_user: int,
+    polaris_db_session: "Session",
+    campaign_slug: str,
+    reward_slug: str,
+    converting: str,
+) -> AccountHolderPendingReward:
+
+    pending_rewards = create_pending_rewards_with_all_value_for_existing_account_holder(
+        polaris_db_session,
+        retailer_config.slug,
+        arrow.utcnow().dehumanize(converting).date(),
+        prr_count,
+        value,
+        total_cost_to_user,
+        account_holder.id,
+        campaign_slug,
+        reward_slug,
+    )
+    return pending_rewards
 
 
 # VELA CHECKS
