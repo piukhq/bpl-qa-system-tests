@@ -121,9 +121,9 @@ EOF
         git clone git@github.com:binkhq/luna.git
     fi
     cd luna
-    echo "$LUNA_ENV_FILE" >.env && pipenv sync --dev
-    # poetry config --local virtualenvs.in-project true
-    # poetry install --sync --without dev
+    echo "$LUNA_ENV_FILE" >.env
+    poetry config --local virtualenvs.in-project true
+    poetry install --sync --without dev
 
     cd $ROOT_DIR
 
@@ -240,7 +240,7 @@ run_services() {
 
     ## Luna
     tmux select-pane -t 10 -T Luna
-    tmux send-keys -t 10 "cd $ROOT_DIR/luna && pipenv run python wsgi.py" C-m
+    tmux send-keys -t 10 "cd $ROOT_DIR/luna && poetry run python wsgi.py" C-m
 
     ## Hubble Consumer
     tmux select-pane -t 11 -T HubbleConsumer
