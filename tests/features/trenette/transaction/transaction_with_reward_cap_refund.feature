@@ -81,7 +81,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
         When BPL receives a transaction for the account holder for the amount of -40000 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
 
-        And the account holder balance shown for trenette-acc-campaign is 2000
-#        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 3, value of 10000 and total cost to user of 30000 with a conversion date in 10 days
+        And the account holder balance shown for trenette-acc-campaign is 4000
+        And the account holder's 1st pending reward record for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with a conversion date in 10 days
 
 
