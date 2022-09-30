@@ -525,7 +525,8 @@ def post_enrolment_with_known_repeated_callback(
     )
 
 
-@when(parse("i Enrol a account holder passing in all required and all optional fields"))
+@given(parse("I enrol an account holder passing in all required and all optional fields"))
+@when(parse("I enrol an account holder passing in all required and all optional fields"))
 @when(parse("the account holder enrol to retailer with all required and all optional fields"))
 def enrol_accountholder_with_all_required_fields(retailer_config: RetailerConfig) -> None:
     return enrol_account_holder(retailer_config)
@@ -883,6 +884,7 @@ def create_reward_rule(
     vela_db_session.commit()
 
 
+@given(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
 @when(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
 def the_account_holder_transaction_request(
     account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
@@ -901,7 +903,8 @@ def the_account_holder_transaction_request(
 
 
 # fmt: off
-@then(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
+@given(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
+@when(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
 # fmt: on
 def send_post_campaign_change_request(
     request_context: dict,

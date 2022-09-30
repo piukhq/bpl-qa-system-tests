@@ -25,4 +25,4 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
 #   Then the account holder balance shown for trenette-stmp-campaign-1 is 500
 #   And the retailer's trenette-stmp-campaign-1 campaign status is changed to cancelled
 #   And the trenette account is not issued reward free-item
-#   And the account holder's trenette-stmp-campaign-1 balance no longer exists
+#   And the account holder's trenette-stmp-campaign-1 balance does not exist

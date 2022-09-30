@@ -27,7 +27,7 @@ Feature: Bink BPL - Jigshaw egift - End campaign and delete/issue pending reward
 
   @bpl @asos @bpl-517 @bpl-516
   Scenario Outline: End campaign - delete/issue the pending rewards
-    When the retailer's old-campaign campaign status is changed to ended with pending rewards to be <issued_deleted>
+    When the retailer's old-campaign campaign is ended with pending rewards to be <issued_deleted>
     And the old-campaign reward config status has been updated to ENDED
     And each account holder has a queued reward-adjustment task for the old-campaign campaign with an adjustment amount of 100
     And each account holder has a queued reward-adjustment task for the new-campaign campaign with an adjustment amount of 100

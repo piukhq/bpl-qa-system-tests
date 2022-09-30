@@ -10,7 +10,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and that activation
 
   @bpl @enrol_callback @bpl-302
   Scenario: Enrol account holder successful with callback
-    When i Enrol a account holder passing in all required and all optional fields
+    When I enrol an account holder passing in all required and all optional fields
     Then the account holder is activated
     And the account holder balance shown for trenette-active-campaign is 0
     And an enrolment callback task is saved in the database

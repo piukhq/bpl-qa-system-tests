@@ -6,7 +6,6 @@ from time import sleep
 from typing import TYPE_CHECKING, Any, Literal
 
 import arrow
-import pytest
 
 from faker import Faker
 from pytest_bdd import given, scenarios, then, when
@@ -78,6 +77,7 @@ def check_async_reward_allocation(carina_db_session: "Session", reward_slug: str
         carina_db_session=carina_db_session, reward_config_id=reward_config_id
     )
     for i in range(20):
+        logging.info(f"Waiting {i} seconds for reward allocation task completion...")
         time.sleep(i)
         carina_db_session.refresh(reward_allocation_task)
         if reward_allocation_task.status == RetryTaskStatuses.SUCCESS:
@@ -214,8 +214,13 @@ def account_holder_is_activated(polaris_db_session: "Session", retailer_config: 
     return account_holder
 
 
-@then("the account holder activation is started")
-def the_account_holder_activation_is_started(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
+# fmt: off
+@then("the account holder activation is started",
+      target_fixture="account_holder")
+# fmt: on
+def the_account_holder_activation_is_started(
+    polaris_db_session: "Session", retailer_config: RetailerConfig
+) -> AccountHolder:
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
     assert account_holder.status == "PENDING"
 
@@ -240,6 +245,8 @@ def the_account_holder_activation_is_started(polaris_db_session: "Session", reta
     assert resp.json()["transaction_history"] == []
     assert resp.json()["rewards"] == []
     assert resp.json()["pending_rewards"] == []
+
+    return account_holder
 
 
 # fmt: off
@@ -321,7 +328,7 @@ def check_balance_is_is_not_present(
     assert not balances
 
 
-@then(parse("the account holder's {campaign_slug} balance no longer exists"))
+@then(parse("the account holder's {campaign_slug} balance does not exist"))
 def check_account_holder_balance_no_longer_exists(
     campaign_slug: str,
     polaris_db_session: "Session",
@@ -478,10 +485,11 @@ def check_rewards_for_each_account_holder(
         check_rewards_for_account_holder(retailer_config, account_holder, expected_num_rewards, state)
 
 
-@then(parse("any pending rewards for {campaign_slug} are deleted"))
+@then(parse("there are {num:d} pending reward records for {campaign_slug} associated with the account holder"))
 def check_for_pending_rewards(
     polaris_db_session: "Session",
     account_holder: AccountHolder,
+    num: int,
     campaign_slug: str,
 ) -> None:
     for i in range(5):
@@ -489,9 +497,9 @@ def check_for_pending_rewards(
         pending_rewards = get_pending_rewards(
             polaris_db_session=polaris_db_session, account_holder=account_holder, campaign_slug=campaign_slug
         )
-        if pending_rewards == []:
+        if len(pending_rewards) == num:
             break
-    assert pending_rewards == []
+    assert len(pending_rewards) == num
 
 
 def _get_reward_slug_from_account_holder_reward_collection(
@@ -603,7 +611,7 @@ def account_holder_has_pending_reward_with_trc(
             list_position, get_ordered_pending_rewards(polaris_db_session, account_holder, campaign_slug)
         )
     except IndexError:
-        pytest.fail(f"No '{list_position}' pending reward found.")
+        assert False, f"No '{list_position}' pending reward found."
 
     assert pending_reward
     assert pending_reward.count == count
@@ -658,8 +666,7 @@ def the_account_holder_get_response(status_code: int, response_type: str, reques
 
 
 # fmt: off
-@when(parse("the retailer's {campaign_slug} campaign status is changed to ended with pending rewards to be "
-            "{issued_or_deleted}"))
+@when(parse("the retailer's {campaign_slug} campaign is ended with pending rewards to be {issued_or_deleted}"))
 # fmt: on
 def cancel_end_campaign(
     request_context: dict,
@@ -719,7 +726,7 @@ def verify_callback_task_saved_in_db(polaris_db_session: "Session", retailer_con
 
 
 # fmt: off
-@when(parse("the vela {task_name} task status is {task_status}"))
+@then(parse("the vela {task_name} task status is {task_status}"))
 # fmt: on
 def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_name: str, task_status: str) -> None:
     task = get_latest_task(vela_db_session, task_name)
