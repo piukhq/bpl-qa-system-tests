@@ -6,6 +6,8 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and that activation
 
   Background:
     Given the trenette retailer exists
+    And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
+    And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
     And the retailer's trenette-active-campaign STAMPS campaign starts 10 days ago and ends in a day and is ACTIVE
 
   @bpl @enrol_callback @bpl-302

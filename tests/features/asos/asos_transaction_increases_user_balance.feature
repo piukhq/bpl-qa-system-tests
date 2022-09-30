@@ -8,6 +8,8 @@ Feature: Bink BPL - Jigshaw egift - Transaction increases user balance
   Scenario: jigshaw egift - Transaction meets earn threshold (>0)
 
     Given the asos retailer exists
+    And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
+    And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
     And the retailer's asos-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
     And the asos-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
     And the asos-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 0 and reward cap: 0

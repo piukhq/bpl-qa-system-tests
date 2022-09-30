@@ -6,6 +6,8 @@ Feature: Bink BPL - Transaction increases user balance, reward goal met
 
   Background:
     Given the trenette retailer exists
+    And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
+    And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
     And the retailer's trenette-stmp-campaign STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-stmp-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
     And the trenette-stmp-campaign campaign has reward rule with reward goal: 700, reward slug: free-item, allocation window: 0 and reward cap: 0
