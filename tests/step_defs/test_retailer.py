@@ -725,34 +725,6 @@ def verify_callback_task_saved_in_db(polaris_db_session: "Session", retailer_con
     assert callback_task.get_params()["account_holder_id"] == account_holder.id
 
 
-# fmt: off
-@then(parse("the vela {task_name} task status is {task_status}"))
-# fmt: on
-def check_vela_retry_task_status_is_cancelled(vela_db_session: "Session", task_name: str, task_status: str) -> None:
-    task = get_latest_task(vela_db_session, task_name)
-    for i in range(5):
-        sleep(i)
-        if task.status.value == task_status:
-            logging.info(f"{task.status} is {task_status}")
-            break
-        vela_db_session.refresh(task)
-    assert task.status.value == task_status
-
-
-# fmt: off
-@then(parse("the polaris {task_name} task status is {task_status}"))
-# fmt: on
-def check_polaris_retry_task_status_is_success(polaris_db_session: "Session", task_name: str, task_status: str) -> None:
-    task = get_latest_task(polaris_db_session, task_name)
-    for i in range(10):
-        sleep(i)
-        if task.status.value == task_status:
-            logging.info(f"{task.status} is {task_status}")
-            break
-        polaris_db_session.refresh(task)
-    assert task.status.value == task_status
-
-
 @then(parse("the {task_name} is retried {num_retried:d} time and successful on attempt {num_success:d}"))
 def number_of_callback_attempts(
     polaris_db_session: "Session", task_name: str, num_retried: int, num_success: int
@@ -767,20 +739,41 @@ def number_of_callback_attempts(
 
 
 # fmt: off
-@when(parse("the carina {task_name} task status is {retry_status}"))
-@then(parse("the carina {task_name} task status is {retry_status}"))
+@when(parse("the {system} {task_name} task status is {task_status}"))
+@then(parse("the {system} {task_name} task status is {task_status}"))
 # fmt: on
-def check_retry_task_status_fail(carina_db_session: "Session", task_name: str, retry_status: str) -> None:
+def check_retry_task_status(
+    polaris_db_session: "Session",
+    vela_db_session: "Session",
+    carina_db_session: "Session",
+    system: Literal["polaris"] | Literal["vela"] | Literal["carina"],
+    task_name: str,
+    task_status: str,
+) -> None:
 
-    enum_status = RetryTaskStatuses(retry_status)
+    match system:
+        case "polaris":
+            db_session = polaris_db_session
+        case "vela":
+            db_session = vela_db_session
+        case "carina":
+            db_session = carina_db_session
+        case _:
+            raise ValueError("Unrecognised application")
 
-    for i in range(20):
-        sleep(i)
-        status = get_latest_task(carina_db_session, task_name)
-        if status is not None and status.status == enum_status:
+    for i in range(10):
+        task = get_latest_task(db_session, task_name)
+        if task is None:
+            logging.info(f"No task found. Sleeping for {i} seconds...")
+            sleep(i)
+            continue
+        if task.status.value == task_status:
+            logging.info(f"{task.status} is {task_status}")
             break
-
-    assert status.status == enum_status
+        logging.info(f"Task status is {task.status}. Sleeping for {i} seconds...")
+        sleep(i)
+        db_session.refresh(task)
+    assert task.status.value == task_status
 
 
 @then(parse("the {retry_task} did not find rewards and return {status_code:d}"))
