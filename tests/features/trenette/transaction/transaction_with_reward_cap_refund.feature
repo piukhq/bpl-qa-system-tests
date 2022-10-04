@@ -8,7 +8,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
     Background:
         Given the trenette retailer exists
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
-        And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
+        And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of None, a multiplier of 1 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 20000, reward slug: 10percentoff, allocation window: 10 and reward cap: 2
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer has a 10percentoff reward config configured with validity_days: 10, and a status of ACTIVE and a PRE_LOADED fetch type
