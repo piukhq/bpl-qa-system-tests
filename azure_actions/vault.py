@@ -9,7 +9,10 @@ class KeyVaultError(Exception):
 
 class KeyVault:
     def __init__(self, vault_url: str) -> None:
-        self.client = SecretClient(vault_url=vault_url, credential=DefaultAzureCredential())
+        self.client = SecretClient(
+            vault_url=vault_url,
+            credential=DefaultAzureCredential(additionally_allowed_tenants=["a6e2367a-92ea-4e5a-b565-723830bcc095"]),
+        )
 
     def get_secret(self, secret_name: str) -> str:
         try:
