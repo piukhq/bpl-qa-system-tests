@@ -36,7 +36,7 @@ from tests.db_actions.retry_tasks import (
     get_tasks_by_type_and_key_value,
 )
 from tests.db_actions.reward import get_last_created_reward_issuance_task
-from tests.db_actions.vela import get_campaign_status, get_reward_slug_by_campaign_slug
+from tests.db_actions.vela import get_campaign_status
 from tests.requests.enrolment import (
     send_get_accounts,
     send_get_accounts_by_credential,

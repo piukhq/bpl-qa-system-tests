@@ -51,13 +51,3 @@ def get_campaign_status(
     campaign_slug: str,
 ) -> int:
     return vela_db_session.execute(select(Campaign.status).where(Campaign.slug == campaign_slug)).scalar_one()
-
-
-def get_reward_slug_by_campaign_slug(
-    vela_db_session: "Session",
-    campaign_slug: str,
-) -> str:
-    campaign_id = get_campaign_by_slug(vela_db_session, campaign_slug)
-    return vela_db_session.execute(
-        select(RewardRule.reward_slug).where(RewardRule.campaign_id == campaign_id.id)
-    ).scalar_one()
