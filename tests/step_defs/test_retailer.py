@@ -844,11 +844,3 @@ def check_reward_issuance_tasks_for_reward_slug_change_status(
         for task in tasks_belonging_to_account_holders:
             carina_db_session.refresh(task)
     assert done
-
-
-# fmt: off
-@then(parse("the retailer can use existing reward slug ({reward_slug}) for {campaign_slug}"))
-# fmt: on
-def verify_reward_slug_for_mulitple_campaign(vela_db_session: "Session", reward_slug: str, campaign_slug: str) -> None:
-    assert reward_slug == get_reward_slug_by_campaign_slug(vela_db_session, campaign_slug)
-    logging.info(f"{campaign_slug} is configured with existing {reward_slug}")
