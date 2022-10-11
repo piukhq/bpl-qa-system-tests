@@ -20,13 +20,13 @@ Feature: Bink BPL - refund (max amount set)
         And the account holder balance shown for trenette-accumulator is 500
         When BPL receives a transaction for the account holder for the amount of 2000 pennies
         Then BPL responds with a HTTP 200 and awarded message
-        And 1 pending rewards are available to the account holder
+        And 1 pending rewards are available to the account holder for the trenette-accumulator campaign
         And the account holder balance shown for trenette-accumulator is 0
         When BPL receives a transaction for the account holder for the amount of -700 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
-        And 0 pending rewards are available to the account holder
+        And 0 pending rewards are available to the account holder for the trenette-accumulator campaign
         And the account holder balance shown for trenette-accumulator is 500
         When BPL receives a transaction for the account holder for the amount of -300 pennies
         Then BPL responds with a HTTP 200 and refund_accepted message
         And the account holder balance shown for trenette-accumulator is 200
-        And 0 pending rewards are available to the account holder
+        And 0 pending rewards are available to the account holder for the trenette-accumulator campaign

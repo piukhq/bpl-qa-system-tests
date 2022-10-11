@@ -20,4 +20,4 @@ Feature: Bink BPL - Transaction exceeds earn rule max amount
     Then the account holder balance shown for trenette-acc-campaign is 2000
     When BPL receives a transaction for the account holder for the amount of 1250 pennies
     Then the account holder balance shown for trenette-acc-campaign is 3000
-    And 0 issued rewards are available to the account holder
+    And 0 issued rewards are available to the account holder for the trenette-acc-campaign campaign

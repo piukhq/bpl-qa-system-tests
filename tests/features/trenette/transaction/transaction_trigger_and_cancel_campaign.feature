@@ -26,7 +26,7 @@ Feature: Bink BPL - Trigger transaction and cancel campaign while balance adjust
     Scenario: Trigger transaction and cancel campaign
         Given an active account holder exists for the retailer
         And the account holder's trenette-active-campaign balance is 500
-        And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff
+        And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff and campaign slug campaign_slug
 
         When the retailer's trenette-draft-campaign campaign status is changed to active
         And BPL receives a transaction for the account holder for the amount of 600 pennies
@@ -38,5 +38,5 @@ Feature: Bink BPL - Trigger transaction and cancel campaign while balance adjust
         And the vela reward-adjustment task status is cancelled
         And the account holder's trenette-active-campaign balance does not exist
         And the account holder balance shown for trenette-draft-campaign is 0
-        And 3 cancelled rewards are available to the account holder
+        And 3 cancelled rewards are available to the account holder for the trenette-active-campaign campaign
         And there is no balance shown for trenette-active-campaign for account holder

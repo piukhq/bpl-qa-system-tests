@@ -21,7 +21,7 @@ Feature: Bink BPL - Transaction history for stamp campaign
     And the account holder's trenette-acc-campaign balance is 300
     Then the account holder balance shown for trenette-acc-campaign is 300
     When BPL receives a transaction for the account holder for the amount of 600 pennies
-    Then 0 issued rewards are available to the account holder
+    Then 0 issued rewards are available to the account holder for the trenette-acc-campaign campaign
     And the account holder balance shown for trenette-acc-campaign is 400
     Then The account holder's transaction history has 1 transactions, and the latest transaction is 6.00
 
@@ -30,10 +30,10 @@ Feature: Bink BPL - Transaction history for stamp campaign
     Given an active account holder exists for the retailer
     And the account holder's trenette-acc-campaign balance is 300
     Then the account holder balance shown for trenette-acc-campaign is 300
-    And 0 issued rewards are available to the account holder
+    And 0 issued rewards are available to the account holder for the trenette-acc-campaign campaign
     When BPL receives a transaction for the account holder for the amount of -600 pennies
     Then BPL responds with a HTTP 200 and refund_not_accepted message
-    And 0 issued rewards are available to the account holder
+    And 0 issued rewards are available to the account holder for the trenette-acc-campaign campaign
     And the account holder balance shown for trenette-acc-campaign is 300
     And The account holder's transaction history has 1 transactions, and the latest transaction is -6.00
 

@@ -18,10 +18,10 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards STA
 
 
     @bpl @campaign @bpl-290
-    Scenario: Activate new campaign, cancel old
+    Scenario: Activate new campaign, cancel old - stamp campaign
         Given an active account holder exists for the retailer
         And the account holder's trenette-active-campaign balance is 500
-        And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff
+        And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff and campaign slug trenette-active-campaign
 
         When the retailer's trenette-draft-campaign campaign status is changed to active
 
@@ -38,7 +38,7 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards STA
 
 
     @bpl @campaign @bpl-512
-    Scenario: Activate new campaign, cancel old with no allocated rewards
+    Scenario: Activate new campaign, cancel old with no allocated rewards - stamp campaign
         Given an active account holder exists for the retailer
         And the retailer's trenette-draft-campaign campaign status is changed to active
         And the retailer's trenette-active-campaign campaign status is changed to cancelled

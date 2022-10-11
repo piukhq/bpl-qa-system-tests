@@ -20,11 +20,11 @@ Feature: Transaction with no earn threshold
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <tx_amount_1> pennies
     Then the account holder balance shown for trenette-acc-campaign-1 is <expected_balance_1>
-    And <expected_num_rewards_1> issued rewards are available to the account holder
+    And <expected_num_rewards_1> issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign
     And the account holder balance shown for trenette-acc-campaign-1 is <expected_balance_1>
     When BPL receives a transaction for the account holder for the amount of <tx_amount_2> pennies
     Then the account holder balance shown for trenette-acc-campaign-1 is <expected_balance_2>
-    And <expected_num_rewards_2> issued rewards are available to the account holder
+    And <expected_num_rewards_2> issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign
 
     Examples:
       | tx_amount_1 | expected_balance_1 | tx_amount_2 | expected_balance_2 | expected_num_rewards_1 | expected_num_rewards_2 |

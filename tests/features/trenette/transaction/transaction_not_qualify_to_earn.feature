@@ -17,7 +17,7 @@ Feature: Bink BPL - Transaction doesn't meet threshold
     When BPL receives a transaction for the account holder for the amount of 480 pennies
     Then BPL responds with a HTTP 200 and threshold_not_met message
     And the account holder balance shown for <campaign_type> is 0
-    And 0 issued rewards are available to the account holder
+    And 0 issued rewards are available to the account holder for the <campaign_type> campaign
 
     Examples:
       | campaign_type         | loyalty_type | increment | reward_goal | reward_slug     | max_amount |
@@ -34,12 +34,12 @@ Feature: Bink BPL - Transaction doesn't meet threshold
 
     And an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <transaction_amount_1> pennies
-    Then <expected_reward> issued rewards are available to the account holder
+    Then <expected_reward> issued rewards are available to the account holder for the <campaign_type> campaign
     And the account holder balance shown for <campaign_type> is <expected_balance>
     When BPL receives a transaction for the account holder for the amount of <transaction_amount_2> pennies
     Then BPL responds with a HTTP 200 and threshold_not_met message
     And the account holder balance shown for <campaign_type> is <expected_balance>
-    And <expected_reward> issued rewards are available to the account holder
+    And <expected_reward> issued rewards are available to the account holder for the <campaign_type> campaign
 
     Examples:
       | campaign_type          | transaction_amount_1 | transaction_amount_2 | expected_balance | expected_reward | loyalty_type | increment | reward_goal | reward_slug |

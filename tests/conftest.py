@@ -586,8 +586,8 @@ def only_required_credentials() -> dict:
 
 
 # fmt: off
-@given(parse("the account holders each have {num_rewards:d} {reward_status} rewards with the "
-             "{reward_slug} reward slug expiring {expiring}"))
+@given(parse("the account holders each have {num_rewards:d} {reward_status} rewards for the {campaign_slug} "
+             "campaign with the {reward_slug} reward slug expiring {expiring}"))
 # fmt: on
 def make_account_holder_rewards(
     retailer_config: RetailerConfig,
@@ -595,18 +595,20 @@ def make_account_holder_rewards(
     polaris_db_session: "Session",
     num_rewards: int,
     reward_status: str,
+    campaign_slug: str,
     reward_slug: str,
     expiring: str,
 ) -> None:
     for account_holder in account_holders:
         create_rewards_for_existing_account_holder(
             polaris_db_session,
-            retailer_config.slug,
-            num_rewards,
-            account_holder.id,
-            reward_slug,
-            reward_status,
-            arrow.utcnow().dehumanize(expiring).datetime,
+            retailer_slug=retailer_config.slug,
+            reward_count=num_rewards,
+            account_holder_id=account_holder.id,
+            campaign_slug=campaign_slug,
+            reward_slug=reward_slug,
+            status=reward_status,
+            expiry_date=arrow.utcnow().dehumanize(expiring).datetime,
         )
 
 
@@ -673,17 +675,22 @@ def add_vars_to_email_template(
 
 
 # fmt: off
-@given(parse("the account has {reward_count} issued unexpired rewards"))
+@given(parse("the account has {reward_count} issued unexpired rewards for the {campaign_slug} campaign"))
 # fmt: on
 def update_existing_account_holder_with_rewards(
     account_holder: AccountHolder,
     retailer_config: RetailerConfig,
     reward_count: int,
+    campaign_slug: str,
     polaris_db_session: "Session",
 ) -> AccountHolder:
 
     create_rewards_for_existing_account_holder(
-        polaris_db_session, retailer_config.slug, reward_count, account_holder.id
+        polaris_db_session,
+        retailer_slug=retailer_config.slug,
+        reward_count=reward_count,
+        account_holder_id=account_holder.id,
+        campaign_slug=campaign_slug,
     )
 
     return account_holder
@@ -755,17 +762,23 @@ def verify_account_holder_reward_status(
 
 # fmt: off
 @given(parse("there are {reward_count} issued unexpired rewards for account holder with "
-             "reward slug {reward_slug}"))
+             "reward slug {reward_slug} and campaign slug {campaign_slug}"))
 # fmt: on
 def update_existing_account_holder_with_rewards_for_reward_slug(
     account_holder: AccountHolder,
     retailer_config: RetailerConfig,
     reward_count: int,
     reward_slug: str,
+    campaign_slug: str,
     polaris_db_session: "Session",
 ) -> AccountHolder:
     create_rewards_for_existing_account_holder(
-        polaris_db_session, retailer_config.slug, reward_count, account_holder.id, reward_slug
+        polaris_db_session,
+        retailer_slug=retailer_config.slug,
+        reward_count=reward_count,
+        account_holder_id=account_holder.id,
+        campaign_slug=campaign_slug,
+        reward_slug=reward_slug,
     )
     return account_holder
 
@@ -956,13 +969,14 @@ def enqueue_reward_adjustment_tasks_for_account_holders(
 
 # fmt: off
 @when(parse("there are reward-issuance tasks for the account holders for the {reward_slug} reward slug "
-            "on the queue"))
+            "and {campaign_slug} campaign_slug on the queue"))
 # fmt: on
 def enqueue_reward_issuance_tasks_for_account_holders(
     retailer_config: RetailerConfig,
     carina_db_session: "Session",
     account_holders: list[AccountHolder],
     reward_slug: str,
+    campaign_slug: str,
 ) -> None:
     reward_config_id = carina_db_session.execute(
         select(RewardConfig.id)
@@ -976,6 +990,7 @@ def enqueue_reward_issuance_tasks_for_account_holders(
             "reward_uuid": str(uuid4()),
             "reward_slug": reward_slug,
             "retailer_slug": retailer_config.slug,
+            "campaign_slug": campaign_slug,
             "reward_config_id": reward_config_id,
             "issued_date": datetime.now(tz=timezone.utc).timestamp(),
             "account_url": (

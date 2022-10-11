@@ -2,6 +2,7 @@ import json
 import logging
 import time
 
+from collections import defaultdict
 from time import sleep
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -443,13 +444,15 @@ def check_number_of_transaction_on_get_account_resonse(
 
 
 # fmt: off
-@then(parse("{expected_num_rewards:d} {state} rewards are available to the account holder"))
+@then(parse("{expected_num_rewards:d} {state} rewards are available to the "
+            "account holder for the {campaign_slug} campaign"))
 # fmt: on
 def check_rewards_for_account_holder(
     retailer_config: RetailerConfig,
     account_holder: AccountHolder,
     expected_num_rewards: int,
     state: str,
+    campaign_slug: str,
 ) -> None:
     time.sleep(10)
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
@@ -459,30 +462,44 @@ def check_rewards_for_account_holder(
         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
     )
     if state == "issued":
-        assert len(resp.json()["rewards"]) == expected_num_rewards
-        for i in range(expected_num_rewards):
-            assert resp.json()["rewards"][i]["code"]
-            assert resp.json()["rewards"][i]["issued_date"]
-            assert resp.json()["rewards"][i]["redeemed_date"] is None
-            assert resp.json()["rewards"][i]["expiry_date"]
-            assert resp.json()["rewards"][i]["status"] == state
+        rewards_by_campaign_slug = defaultdict(list)
+        for reward in resp.json()["rewards"]:
+            rewards_by_campaign_slug[reward["campaign_slug"]].append(reward)
+
+        assert len(rewards_by_campaign_slug[campaign_slug]) == expected_num_rewards
+        for reward in rewards_by_campaign_slug[campaign_slug]:
+            assert reward["code"]
+            assert reward["issued_date"]
+            assert reward["redeemed_date"] is None
+            assert reward["expiry_date"]
+            assert reward["status"] == state
+            assert reward["campaign_slug"] == campaign_slug
     elif state == "pending":
-        for i in range(expected_num_rewards):
-            assert resp.json()["pending_rewards"][i]["created_date"] is not None
-            assert resp.json()["pending_rewards"][i]["conversion_date"] is not None
+        pending_rewards_by_campaign_slug = defaultdict(list)
+
+        for pending_reward in resp.json()["pending_rewards"]:
+            pending_rewards_by_campaign_slug[pending_reward["campaign_slug"]].append(pending_reward)
+
+        assert len(pending_rewards_by_campaign_slug[campaign_slug]) == expected_num_rewards
+        for pending_reward in pending_rewards_by_campaign_slug[campaign_slug]:
+            assert pending_reward["created_date"] is not None
+            assert pending_reward["conversion_date"] is not None
+            assert pending_reward["campaign_slug"] == campaign_slug
 
 
 # fmt: off
-@then(parse("{expected_num_rewards:d} {state} rewards are available to each account holder"))
+@then(parse("{expected_num_rewards:d} {state} rewards are available to each account holder "
+            "for the {campaign_slug} campaign"))
 # fmt: on
 def check_rewards_for_each_account_holder(
     retailer_config: RetailerConfig,
     account_holders: list[AccountHolder],
     expected_num_rewards: int,
     state: str,
+    campaign_slug: str,
 ) -> None:
     for account_holder in account_holders:
-        check_rewards_for_account_holder(retailer_config, account_holder, expected_num_rewards, state)
+        check_rewards_for_account_holder(retailer_config, account_holder, expected_num_rewards, state, campaign_slug)
 
 
 @then(parse("there are {num:d} pending reward records for {campaign_slug} associated with the account holder"))

@@ -22,7 +22,7 @@ Feature: Bink BPL - Transaction with a reward cap with no allocation window
         And the account holder's trenette-acc-campaign balance is <starting_balance>
         When BPL receives a transaction for the account holder for the amount of <tx_amount> pennies
         Then the account holder balance shown for trenette-acc-campaign is <final_balance>
-        And <issued_rewards_amount> issued rewards are available to the account holder
+        And <issued_rewards_amount> issued rewards are available to the account holder for the trenette-acc-campaign campaign
 
         Examples:
             | starting_balance | tx_amount | final_balance | issued_rewards_amount |
