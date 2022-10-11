@@ -19,14 +19,14 @@ Feature: Transaction with no reward config setup for retailer
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 7500 pennies
     Then the account holder balance shown for trenette-acc-campaign-1 is 7500
-    And 0 issued rewards are available to the account holder
+    And 0 issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign
     When BPL receives a transaction for the account holder for the amount of 5050 pennies
     Then the account holder balance shown for trenette-acc-campaign-1 is 2550
-    And 0 issued rewards are available to the account holder
+    And 0 issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign
     When 1 rewards are generated for the 10percentoff reward config with allocation status set to false and deleted status set to false
     Then rewards are allocated to the account holder for the 10percentoff reward
     And the account holder balance shown for trenette-acc-campaign-1 is 2550
-    And 1 issued rewards are available to the account holder
+    And 1 issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign
 
 
   @bpl @transaction @bpl-297
@@ -34,8 +34,8 @@ Feature: Transaction with no reward config setup for retailer
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 21000 pennies
     Then the account holder balance shown for trenette-acc-campaign-1 is 1000
-    And 0 issued rewards are available to the account holder
+    And 0 issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign
     When 2 rewards are generated for the 10percentoff reward config with allocation status set to false and deleted status set to false
     Then rewards are allocated to the account holder for the 10percentoff reward
     And the account holder balance shown for trenette-acc-campaign-1 is 1000
-    And 2 issued rewards are available to the account holder
+    And 2 issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign

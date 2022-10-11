@@ -22,7 +22,7 @@ Feature: Bink BPL - Transaction history
     And the account holder's trenette-acc-campaign balance is 2000
     Then the account holder balance shown for trenette-acc-campaign is 2000
     When BPL receives a transaction for the account holder for the amount of 650 pennies
-    Then 0 issued rewards are available to the account holder
+    Then 0 issued rewards are available to the account holder for the trenette-acc-campaign campaign
     And the account holder balance shown for trenette-acc-campaign is 2650
     Then The account holder's transaction history has 1 transactions, and the latest transaction is 6.50
 
@@ -32,9 +32,9 @@ Feature: Bink BPL - Transaction history
     Given an active account holder exists for the retailer
     And the account holder's trenette-acc-campaign balance is 2650
     Then the account holder balance shown for trenette-acc-campaign is 2650
-    And 0 issued rewards are available to the account holder
+    And 0 issued rewards are available to the account holder for the trenette-acc-campaign campaign
     When BPL receives a transaction for the account holder for the amount of -799 pennies
-    Then 0 issued rewards are available to the account holder
+    Then 0 issued rewards are available to the account holder for the trenette-acc-campaign campaign
     And the account holder balance shown for trenette-acc-campaign is 1851
     Then The account holder's transaction history has 1 transactions, and the latest transaction is -7.99
 

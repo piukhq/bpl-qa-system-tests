@@ -66,9 +66,11 @@ def get_ordered_pending_rewards(
 
 def create_rewards_for_existing_account_holder(
     polaris_db_session: "Session",
+    *,
     retailer_slug: str,
     reward_count: int,
     account_holder_id: int,
+    campaign_slug: str,
     reward_slug: str | None = "reward-test-slug",
     status: str = "ISSUED",
     expiry_date: datetime | None = None,
@@ -81,6 +83,7 @@ def create_rewards_for_existing_account_holder(
             issued_date=datetime.now() - timedelta(days=1),
             expiry_date=expiry_date if expiry_date else datetime.now() + timedelta(days=1),
             status=status,
+            campaign_slug=campaign_slug,
             reward_slug=reward_slug,
             retailer_slug=retailer_slug,
             idempotency_token=str(uuid4()),

@@ -19,7 +19,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
         Given an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is 2000
         When BPL receives a transaction for the account holder for the amount of 65000 pennies
-        Then 2 pending rewards are available to the account holder
+        Then 2 pending rewards are available to the account holder for the trenette-acc-campaign campaign
         And the account holder balance shown for trenette-acc-campaign is 2000
 
     @bpl @trc @AC-3 @bpl-733
