@@ -454,37 +454,48 @@ def check_rewards_for_account_holder(
     state: str,
     campaign_slug: str,
 ) -> None:
-    time.sleep(10)
-    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
-    logging.info(f"Response HTTP status code: {resp.status_code}")
-    logging.info(
-        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    time.sleep(4)
+    getaccount_resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    getbycredential_resp = send_get_accounts_by_credential(
+        retailer_config.slug, {"email": account_holder.email, "account_number": account_holder.account_number}
     )
-    if state == "issued":
-        rewards_by_campaign_slug = defaultdict(list)
-        for reward in resp.json()["rewards"]:
-            rewards_by_campaign_slug[reward["campaign_slug"]].append(reward)
+    logging.info(
+        f"Response HTTP status code: {getaccount_resp.status_code}"
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(getaccount_resp.json(), indent=4)}"
+    )
+    logging.info(
+        f"Response HTTP status code: {getbycredential_resp.status_code}"
+        f"Response of POST getbycredential {settings.POLARIS_BASE_URL}{Endpoints.GETBYCREDENTIALS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(getbycredential_resp.json(), indent=4)}"
+    )
 
-        assert len(rewards_by_campaign_slug[campaign_slug]) == expected_num_rewards
-        for reward in rewards_by_campaign_slug[campaign_slug]:
-            assert reward["code"]
-            assert reward["issued_date"]
-            assert reward["redeemed_date"] is None
-            assert reward["expiry_date"]
-            assert reward["status"] == state
-            assert reward["campaign_slug"] == campaign_slug
-    elif state == "pending":
-        pending_rewards_by_campaign_slug = defaultdict(list)
+    for resp in [getaccount_resp, getbycredential_resp]:
+        if state == "issued":
+            rewards_by_campaign_slug = defaultdict(list)
 
-        for pending_reward in resp.json()["pending_rewards"]:
-            pending_rewards_by_campaign_slug[pending_reward["campaign_slug"]].append(pending_reward)
+            for reward in resp.json()["rewards"]:
+                rewards_by_campaign_slug[reward["campaign_slug"]].append(reward)
 
-        assert len(pending_rewards_by_campaign_slug[campaign_slug]) == expected_num_rewards
-        for pending_reward in pending_rewards_by_campaign_slug[campaign_slug]:
-            assert pending_reward["created_date"] is not None
-            assert pending_reward["conversion_date"] is not None
-            assert pending_reward["campaign_slug"] == campaign_slug
+            assert len(rewards_by_campaign_slug[campaign_slug]) == expected_num_rewards
+            for reward in rewards_by_campaign_slug[campaign_slug]:
+                assert reward["code"]
+                assert reward["issued_date"]
+                assert reward["redeemed_date"] is None
+                assert reward["expiry_date"]
+                assert reward["status"] == state
+                assert reward["campaign_slug"] == campaign_slug
+        elif state == "pending":
+            pending_rewards_by_campaign_slug = defaultdict(list)
+
+            for pending_reward in resp.json()["pending_rewards"]:
+                pending_rewards_by_campaign_slug[pending_reward["campaign_slug"]].append(pending_reward)
+
+            assert len(pending_rewards_by_campaign_slug[campaign_slug]) == expected_num_rewards
+            for pending_reward in pending_rewards_by_campaign_slug[campaign_slug]:
+                assert pending_reward["created_date"] is not None
+                assert pending_reward["conversion_date"] is not None
+                assert pending_reward["campaign_slug"] == campaign_slug
 
 
 # fmt: off
