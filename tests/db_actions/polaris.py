@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from sqlalchemy import update
 from sqlalchemy.future import select
 
 from db.polaris.models import (
@@ -176,3 +177,18 @@ def get_account_holder_balances_for_campaign(
         .scalars()
         .all()
     )
+
+
+def update_account_holder_pending_rewards_conversion_date(
+    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str, conversion_date: date
+) -> AccountHolderPendingReward:
+    pending_reward = polaris_db_session.execute(
+        update(AccountHolderPendingReward)
+        .values(conversion_date=conversion_date)
+        .where(
+            AccountHolderPendingReward.account_holder_id == account_holder.id,
+            AccountHolderPendingReward.campaign_slug == campaign_slug,
+        )
+    )
+    polaris_db_session.commit()
+    return pending_reward

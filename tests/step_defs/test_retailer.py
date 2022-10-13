@@ -29,6 +29,7 @@ from tests.db_actions.polaris import (
     get_account_holder_reward,
     get_ordered_pending_rewards,
     get_pending_rewards,
+    update_account_holder_pending_rewards_conversion_date,
 )
 from tests.db_actions.retry_tasks import (
     get_latest_callback_task_for_account_holder,
@@ -683,6 +684,22 @@ def update_existing_account_holder_with_pending_rewards(
         reward_slug,
     )
     return pending_rewards
+
+
+@when(parse("the account's pending rewards conversion date is {conversion_date} for {campaign_slug} " "campaign"))
+def convert_pending_reward_conversion_date_to_now(
+    polaris_db_session: "Session",
+    account_holder: AccountHolder,
+    retailer_config: RetailerConfig,
+    conversion_date: str,
+    campaign_slug: str,
+) -> AccountHolderPendingReward:
+    return update_account_holder_pending_rewards_conversion_date(
+        polaris_db_session,
+        account_holder,
+        campaign_slug,
+        arrow.utcnow().dehumanize(conversion_date).date(),
+    )
 
 
 # VELA CHECKS
