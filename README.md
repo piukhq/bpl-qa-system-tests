@@ -16,7 +16,7 @@ export LDFLAGS="-L/usr/local/opt/openssl/lib"
 Then install the project dependencies:
 
 ```shell
-pipenv install --dev
+poetry install --dev
 ```
 
 #### .env setup

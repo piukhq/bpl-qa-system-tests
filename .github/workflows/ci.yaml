@@ -13,12 +13,14 @@ jobs:
     name: tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
         with:
           python-version: "3.10"
-      - run: pip install pipenv
-      - run: pipenv install --dev --system --deploy --ignore-pipfile
+      - run: pip install poetry
+      - run: poetry config virtualenvs.create false
+      - run: poetry config http-basic.bink-pypi 269fdc63-af3d-4eca-8101-8bddc22d6f14 b694b5b1-f97e-49e4-959e-f3c202e3ab91
+      - run: poetry install
       - run: flake8 .
       - run: black --line-length=120 --check .
       - run: isort --check --line-length 120 --profile black .
