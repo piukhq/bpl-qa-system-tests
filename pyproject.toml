@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "bpl-qa-system-tests"
-version = "0.1.0"
+version = "0.0.0"
 description = ""
 authors = ["RupalPatelj <rpatel@bink.com>"]
 readme = "README.md"
-packages = [{include = "bpl_qa_system_tests"}]
+repository = "https://github.com/binkhq/bpl-qa-system-tests"
 
 [[tool.poetry.source]]
 name = "bink-pypi"
@@ -58,8 +58,3 @@ PyYAML = "^6.0"
 psycopg2-binary = "^2.9.4"
 sqlalchemy-utils = "^0.38.3"
 retry-tasks-lib = {version = "^2.0.0", source = "bink-pypi"}
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
