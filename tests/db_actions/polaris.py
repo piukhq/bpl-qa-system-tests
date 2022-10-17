@@ -1,3 +1,4 @@
+import time
 from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 from uuid import uuid4
@@ -191,4 +192,5 @@ def update_account_holder_pending_rewards_conversion_date(
         )
     )
     polaris_db_session.commit()
+    time.sleep(3)
     return pending_reward
