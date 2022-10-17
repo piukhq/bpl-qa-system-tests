@@ -2,9 +2,8 @@
 name = "bpl-qa-system-tests"
 version = "0.1.0"
 description = ""
-authors = ["RupalPatelj <rpatel@bink.com>"]
+authors = ["Bink <bink@bink.bink>"]
 readme = "README.md"
-packages = [{include = "bpl_qa_system_tests"}]
 
 [[tool.poetry.source]]
 name = "bink-pypi"

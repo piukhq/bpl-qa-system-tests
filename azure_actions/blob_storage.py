@@ -42,7 +42,7 @@ def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl-auto") 
         blob_name=blob_path,
     )
     with open(filename, "rb") as f:
-        blob.upload_blob(f, content_settings=ContentSettings(content_type="text/html"))  # type: ignore [arg-type]
+        blob.upload_blob(f, content_settings=ContentSettings(content_type="text/html"))
 
     return blob
 
