@@ -16,7 +16,8 @@ export LDFLAGS="-L/usr/local/opt/openssl/lib"
 Then install the project dependencies:
 
 ```shell
-poetry install --dev
+poetry config <pypi-url> <pypi-user> <pypi-pass>
+poetry install
 ```
 
 #### .env setup
@@ -34,7 +35,6 @@ Install Azure CLI and login to Azure for Key Vault access
 
 ```shell
 brew install azure-cli
-
 az login
 ```
 
