@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 
 from datetime import datetime, timedelta
 from time import sleep
@@ -28,6 +29,19 @@ def put_new_reward_updates_file(
     today_date = datetime.now().strftime("%Y-%m-%d")
     content = "\n".join([f"{reward.code},{today_date},{reward_status}" for reward in rewards])
     logging.info(f"content of csv file upload: {content}\n Blob_path: {blob_path}")
+    return upload_blob(blob_path, content)
+
+
+def add_new_available_rewards_file(retailer_slug: str, codes: list[str], reward_slug: str, expired_date: str) -> BlobClient:
+    if expired_date == "None":
+        filename = ".".join([reward_slug, f"test_{uuid.uuid4()}.csv"])
+    else:
+        filename = ".".join([reward_slug, f"{expired_date}.test_{uuid.uuid4()}.csv"])
+
+    blob_name = ".".join(["rewards.import" , filename])
+    blob_path = os.path.join(retailer_slug, blob_name)
+    content = "\n".join([code for code in codes])
+    logging.info(f"content of csv file upload: {content}")
     return upload_blob(blob_path, content)
 
 

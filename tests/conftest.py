@@ -28,7 +28,7 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 
 import settings
 
-from azure_actions.blob_storage import put_new_reward_updates_file
+from azure_actions.blob_storage import put_new_reward_updates_file, add_new_available_rewards_file
 from db.carina import models as carina_models
 from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
 from db.hubble import models as hubble_models
@@ -422,6 +422,25 @@ def upload_reward_updates_to_blob_storage() -> Callable:
 
     return func
 
+@pytest.fixture(scope="function")
+def upload_rewards_to_blob_storage() -> Callable:
+    def func(retailer_slug: str, codes: list[str], *, reward_slug: str, expired_date: str) -> str:
+        """Upload some new reward codes to blob storage to test end-to-end import"""
+        blob = None
+
+        if BLOB_STORAGE_DSN:
+            logger.debug(
+                f"Uploading reward import file to blob storage for {retailer_slug} " f"(reward slug: {reward_slug})..."
+            )
+            blob = add_new_available_rewards_file(retailer_slug, codes, reward_slug, expired_date)
+            logger.debug(f"Successfully uploaded new reward codes to blob storage: {blob.url}")
+        else:
+            logger.debug("No BLOB_STORAGE_DSN set, skipping reward updates upload")
+
+        return blob
+
+    return func
+
 
 # fmt: off
 @when(parse("the {retailer_slug} retailer updates selected rewards to {reward_status} status"),
@@ -443,6 +462,20 @@ def reward_updates_upload(
     )
     assert blob
     return [reward.id for reward in available_rewards]
+
+
+@given(parse("the retailer provides {num_rewards:d} rewards in a csv file for the {reward_slug} "
+             "reward slug with rewards {expired_date}"))
+def add_new_rewards_via_azure_blob(num_rewards: int,
+                                   retailer_config: RetailerConfig,
+                                   reward_slug: str, expired_date: str,
+                                   upload_rewards_to_blob_storage: Callable) -> None:
+    reward_expired_date = None if expired_date == "None" else expired_date
+    new_rewards_codes = [str(uuid.uuid4()) for _ in range(num_rewards)]
+    blob = upload_rewards_to_blob_storage(retailer_slug=retailer_config.slug, codes=new_rewards_codes,
+                                          reward_slug=reward_slug, expired_date=reward_expired_date)
+    time.sleep(20)
+    assert blob
 
 
 # POLARIS FIXTURES
