@@ -16,13 +16,13 @@ Feature: Reward code added via azure
 
   @reward @bpl @bpl-678 @bpl-678-ac-1
   Scenario: importing reward codes without expire date from azure blob storage
-    Given the retailer provides 2 rewards in a csv file for the 10percentoff reward slug with rewards None
+    Given the retailer provides 2 rewards in a csv file for the 10percentoff reward slug with rewards expiry date None
     Then the file is moved to the archive container by the reward importer
     And 2 reward codes available for reward slug 10percentoff with expiry date None in the rewards table
 
   @reward @bpl @bpl-678 @bpl-678-ac-2
   Scenario: importing reward codes with expire date from azure blob storage
-    Given the retailer provides 3 rewards in a csv file for the 10percentoff reward slug with rewards expires.2023-01-16
+    Given the retailer provides 3 rewards in a csv file for the 10percentoff reward slug with rewards expiry date 2023-01-16
     Then the file is moved to the archive container by the reward importer
     And 3 reward codes available for reward slug 10percentoff with expiry date 2023-01-16 in the rewards table
 
