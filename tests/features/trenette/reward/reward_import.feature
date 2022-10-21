@@ -14,13 +14,13 @@ Feature: Reward code added via azure
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
 
-  @reward @bpl @bpl-678 @bpl-678-ac-1
+  @reward @bpl-678 @bpl-678-ac-1
   Scenario: importing reward codes without expire date from azure blob storage
     Given the retailer provides 2 rewards in a csv file for the 10percentoff reward slug with rewards expiry date None
     Then the file is moved to the archive container by the reward importer
     And 2 reward codes available for reward slug 10percentoff with expiry date None in the rewards table
 
-  @reward @bpl @bpl-678 @bpl-678-ac-2
+  @reward @bpl-678 @bpl-678-ac-2
   Scenario: importing reward codes with expire date from azure blob storage
     Given the retailer provides 3 rewards in a csv file for the 10percentoff reward slug with rewards expiry date 2023-01-16
     Then the file is moved to the archive container by the reward importer
