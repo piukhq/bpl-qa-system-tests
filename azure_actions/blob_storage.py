@@ -32,13 +32,15 @@ def put_new_reward_updates_file(
     return upload_blob(blob_path, content)
 
 
-def add_new_available_rewards_file(retailer_slug: str, codes: list[str], reward_slug: str, expired_date: str) -> BlobClient:
+def add_new_available_rewards_file(
+    retailer_slug: str, codes: list[str], reward_slug: str, expired_date: str
+) -> BlobClient:
     if expired_date == "None":
         filename = ".".join([reward_slug, f"test_{uuid.uuid4()}.csv"])
     else:
         filename = ".".join([reward_slug, f"{expired_date}.test_{uuid.uuid4()}.csv"])
 
-    blob_name = ".".join(["rewards.import" , filename])
+    blob_name = ".".join(["rewards.import", filename])
     blob_path = os.path.join(retailer_slug, blob_name)
     content = "\n".join([code for code in codes])
     logging.info(f"content of csv file upload: {content}")
