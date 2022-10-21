@@ -35,7 +35,7 @@ def put_new_reward_updates_file(
 def add_new_available_rewards_file(
     retailer_slug: str, codes: list[str], reward_slug: str, expired_date: str
 ) -> BlobClient:
-    if expired_date == None:
+    if expired_date is None:
         filename = ".".join([reward_slug, f"test_{uuid.uuid4()}.csv"])
     else:
         filename = ".".join([reward_slug, f"expires.{expired_date}.test_{uuid.uuid4()}.csv"])

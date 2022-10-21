@@ -464,6 +464,7 @@ def reward_updates_upload(
     assert blob
     return [reward.id for reward in available_rewards]
 
+
 # fmt: off
 @given(
     parse(
