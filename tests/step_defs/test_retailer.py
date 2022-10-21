@@ -686,7 +686,7 @@ def update_existing_account_holder_with_pending_rewards(
     return pending_rewards
 
 
-@when(parse("the account's pending rewards conversion date is {conversion_date} for {campaign_slug} " "campaign"))
+@when(parse("the account's pending rewards conversion date is {conversion_date} for {campaign_slug} campaign"))
 def convert_pending_reward_conversion_date_to_now(
     polaris_db_session: "Session",
     account_holder: AccountHolder,

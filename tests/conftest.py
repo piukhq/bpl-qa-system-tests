@@ -464,13 +464,14 @@ def reward_updates_upload(
     assert blob
     return [reward.id for reward in available_rewards]
 
-
+# fmt: off
 @given(
     parse(
         "the retailer provides {num_rewards:d} rewards in a csv file for the {reward_slug} "
-        "reward slug with rewards {expired_date}"
+        "reward slug with rewards expiry date {expired_date}"
     )
 )
+# fmt: on
 def add_new_rewards_via_azure_blob(
     num_rewards: int,
     retailer_config: RetailerConfig,
