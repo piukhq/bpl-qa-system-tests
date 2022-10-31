@@ -488,7 +488,6 @@ def add_new_rewards_via_azure_blob(
         reward_slug=reward_slug,
         expired_date=reward_expired_date,
     )
-    time.sleep(20)
     assert blob
 
 
