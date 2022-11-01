@@ -1,5 +1,4 @@
 # Created by rupalpatel at 14/09/2022
-@test
 Feature: Bink BPL - Transaction with a reward cap with TRC
     As a customer
     I want to transact some amount

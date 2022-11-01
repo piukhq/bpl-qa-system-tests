@@ -39,12 +39,3 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards ACC
         And the account holder's trenette-active-campaign balance does not exist
         And there are 0 pending reward records for trenette-draft-campaign associated with the account holder
         And any trenette account holder rewards for 10percentoff are cancelled
-
-#   Below scenario dont work part of removed cancel-rewards from carina bpl- 740
-#    @bpl @campaign @bpl-512
-#    Scenario: Activate new campaign, cancel old with no allocated rewards - accumulator campaign
-#        Given an active account holder exists for the retailer
-#        And the retailer's trenette-draft-campaign campaign status is changed to active
-#        And the retailer's trenette-active-campaign campaign status is changed to cancelled
-#
-#        Then the carina cancel-rewards task status is success
