@@ -14,6 +14,7 @@ Feature: Reward code status updated to redeemed from 3rd party
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 1 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
+    And the retailer's trenette-acc-campaign-1 campaign with reward_slug: 10percentoff added as ACTIVE
 
   @reward @bpl @bpl-301
   Scenario: Handle importing redeemed reward codes from a 3rd party
