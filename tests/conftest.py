@@ -30,7 +30,7 @@ import settings
 
 from azure_actions.blob_storage import add_new_available_rewards_file, put_new_reward_updates_file
 from db.carina import models as carina_models
-from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardConfig
+from db.carina.models import FetchType, Retailer, RetailerFetchType, Reward, RewardCampaign, RewardConfig
 from db.hubble import models as hubble_models
 from db.polaris import models as polaris_models
 from db.polaris.models import (
@@ -892,6 +892,28 @@ def create_campaign(
     vela_db_session.commit()
 
     return campaign
+
+
+# fmt: off
+@given(parse("the retailer's {campaign_slug} campaign with reward_slug: {reward_slug} added as {status}"))
+# fmt: on
+def create_reward_campaign(
+    campaign_slug: str,
+    reward_slug: str,
+    status: str,
+    carina_db_session: "Session",
+    retailer_config: "RetailerConfig",
+) -> RewardCampaign:
+    campaign_reward = RewardCampaign(
+        retailer_id=retailer_config.id,
+        campaign_slug=campaign_slug,
+        reward_slug=reward_slug,
+        campaign_status=status,
+    )
+    carina_db_session.add(campaign_reward)
+    carina_db_session.commit()
+
+    return campaign_reward
 
 
 # fmt: off

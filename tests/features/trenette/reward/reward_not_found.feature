@@ -12,6 +12,7 @@ Feature: Reward already allocated and uploading status from 3rd party
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 2 rewards configured for the 10percentoff reward config, with allocation status set to true and deleted status set to false
+    And the retailer's trenette-acc-campaign-1 campaign with reward_slug: 10percentoff added as ACTIVE
 
   @reward @bpl @bpl-299
   Scenario: Reward allocated in carina not found in polaris

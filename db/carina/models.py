@@ -43,6 +43,10 @@ class Reward(Base):
     __tablename__ = "reward"
 
 
+class RewardCampaign(Base):
+    __tablename__ = "reward_campaign"
+
+
 class RewardConfig(Base):
     __tablename__ = "reward_config"
 

@@ -806,7 +806,7 @@ def check_retry_task_status(
         case _:
             raise ValueError("Unrecognised application")
 
-    for i in range(10):
+    for i in range(20):
         task = get_latest_task(db_session, task_name)
         if task is None:
             logging.info(f"No task found. Sleeping for {i} seconds...")

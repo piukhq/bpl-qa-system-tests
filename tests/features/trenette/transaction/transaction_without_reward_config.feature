@@ -13,6 +13,7 @@ Feature: Transaction with no reward config setup for retailer
     And the trenette-acc-campaign-1 campaign has reward rule with reward goal: 10000, reward slug: 10percentoff, allocation window: 0 and reward cap: 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
+    And the retailer's trenette-acc-campaign-1 campaign with reward_slug: 10percentoff added as ACTIVE
 
   @bpl @transaction @bpl-297
   Scenario: single rewards become available after the transaction is processed [No rewards available prior to transaction arriving]

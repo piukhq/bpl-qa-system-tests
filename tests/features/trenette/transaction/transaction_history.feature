@@ -12,6 +12,7 @@ Feature: Bink BPL - Transaction history
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
+    And the retailer's trenette-acc-campaign campaign with reward_slug: free-item added as ACTIVE
     And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
 
