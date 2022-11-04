@@ -18,10 +18,12 @@ import settings
 
 from azure_actions.blob_storage import check_archive_blobcontainer
 from db.carina.models import Retailer, Reward, RewardConfig
+from db.hubble.models import Activity
 from db.polaris.models import AccountHolder, AccountHolderPendingReward, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from tests.api.base import Endpoints
 from tests.db_actions.carina import get_reward_config_id, get_rewards, get_rewards_by_reward_config
+from tests.db_actions.hubble import get_activity_by_type
 from tests.db_actions.polaris import (
     create_pending_rewards_with_all_value_for_existing_account_holder,
     get_account_holder_balances_for_campaign,
@@ -44,6 +46,7 @@ from tests.requests.enrolment import (
     send_get_accounts_by_credential,
     send_number_of_accounts,
     send_number_of_accounts_by_post_credential,
+    send_post_enrolment,
 )
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
@@ -910,3 +913,56 @@ def available_reward_codes_in_carina(
             assert str(reward.expiry_date) == expired_date
 
     assert all([reward.code for reward in new_uploaded_rewards]), "Rewards not available"
+
+
+@then(parse("there is {activity_type} activity appeared"))
+def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> None:
+    time.sleep(2)
+    activity = get_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
+    assert activity.type == activity_type
+    logging.info(f"Activity type {activity.type} occurred")
+
+
+@then(parse("{activity_type} activity has result field as {result_field}"))
+def activity_data_field(activity_type: str, result_field: str, hubble_db_session: "Session") -> None:
+    activity = get_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
+    assert activity.data["result"] == result_field
+    logging.info(f"Activity {activity_type} result field: {activity.data['result']}")
+
+
+@when("I enrol a same account holder again")
+def enrolment_again(retailer_config: "RetailerConfig") -> None:
+    request_body = {
+        "credentials": _get_credentials(),
+        "marketing_preferences": [{"key": "marketing_pref", "value": True}],
+        "callback_url": f"{settings.MOCK_SERVICE_BASE_URL}/enrol/callback/success",
+        "third_party_identifier": "identifier",
+    }
+    resp = send_post_enrolment(retailer_config.slug, request_body)
+    assert resp.status_code == 202
+
+    duplicate_resp = send_post_enrolment(retailer_config.slug, request_body)
+    assert duplicate_resp.status_code == 409
+
+
+def _get_credentials() -> dict:
+    return {
+        "email": "qa_pytest_dulpicate@bink.com",
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
+    }
+
+
+@when(parse("I enrol an account holder without {enrolment_field} field"))
+def enrolment_without_field(enrolment_field: str, retailer_config: "RetailerConfig") -> None:
+    credentials = _get_credentials()
+    del credentials["first_name"]
+    request_body = {
+        "credentials": credentials,
+        "marketing_preferences": [{"key": "marketing_pref", "value": True}],
+        "callback_url": f"{settings.MOCK_SERVICE_BASE_URL}/enrol/callback/success",
+        "third_party_identifier": "identifier",
+    }
+    logging.info("Request body for POST Enrol: " + json.dumps(request_body, indent=4))
+    resp = send_post_enrolment(retailer_config.slug, request_body)
+    assert resp.status_code == 422
