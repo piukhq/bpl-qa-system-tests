@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-def get_activity_by_type(
+def get_latest_activity_by_type(
     hubble_db_session: "Session",
     activity_type: str,
 ) -> Activity:

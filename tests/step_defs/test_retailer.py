@@ -18,12 +18,11 @@ import settings
 
 from azure_actions.blob_storage import check_archive_blobcontainer
 from db.carina.models import Retailer, Reward, RewardConfig
-from db.hubble.models import Activity
 from db.polaris.models import AccountHolder, AccountHolderPendingReward, AccountHolderReward, RetailerConfig
 from db.vela.models import Campaign, CampaignStatuses
 from tests.api.base import Endpoints
 from tests.db_actions.carina import get_reward_config_id, get_rewards, get_rewards_by_reward_config
-from tests.db_actions.hubble import get_activity_by_type
+from tests.db_actions.hubble import get_latest_activity_by_type
 from tests.db_actions.polaris import (
     create_pending_rewards_with_all_value_for_existing_account_holder,
     get_account_holder_balances_for_campaign,
@@ -918,14 +917,15 @@ def available_reward_codes_in_carina(
 @then(parse("there is {activity_type} activity appeared"))
 def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> None:
     time.sleep(2)
-    activity = get_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
+    activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
     assert activity.type == activity_type
     logging.info(f"Activity type {activity.type} occurred")
 
 
 @then(parse("{activity_type} activity has result field as {result_field}"))
 def activity_data_field(activity_type: str, result_field: str, hubble_db_session: "Session") -> None:
-    activity = get_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
+    time.sleep(2)
+    activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
     assert activity.data["result"] == result_field
     logging.info(f"Activity {activity_type} result field: {activity.data['result']}")
 
