@@ -916,7 +916,7 @@ def available_reward_codes_in_carina(
 
 @then(parse("there is {activity_type} activity appeared"))
 def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> None:
-    time.sleep(5)
+    time.sleep(3)
     activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
     assert activity.type == activity_type
     logging.info(f"Activity type {activity.type} occurred")
@@ -924,7 +924,7 @@ def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> 
 
 @then(parse("{activity_type} activity has result field as {result_field}"))
 def activity_data_field(activity_type: str, result_field: str, hubble_db_session: "Session") -> None:
-    time.sleep(5)
+    time.sleep(3)
     activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
     assert activity.data["result"] == result_field
     logging.info(f"Activity {activity_type} result field: {activity.data['result']}")
