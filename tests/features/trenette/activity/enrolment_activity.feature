@@ -17,21 +17,21 @@ Feature: Bink BPL - Activity enrolment
     And there is 2 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 
   @bpl-722 @accepted @bpl
-  Scenario: Activity for every enrolment request
+  Scenario: Activity for enrolment request
     When I enrol an account holder passing in all required and all optional fields
     Then the account holder is activated
     And there is ACCOUNT_REQUEST activity appeared
-    And ACCOUNT_REQUEST activity has result field as Accepted
+    And ACCOUNT_REQUEST activity has result field result as Accepted
 
   @bpl-722 @account_exist @bpl
   Scenario: Activity for duplicate enrolment request
     When I enrol a same account holder again
     Then the account holder is activated
     And there is ACCOUNT_REQUEST activity appeared
-    And ACCOUNT_REQUEST activity has result field as ACCOUNT_EXISTS
+    And ACCOUNT_REQUEST activity has result field result as ACCOUNT_EXISTS
 
   @bpl-722 @missing_field @bpl
   Scenario: Activity for enrolment request without email
     When I enrol an account holder without email field
     Then there is ACCOUNT_REQUEST activity appeared
-    And ACCOUNT_REQUEST activity has result field as FIELD_VALIDATION_ERROR
+    And ACCOUNT_REQUEST activity has result field result as FIELD_VALIDATION_ERROR

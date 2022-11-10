@@ -997,6 +997,7 @@ def send_post_campaign_change_request(
     payload: dict[str, Any] = {
         "requested_status": status,
         "campaign_slugs": [campaign_slug],
+        "activity_metadata": {"sso_username": "qa_auto"},
     }
 
     request = send_post_campaign_status_change(
