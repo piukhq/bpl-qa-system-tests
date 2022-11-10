@@ -916,18 +916,28 @@ def available_reward_codes_in_carina(
 
 @then(parse("there is {activity_type} activity appeared"))
 def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> None:
-    time.sleep(5)
-    activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
+    for i in range(15):
+        time.sleep(i)
+        activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
+
+        if activity is not None:
+            break
+        logging.info(f"waiting {i} seconds for activity appear")
+
     assert activity.type == activity_type
     logging.info(f"Activity type {activity.type} occurred")
 
 
-@then(parse("{activity_type} activity has result field as {result_field}"))
-def activity_data_field(activity_type: str, result_field: str, hubble_db_session: "Session") -> None:
-    time.sleep(5)
-    activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
-    assert activity.data["result"] == result_field
-    logging.info(f"Activity {activity_type} result field: {activity.data['result']}")
+@then(parse("{activity_type} activity has result field {field_value} as {result_field}"))
+def activity_data_field(activity_type: str, field_value: str, result_field: str, hubble_db_session: "Session") -> None:
+    for i in range(15):
+        time.sleep(i)
+        activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
+        if activity is not None:
+            break
+
+    assert activity.data[field_value] == result_field
+    logging.info(f"Activity Type {activity_type} result field: {activity.data['result']}")
 
 
 @when("I enrol a same account holder again")
