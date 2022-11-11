@@ -1,4 +1,3 @@
-# Created by Rupal Patel at 10/11/2022
 Feature: Bink BPL - Decoupling reward type
     As a customer
     I want to make sure that when there are multiple campaigns
@@ -14,7 +13,7 @@ Feature: Bink BPL - Decoupling reward type
         And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
         And there is 5 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 
-    @bpl @campaign-accumulator @bpl-724 @bpl-589-acc
+    @bpl @campaign-accumulator @bpl-724 @bpl-589
     Scenario: Single reward slug can be used against multiple campaign - accumulator
 
         Given the retailer's trenette-active-campaign ACCUMULATOR campaign starts 10 days ago and ends in a day and is ACTIVE
@@ -46,7 +45,7 @@ Feature: Bink BPL - Decoupling reward type
         And 1 issued rewards are available to the account holder for the trenette-draft-campaign campaign
         And the account holder balance shown for trenette-draft-campaign is 100
 
-    @bpl @campaign-stamps @bpl-7241 @bpl-589-stm
+    @bpl @campaign-stamps @bpl-724 @bpl-589-1
     Scenario: Single reward slug can be used against multiple campaign - stamps
 
         Given the retailer's trenette-active-campaign STAMPS campaign starts 10 days ago and ends in a day and is ACTIVE
@@ -75,5 +74,5 @@ Feature: Bink BPL - Decoupling reward type
 
         When BPL receives a transaction for the account holder for the amount of 2500 pennies
         Then BPL responds with a HTTP 200 and awarded message
-        And 1 issued rewards are available to the account holder for the trenette-draft-campaign campaign
+        And 2 issued rewards are available to the account holder for the trenette-draft-campaign campaign
         And the account holder balance shown for trenette-draft-campaign is 0
