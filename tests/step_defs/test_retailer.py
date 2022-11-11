@@ -725,6 +725,7 @@ def cancel_end_campaign(
     payload: dict[str, Any] = {
         "requested_status": "ended",
         "campaign_slugs": [campaign_slug],
+        "activity_metadata": {"sso_username": "qa_auto"},
     }
     if issued_or_deleted == "issued":
         payload.update({"issue_pending_rewards": True})
