@@ -917,7 +917,7 @@ def available_reward_codes_in_carina(
 
 @then(parse("there is {activity_type} activity appeared"))
 def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> None:
-    for i in range(15):
+    for i in range(30):
         time.sleep(i)
         activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
 
