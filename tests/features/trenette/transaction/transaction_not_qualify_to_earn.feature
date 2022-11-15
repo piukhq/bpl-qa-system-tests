@@ -6,7 +6,7 @@ Feature: Bink BPL - Transaction doesn't meet threshold
 
   @bpl @transaction @bpl-308
   Scenario Outline: Transaction doesn’t qualify for earn
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer's <campaign_type> <loyalty_type> campaign starts 5 days ago and ends in a day and is ACTIVE
     And the <campaign_type> campaign has an earn rule with a threshold of 500, an increment of <increment>, a multiplier of 1 and max amount of <max_amount>
     And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, reward slug: <reward_slug>, allocation window: 0 and reward cap: 0
@@ -26,7 +26,7 @@ Feature: Bink BPL - Transaction doesn't meet threshold
 
   @bpl @transaction @bpl-308
   Scenario Outline: Account holder already has balance but new transaction doesn't qualify for earn and balance
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer's <campaign_type> <loyalty_type> campaign starts 5 days ago and ends in a day and is ACTIVE
     And the <campaign_type> campaign has an earn rule with a threshold of 500, an increment of <increment>, a multiplier of 1 and max amount of 0
     And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, reward slug: <reward_slug>, allocation window: 0 and reward cap: 0

@@ -4,7 +4,7 @@ Feature: Bink BPL - Decoupling reward type
     then i can use same reward slug for all campaign
 
     Background:
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
         And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
 

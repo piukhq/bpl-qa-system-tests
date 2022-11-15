@@ -1,6 +1,7 @@
 retailer_config:
   name: "Asos"
   slug: "asos"
+  status: "TEST"
   account_number_prefix: "ASOS"
   loyalty_name: "Asos"
   profile_config:

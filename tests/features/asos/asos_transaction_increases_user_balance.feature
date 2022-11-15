@@ -7,7 +7,7 @@ Feature: Bink BPL - Jigshaw egift - Transaction increases user balance
   @bpl @asos @transaction @bpl-571
   Scenario: jigshaw egift - Transaction meets earn threshold (>0)
 
-    Given the asos retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
     And the retailer's asos-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE

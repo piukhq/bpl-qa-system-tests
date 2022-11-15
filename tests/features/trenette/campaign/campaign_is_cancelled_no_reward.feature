@@ -4,7 +4,7 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
   and then change of the campaigns to cancelled, so that the reward is not allocated
 
   Background:
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer's trenette-stmp-campaign-1 STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
     And the retailer's trenette-stmp-campaign-2 STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-stmp-campaign-1 campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0

@@ -4,7 +4,7 @@ Feature: Bink BPL - Activity balance not recouped
   I refund some amount which not recouped
   So that activity should appear
   Background:
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
 

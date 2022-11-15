@@ -7,7 +7,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
 
     @bpl @trc @AC-1-2-3 @bpl-690
     Scenario: Pending rewards issued honouring TRC - 1x multiplier - Example 1
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 2
@@ -41,7 +41,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
 
     @bpl @trc @AC-4-5 @bpl-690
     Scenario: Pending rewards issued honouring TRC - 1x multiplier - Example 2
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 2
@@ -71,7 +71,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
 
     @bpl @trc @AC-6 @bpl-690
     Scenario: Pending rewards issued honouring TRC - 1x multiplier - Example 3
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 2
@@ -93,7 +93,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
 
     @bpl @trc @AC-7 @bpl-690
     Scenario:  Pending rewards issued honouring TRC - 2x multiplier - Example 1
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 2 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 2
@@ -119,7 +119,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
 
     @bpl @trc @AC-8 @bpl-690
     Scenario:  Pending rewards issued honouring TRC - 2x multiplier - Coversation day 5 in future (Confluence page Example-4)
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 2 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 5 and reward cap: 2
@@ -155,7 +155,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
 
     @bpl @trc @AC-9 @bpl-690
     Scenario:  Pending rewards issued honouring TRC - 1x multiplier - (Confluence page Example-3)
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 5 and reward cap: 2

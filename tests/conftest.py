@@ -145,7 +145,7 @@ def hubble_db_session() -> Generator:
 # in vscode with target_fixture and play nice with flake8
 # https://github.com/alexkrechik/VSCucumberAutoComplete/issues/373
 # fmt: off
-@given(parse("the {retailer_slug} retailer exists"),
+@given(parse("the {retailer_slug} retailer exists with status as {status}"),
        target_fixture="retailer_config",
        )
 # fmt: on
@@ -154,14 +154,16 @@ def retailer(
     vela_db_session: "Session",
     carina_db_session: "Session",
     retailer_slug: str,
+    status: str,
     request_context: dict,
 ) -> polaris_models.RetailerConfig:
     fixture_data = load_fixture(retailer_slug)
+    fixture_data.retailer_config["status"] = status
     retailer_config = polaris_models.RetailerConfig(**fixture_data.retailer_config)
     polaris_db_session.add(retailer_config)
-    retailer_rewards = RetailerRewards(slug=retailer_slug)
+    retailer_rewards = RetailerRewards(slug=retailer_slug, status=status)
     vela_db_session.add(retailer_rewards)
-    retailer = Retailer(slug=retailer_slug)
+    retailer = Retailer(slug=retailer_slug, status=status)
     carina_db_session.add(retailer)
     polaris_db_session.commit()
     vela_db_session.commit()
@@ -488,7 +490,6 @@ def add_new_rewards_via_azure_blob(
         reward_slug=reward_slug,
         expired_date=reward_expired_date,
     )
-    time.sleep(20)
     assert blob
 
 

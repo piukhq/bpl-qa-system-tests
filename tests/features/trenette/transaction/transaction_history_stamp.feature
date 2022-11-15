@@ -5,7 +5,7 @@ Feature: Bink BPL - Transaction history for stamp campaign
   So I make sure that transaction history record showing as expected for stamp campaign
 
   Background:
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
     And the retailer's trenette-acc-campaign STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE

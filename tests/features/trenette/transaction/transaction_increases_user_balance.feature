@@ -5,7 +5,7 @@ Feature: Bink BPL - Transaction increases user balance
   So I make sure that I got balance increased
 
   Background:
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer's trenette-stmp-campaign-1 STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-stmp-campaign-1 campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
     And the trenette-stmp-campaign-1 campaign has reward rule with reward goal: 700, reward slug: free-item, allocation window: 0 and reward cap: 0

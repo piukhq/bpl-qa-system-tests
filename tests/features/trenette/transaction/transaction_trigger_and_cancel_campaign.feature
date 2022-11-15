@@ -7,7 +7,7 @@ Feature: Bink BPL - Trigger transaction and cancel campaign while balance adjust
     that any pending tasks which were triggered by transaction request are cancelled
 
     Background:
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
 
         And the retailer's trenette-active-campaign STAMPS campaign starts 10 days ago and ends in a day and is ACTIVE

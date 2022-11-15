@@ -4,7 +4,7 @@ Feature: Bink BPL - refund (max amount set)
     So I make sure that balance and pending window should updated
 
     Background:
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer's trenette-accumulator ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-accumulator campaign has an earn rule with a threshold of 200, an increment of None, a multiplier of 1 and max amount of 500
         And the trenette-accumulator campaign has reward rule with reward goal: 1000, reward slug: free-item, allocation window: 1 and reward cap: 0
