@@ -6,7 +6,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
 
     @bpl @enrol_callback @bpl-305 @bpl-305-1
     Scenario: Enrolment Trigger - No active campaign
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
         And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
@@ -27,7 +27,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
 
     @bpl @enrol_callback @bpl-305 @bpl-305-2
     Scenario: Enrolment Trigger - Draft campaign activated
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
         And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None

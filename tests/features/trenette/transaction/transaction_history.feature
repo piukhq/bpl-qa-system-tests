@@ -5,7 +5,7 @@ Feature: Bink BPL - Transaction history
   So I make sure that transaction history record showing as expected
 
   Background:
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
     And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 0

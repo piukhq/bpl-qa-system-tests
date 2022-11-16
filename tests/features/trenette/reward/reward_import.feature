@@ -5,7 +5,7 @@ Feature: Reward code added via azure
   so that customers can be allocated rewards continuously
 
   Background:
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
     And the retailer's trenette-acc-campaign-1 ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
@@ -15,15 +15,14 @@ Feature: Reward code added via azure
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And the retailer's trenette-acc-campaign-1 campaign with reward_slug: 10percentoff added as ACTIVE
 
-  @reward @bpl-678 @bpl-678-ac-1
+  @reward @bpl-678 @bpl-678-ac-1 @bpl
   Scenario: importing reward codes without expire date from azure blob storage
     Given the retailer provides 2 rewards in a csv file for the 10percentoff reward slug with rewards expiry date None
     Then the file is moved to the archive container by the reward importer
     And 2 reward codes available for reward slug 10percentoff with expiry date None in the rewards table
 
-  @reward @bpl-678 @bpl-678-ac-2
+  @reward @bpl-678 @bpl-678-ac-2 @bpl
   Scenario: importing reward codes with expire date from azure blob storage
     Given the retailer provides 3 rewards in a csv file for the 10percentoff reward slug with rewards expiry date 2023-01-16
     Then the file is moved to the archive container by the reward importer
     And 3 reward codes available for reward slug 10percentoff with expiry date 2023-01-16 in the rewards table
-

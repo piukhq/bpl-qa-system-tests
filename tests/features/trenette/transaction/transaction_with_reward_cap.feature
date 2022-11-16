@@ -6,7 +6,7 @@ Feature: Bink BPL - Transaction with a reward cap with no allocation window
     So I make sure that rewards issuance are done correctly adhering to TRC
 
     Background:
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
         And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE

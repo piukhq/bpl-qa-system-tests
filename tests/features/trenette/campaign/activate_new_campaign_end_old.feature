@@ -6,7 +6,7 @@ Feature: Bink BPL - Activate new campaign, end old
     that any pending tasks are cancelled
 
     Background:
-        Given the trenette retailer exists
+        Given the trenette retailer exists with status as TEST
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
 
         And the retailer's trenette-active-campaign STAMPS campaign starts 10 days ago and ends in a day and is ACTIVE

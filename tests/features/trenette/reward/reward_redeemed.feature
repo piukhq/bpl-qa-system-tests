@@ -5,7 +5,7 @@ Feature: Reward code status updated to redeemed from 3rd party
   so that customers can be allocated rewards continuously
 
   Background:
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
     And the retailer's trenette-acc-campaign-1 ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE

@@ -3,6 +3,7 @@ retailer_config:
   slug: "trenette"
   account_number_prefix: "TRNT"
   loyalty_name: "Trenette"
+  status: "TEST"
   profile_config:
     !as_yaml_string
     email:

@@ -4,7 +4,7 @@ Feature: Bink BPL - Ensure a Pending reward is allocated to account holder when 
   I want to the verify the pending reward get issued
   So that it is clear that i hae earned rewards
   Background:
-    Given the trenette retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
 

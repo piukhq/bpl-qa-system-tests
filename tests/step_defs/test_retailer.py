@@ -905,12 +905,13 @@ def available_reward_codes_in_carina(
     new_uploaded_rewards = get_rewards_by_reward_config(carina_db_session, reward_config_id, allocated=False)
 
     assert num_of_rewards == len(new_uploaded_rewards)
-    if expired_date == "None":
-        for reward in new_uploaded_rewards:
+    for reward in new_uploaded_rewards:
+        if expired_date == "None":
             assert reward.expiry_date is None
-    else:
-        for reward in new_uploaded_rewards:
+        else:
             assert str(reward.expiry_date) == expired_date
+
+        logging.info(f"Reward code = {reward.code} with expiry date is = {str(reward.expiry_date)}")
 
     assert all([reward.code for reward in new_uploaded_rewards]), "Rewards not available"
 

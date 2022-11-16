@@ -4,7 +4,7 @@ Feature: Bink BPL - Jigshaw egift - End campaign and delete/issue pending reward
   So I make sure all pending rewards gets deleted/issued too
 
   Background:
-    Given the asos retailer exists
+    Given the trenette retailer exists with status as TEST
     And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
     And the retailer's new-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
