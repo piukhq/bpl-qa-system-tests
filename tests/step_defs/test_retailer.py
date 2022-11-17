@@ -909,10 +909,11 @@ def available_reward_codes_in_carina(
         if new_uploaded_rewards is not None:
             break
     assert num_of_rewards == len(new_uploaded_rewards)
-    for reward in new_uploaded_rewards:
-        if expired_date == "None":
+    if expired_date == "None":
+        for reward in new_uploaded_rewards:
             assert reward.expiry_date is None
-        else:
+    else:
+        for reward in new_uploaded_rewards:
             assert str(reward.expiry_date) == expired_date
 
         logging.info(f"Reward code = {reward.code} with expiry date is = {str(reward.expiry_date)}")
