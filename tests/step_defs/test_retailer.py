@@ -901,7 +901,7 @@ def check_reward_issuance_tasks_for_reward_slug_change_status(
 def available_reward_codes_in_carina(
     num_of_rewards: int, carina_db_session: "Session", reward_slug: str, expired_date: str
 ) -> None:
-
+    time.sleep(3)
     for i in range(20):
         time.sleep(i)
         reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
