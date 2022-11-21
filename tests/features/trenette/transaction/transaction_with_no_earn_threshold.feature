@@ -16,7 +16,7 @@ Feature: Transaction with no earn threshold
     And the retailer's trenette-acc-campaign-1 campaign with reward_slug: 10percentoff added as ACTIVE
     And there is 2 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 
-  @bpl @transaction
+  @bpl @transaction @noearn-threshold
   Scenario Outline: Transaction with 0 threshold to verify balance and rewards
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <tx_amount_1> pennies
