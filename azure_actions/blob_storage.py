@@ -107,7 +107,7 @@ def check_archive_blobcontainer(
         pass  # this is fine
 
     container = blob_service_client.get_container_client(blob_container)
-    for i in range(7):
+    for i in range(10):
 
         logging.info("Sleeping for 10 seconds...")
         sleep(10)
