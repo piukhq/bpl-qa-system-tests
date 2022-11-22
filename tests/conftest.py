@@ -20,7 +20,7 @@ from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 from redis import Redis
 from retry_tasks_lib.utils.synchronous import enqueue_many_retry_tasks, sync_create_many_tasks
-from sqlalchemy import create_engine, update
+from sqlalchemy import create_engine, delete, update
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
@@ -129,16 +129,16 @@ def carina_db_session() -> Generator:
 
 @pytest.fixture(autouse=True)
 def hubble_db_session() -> Generator:
-    if database_exists(HUBBLE_DATABASE_URI):
-        logger.info("Dropping Hubble database")
-        drop_database(HUBBLE_DATABASE_URI)
-    logger.info("Creating Hubble database")
-    create_database(HUBBLE_DATABASE_URI, template=HUBBLE_TEMPLATE_DB_NAME)
     engine = create_engine(HUBBLE_DATABASE_URI, poolclass=NullPool, echo=SQL_DEBUG)
-    hubble_models.Base.prepare(autoload_with=engine)
     with sessionmaker(bind=engine)() as db_session:
+        if not database_exists(HUBBLE_DATABASE_URI):
+            logger.info("Creating Hubble database")
+            create_database(HUBBLE_DATABASE_URI, template=HUBBLE_TEMPLATE_DB_NAME)
+        else:
+            logger.info("Truncating Hubble activity table")
+            db_session.execute(delete(hubble_models.Activity.__table__))
+        hubble_models.Base.prepare(autoload_with=engine)
         yield db_session
-    importlib.reload(hubble_models)
 
 
 # This is the only way I could get the cucumber plugin to work
