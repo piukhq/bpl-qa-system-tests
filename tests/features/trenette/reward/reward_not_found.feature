@@ -18,4 +18,5 @@ Feature: Reward already allocated and uploading status from 3rd party
   Scenario: Reward allocated in carina not found in polaris
     Given an account holder reward with this reward uuid does not exist
     When the trenette retailer updates selected rewards to redeemed status
-    Then the imported rewards are soft deleted
+    Then the file is moved to the archive container by the reward importer
+    And the imported rewards are soft deleted

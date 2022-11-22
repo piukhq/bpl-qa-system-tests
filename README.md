@@ -17,7 +17,7 @@ Then install the project dependencies:
 
 ```shell
 poetry config <pypi-url> <pypi-user> <pypi-pass>
-poetry install
+poetry install --sync --no-root
 ```
 
 #### .env setup
