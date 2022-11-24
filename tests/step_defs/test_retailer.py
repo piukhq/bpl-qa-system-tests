@@ -857,6 +857,7 @@ def check_reward_adjustment_tasks_for_campaign_change_status(
         task_statuses = [task.status == RetryTaskStatuses[status] for task in tasks_belonging_to_account_holders]
         done = all(task_statuses)
         if done:
+            logging.info("Found it!")
             break
         for task in tasks_belonging_to_account_holders:
             vela_db_session.refresh(task)
