@@ -1076,6 +1076,7 @@ def enqueue_reward_issuance_tasks_for_account_holders(
                     )
                 }
             ),
+            "reason": "campaign changed"
         }
         for ah in account_holders
     ]
