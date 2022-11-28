@@ -245,7 +245,10 @@ def the_account_holder_activation_is_started(
     assert resp.json()["email"] is not None
     assert resp.json()["status"] == "pending"
     assert resp.json()["account_number"] is not None
-    assert resp.json()["current_balances"] == []
+    assert resp.json()["current_balances"] == [{
+            "campaign_slug": "N/A",
+            "value": 0
+        }]
     assert resp.json()["transaction_history"] == []
     assert resp.json()["rewards"] == []
     assert resp.json()["pending_rewards"] == []
