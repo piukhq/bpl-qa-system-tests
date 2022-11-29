@@ -226,7 +226,7 @@ def the_account_holder_activation_is_started(
     polaris_db_session: "Session", retailer_config: RetailerConfig
 ) -> AccountHolder:
     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-    assert account_holder.status == "PENDING"
+    assert account_holder.status == "ACTIVE"
 
     logging.info(
         f"\nAccount holder status : {account_holder.status}\n"
@@ -243,7 +243,7 @@ def the_account_holder_activation_is_started(
 
     assert resp.json()["UUID"] is not None
     assert resp.json()["email"] is not None
-    assert resp.json()["status"] == "pending"
+    assert resp.json()["status"] == "active"
     assert resp.json()["account_number"] is not None
     assert resp.json()["current_balances"] == [{"campaign_slug": "N/A", "value": 0}]
     assert resp.json()["transaction_history"] == []
