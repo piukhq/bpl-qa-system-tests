@@ -19,9 +19,9 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
 
         Then the account holder activation is started
         And an enrolment callback task is saved in the database
-        And the polaris account-holder-activation task status is waiting
-        And the polaris send-email task status is pending
-        And the polaris enrolment-callback task status is pending
+        And the polaris account-holder-activation task status is success
+        And the polaris send-email task status is success
+        And the polaris enrolment-callback task status is success
         And the account holder's trenette-campaign balance does not exist
 
 
@@ -45,5 +45,21 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
         And the polaris account-holder-activation task status is success
         And the polaris send-email task status is success
         And the polaris enrolment-callback task status is success
+
+    @bpl @bpl-849
+    Scenario: Enrolment Trigger - No campaign
+        Given the trenette retailer exists with status as TEST
+        And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
+        And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
+        And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
+
+        And I enrol an account holder passing in all required and all optional fields
+
+        Then the account holder activation is started
+        And an enrolment callback task is saved in the database
+        And the polaris account-holder-activation task status is success
+        And the polaris send-email task status is success
+        And the polaris enrolment-callback task status is success
+        And the account holder's trenette-campaign balance does not exist
 
 
