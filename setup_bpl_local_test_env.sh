@@ -39,7 +39,6 @@ TMUX_SESSION_NAME=bpl
 
 BASE_DB_URI="postgresql://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT"
 PROMETHEUS_ROOT_DIR=$ROOT_DIR/_prometheus_
-export PIPENV_VENV_IN_PROJECT=1
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 setup_projects() {
@@ -54,53 +53,66 @@ REDIS_URL=redis://localhost:6379/0
 EOF
     )
 
-    POLARIS_ENV_FILE=$(
+COSMOS_ENV_FILE=$(
         cat <<EOF
-POSTGRES_DB=polaris_auto
-SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
-LOG_FORMATTER=brief
-DISABLE_METRICS=true
-USE_CALLBACK_OAUTH2=false
-POLARIS_HOST=http://localhost:8000
-VELA_HOST=http://localhost:8001
-CARINA_HOST=http://localhost:8002
 REDIS_URL=redis://localhost:6379/0
-BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
-TASK_RETRY_BACKOFF_BASE="0.2"
-PENDING_REWARDS_SCHEDULE=* * * * *
-POLARIS_PUBLIC_URL=http://localhost:8000
-SEND_EMAIL=false
-EOF
-    )
-
-    VELA_ENV_FILE=$(
-        cat <<EOF
-POSTGRES_DB=vela_auto
-SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
 LOG_FORMATTER=brief
-POLARIS_HOST=http://localhost:8000
-CARINA_HOST=http://localhost:8002
-REDIS_URL=redis://localhost:6379/0
-REPORT_ANOMALOUS_TASKS_SCHEDULE=* * * * *
-ACTIVATE_TASKS_METRICS=false
-EOF
-    )
-
-    CARINA_ENV_FILE=$(
-        cat <<EOF
-POSTGRES_DB=carina_auto
-SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
-LOG_FORMATTER=brief
-POLARIS_HOST=http://localhost:8000
-REDIS_URL=redis://localhost:6379/0
 BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
 BLOB_IMPORT_CONTAINER=$BLOB_IMPORT_CONTAINER
 BLOB_ARCHIVE_CONTAINER=$BLOB_ARCHIVE_CONTAINER
 BLOB_IMPORT_SCHEDULE=* * * * *
-REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
-PRE_LOADED_REWARD_BASE_URL=http://fake-reward.url
+PROMETHEUS_HTTP_SERVER_PORT=9300
+PRE_LOADED_REWARD_BASE_URL=http://reward-base.url%
 EOF
     )
+
+#     POLARIS_ENV_FILE=$(
+#         cat <<EOF
+# POSTGRES_DB=polaris_auto
+# SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
+# LOG_FORMATTER=brief
+# DISABLE_METRICS=true
+# USE_CALLBACK_OAUTH2=false
+# POLARIS_HOST=http://localhost:8000
+# VELA_HOST=http://localhost:8001
+# CARINA_HOST=http://localhost:8002
+# REDIS_URL=redis://localhost:6379/0
+# BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
+# TASK_RETRY_BACKOFF_BASE="0.2"
+# PENDING_REWARDS_SCHEDULE=* * * * *
+# POLARIS_PUBLIC_URL=http://localhost:8000
+# SEND_EMAIL=false
+# EOF
+#     )
+
+#     VELA_ENV_FILE=$(
+#         cat <<EOF
+# POSTGRES_DB=vela_auto
+# SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
+# LOG_FORMATTER=brief
+# POLARIS_HOST=http://localhost:8000
+# CARINA_HOST=http://localhost:8002
+# REDIS_URL=redis://localhost:6379/0
+# REPORT_ANOMALOUS_TASKS_SCHEDULE=* * * * *
+# ACTIVATE_TASKS_METRICS=false
+# EOF
+#     )
+
+#     CARINA_ENV_FILE=$(
+#         cat <<EOF
+# POSTGRES_DB=carina_auto
+# SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
+# LOG_FORMATTER=brief
+# POLARIS_HOST=http://localhost:8000
+# REDIS_URL=redis://localhost:6379/0
+# BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
+# BLOB_IMPORT_CONTAINER=$BLOB_IMPORT_CONTAINER
+# BLOB_ARCHIVE_CONTAINER=$BLOB_ARCHIVE_CONTAINER
+# BLOB_IMPORT_SCHEDULE=* * * * *
+# REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
+# PRE_LOADED_REWARD_BASE_URL=http://fake-reward.url
+# EOF
+#     )
 
     HUBBLE_ENV_FILE=$(
         cat <<EOF
@@ -154,41 +166,38 @@ EOF
     echo "- Running alembic migrations"
     poetry run alembic -x db_dsn="${BASE_DB_URI}/hubble_template" upgrade head
 
-    for p_name in "polaris" "vela" "carina"; do
-        if [[ ! -d $PROMETHEUS_ROOT_DIR/$p_name ]]; then
-            mkdir -p $PROMETHEUS_ROOT_DIR/$p_name
-        fi
-        cd "${ROOT_DIR}"
-        if [[ ! -d $p_name ]]; then
-            echo "- Cloning $p_name..."
-            git clone "git@github.com:binkhq/$p_name.git"
-        fi
-        cd "${ROOT_DIR}/${p_name}"
-        echo "Working on ${p_name}"
-        git fetch
-        tag_var_name="$(echo $p_name | tr 'a-z' 'A-Z')_REF"
-        if [[ -n ${!tag_var_name} ]]; then
-           GIT_REF=${!tag_var_name}
-        elif [[ -n ${GIT_BRANCH} ]]; then
-           GIT_REF=${GIT_BRANCH}
-        else
-           GIT_REF=$(git describe --tags $(git rev-list --tags --max-count=1))
-        fi
-        echo "- Checking out and updating $GIT_REF branch/ref"
-        git checkout $GIT_REF
-        git pull --ff-only origin $GIT_REF
-        echo "- Writing sane local.env"
-        env_var_name=$(echo "${p_name}_env_file" | tr 'a-z' 'A-Z')
-        echo "${!env_var_name}" >local.env
-        echo "- Updating python environment"
-        poetry config --local virtualenvs.in-project true
-        poetry install --sync --without dev
-        echo "- Resetting ${p_name} database"
-        psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE ${p_name}_template ;"
-        psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE ${p_name}_template ;"
-        echo "- Running alembic migrations"
-        poetry run alembic -x db_dsn="${BASE_DB_URI}/${p_name}_template" upgrade head
-    done
+    # Cosmos
+    if [[ ! -d $PROMETHEUS_ROOT_DIR/cosmos ]]; then
+        mkdir -p $PROMETHEUS_ROOT_DIR/cosmos
+    fi
+    cd "${ROOT_DIR}"
+    if [[ ! -d "cosmos" ]]; then
+        echo "- Cloning cosmos..."
+        git clone "git@github.com:binkhq/cosmos.git"
+    fi
+    cd "${ROOT_DIR}/cosmos"
+    git fetch
+    tag_var_name="$(echo cosmos | tr 'a-z' 'A-Z')_REF"
+    if [[ -n ${!tag_var_name} ]]; then
+        GIT_REF=${!tag_var_name}
+    elif [[ -n ${GIT_BRANCH} ]]; then
+        GIT_REF=${GIT_BRANCH}
+    else
+        GIT_REF=$(git describe --tags $(git rev-list --tags --max-count=1))
+    fi
+    echo "- Checking out and updating $GIT_REF branch/ref"
+    git checkout $GIT_REF
+    git pull --ff-only origin $GIT_REF
+    echo "- Writing sane local.env"
+    echo "$COSMOS_ENV_FILE" >local.env
+    echo "- Updating python environment"
+    poetry config --local virtualenvs.in-project true
+    poetry install --sync --without dev
+    echo "- Resetting cosmos database"
+    psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE cosmos_template;"
+    psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE cosmos_template;"
+    echo "- Running alembic migrations"
+    poetry run alembic -x db_dsn="${BASE_DB_URI}/cosmos_template" upgrade head
 
 }
 
@@ -213,31 +222,35 @@ run_services() {
     tmux set -g pane-border-format "[#[fg=white]#{?pane_active,#[bold],} #P - #T #[fg=default,nobold]]"
 
     # create tmux panes with the following layout example
-    ## Polaris
-    tmux select-pane -t 0 -T PolarisAPI
-    tmux send-keys -t 0 "cd $ROOT_DIR/polaris && poetry run uvicorn asgi:app --port 8000" C-m
-    tmux select-pane -t 3 -T PolarisWorker
-    tmux send-keys -t 3 "cd $ROOT_DIR/polaris && rm -rf && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris poetry run python -m polaris.core.cli task-worker" C-m
-    tmux select-pane -t 6 -T PolarisCronScheduler
-    tmux send-keys -t 6 "cd $ROOT_DIR/polaris && PROMETHEUS_HTTP_SERVER_PORT=9108 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/polaris poetry run python -m polaris.core.cli cron-scheduler" C-m
-    tmux select-pane -t 9 -T PolarisConsumer
-    tmux send-keys -t 9 "cd $ROOT_DIR/polaris && poetry run python -m polaris.core.cli tx-history-consumer" C-m
+    ## Cosmos
+    tmux select-pane -t 0 -T Cosmos_Public_API
+    tmux send-keys -t 0 "cd $ROOT_DIR/cosmos && poetry run cosmos api public_api --port 8000" C-m
+    tmux select-pane -t 1 -T Cosmos_Campaigns_API
+    tmux send-keys -t 1 "cd $ROOT_DIR/cosmos && poetry run cosmos api campaigns --port 8001" C-m
+    tmux select-pane -t 2 -T Cosmos_Transactions_API
+    tmux send-keys -t 2 "cd $ROOT_DIR/cosmos && poetry run cosmos api transactions --port 8002" C-m
+    tmux select-pane -t 3 -T Cosmos_Accounts_API
+    tmux send-keys -t 3 "cd $ROOT_DIR/cosmos && poetry run cosmos api transactions --port 8003" C-m
+    tmux select-pane -t 4 -T Cosmos_Task_Worker
+    tmux send-keys -t 4 "cd $ROOT_DIR/cosmos && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/cosmos poetry run cosmos task-worker" C-m
+    tmux select-pane -t 5 -T Cosmos_Cron_Scheduler
+    tmux send-keys -t 5 "cd $ROOT_DIR/cosmos && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/cosmos poetry run cosmos cron-scheduler" C-m
 
-    ## Vela
-    tmux select-pane -t 1 -T VelaAPI
-    tmux send-keys -t 1 "cd $ROOT_DIR/vela && poetry run uvicorn asgi:app --port 8001" C-m
-    tmux select-pane -t 4 -T VelaWorker
-    tmux send-keys -t 4 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela poetry run python -m vela.core.cli task-worker" C-m
-    tmux select-pane -t 7 -T VelaCronScheduler
-    tmux send-keys -t 7 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela poetry run python -m vela.core.cli cron-scheduler" C-m
+    # ## Vela
+    # tmux select-pane -t 1 -T VelaAPI
+    # tmux send-keys -t 1 "cd $ROOT_DIR/vela && poetry run uvicorn asgi:app --port 8001" C-m
+    # tmux select-pane -t 4 -T VelaWorker
+    # tmux send-keys -t 4 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela poetry run python -m vela.core.cli task-worker" C-m
+    # tmux select-pane -t 7 -T VelaCronScheduler
+    # tmux send-keys -t 7 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela poetry run python -m vela.core.cli cron-scheduler" C-m
 
-    ## Carina
-    tmux select-pane -t 2 -T CarinaAPI
-    tmux send-keys -t 2 "cd $ROOT_DIR/carina && poetry run uvicorn asgi:app --port 8002" C-m
-    tmux select-pane -t 5 -T CarinaWorker
-    tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli task-worker" C-m
-    tmux select-pane -t 8 -T CarinaCronScheduler
-    tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli cron-scheduler" C-m
+    # ## Carina
+    # tmux select-pane -t 2 -T CarinaAPI
+    # tmux send-keys -t 2 "cd $ROOT_DIR/carina && poetry run uvicorn asgi:app --port 8002" C-m
+    # tmux select-pane -t 5 -T CarinaWorker
+    # tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli task-worker" C-m
+    # tmux select-pane -t 8 -T CarinaCronScheduler
+    # tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli cron-scheduler" C-m
 
     ## Luna
     tmux select-pane -t 10 -T Luna
