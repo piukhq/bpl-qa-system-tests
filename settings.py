@@ -43,11 +43,15 @@ POLARIS_TEMPLATE_DB_NAME = getenv("POLARIS_TEMPLATE_DB_NAME")
 VELA_TEMPLATE_DB_NAME = getenv("VELA_TEMPLATE_DB_NAME")
 HUBBLE_TEMPLATE_DB_NAME = getenv("HUBBLE_TEMPLATE_DB_NAME")
 
+COSMOS_DATABASE_URI = getenv("COSMOS_DATABASE_URI")
+COSMOS_TEMPLATE_DB_NAME = getenv("COSMOS_TEMPLATE_DB_NAME")
+
 VAULT_URL = getenv("VAULT_URL")
 vault = KeyVault(VAULT_URL)
 POLARIS_API_AUTH_TOKEN = vault.get_secret("bpl-polaris-api-auth-token")
 VELA_API_AUTH_TOKEN = vault.get_secret("bpl-vela-api-auth-token")
 CARINA_API_AUTH_TOKEN = vault.get_secret("bpl-carina-api-auth-token")
+# COSMOS_API_AUTH_TOKEN = vault.get_secret("bpl-cosmos-api-auth-token")
 
 LOCAL = getenv("LOCAL", default="False", conv=boolconv)
 
@@ -68,6 +72,11 @@ ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True", conv=boolconv)
 CARINA_BASE_URL = getenv("CARINA_ENV_BASE_URL")
 POLARIS_BASE_URL = getenv("POLARIS_ENV_BASE_URL")
 VELA_BASE_URL = getenv("VELA_ENV_BASE_URL")
+
+ACCOUNTS_API_BASE_URL = getenv("ACCOUNTS_ENV_API_BASE_URL")
+TRANSACTIONS_API_BASE_URL = getenv("TRANSACTIONS_ENV_API_BASE_URL")
+CAMPAINGS_API_BASE_URL = getenv("CAMPAINGS_ENV_API_BASE_URL")
+PUBLIC_API_BASE_URL = getenv("PUBLIC_ENV_API_BASE_URL")
 
 MOCK_SERVICE_BASE_URL = getenv("MOCK_SERVICE_BASE_URL")
 

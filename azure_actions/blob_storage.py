@@ -9,7 +9,7 @@ from typing import Literal
 from azure.core.exceptions import HttpResponseError, ResourceExistsError
 from azure.storage.blob import BlobClient, BlobProperties, BlobServiceClient, BlobType, ContainerClient, ContentSettings
 
-from db.carina.models import Reward
+from db.cosmos.models import Reward
 from settings import (
     BLOB_ARCHIVE_CONTAINER,
     BLOB_ERROR_CONTAINER,

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class FixtureData(BaseModel):
-    retailer_config: dict
+    retailer: dict
     campaign: list[dict]
     earn_rule: dict[str, list[dict]]
     reward_rule: dict[str, list[dict]]
