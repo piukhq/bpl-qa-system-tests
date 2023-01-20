@@ -8,10 +8,9 @@ Feature: Bink BPL - refund
     Given the trenette retailer exists with status as TEST
     And the retailer's trenette-accumulator ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-accumulator campaign has an earn rule with a threshold of 200, an increment of 100, a multiplier of 1 and max amount of 0
-    And the trenette-accumulator campaign has reward rule with reward goal: 700, reward slug: free-item, allocation window: 1 and reward cap: 0
+    And the trenette-accumulator campaign has reward rule with reward goal: 700, allocation window: 1 and reward cap: 0
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-    And the retailer's trenette-accumulator campaign with reward_slug: free-item added as ACTIVE
     And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
   @bpl @transaction @refund @bpl-540

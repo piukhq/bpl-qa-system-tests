@@ -9,9 +9,8 @@ Feature: Bink BPL - Transaction doesn't meet threshold
     Given the trenette retailer exists with status as TEST
     And the retailer's <campaign_type> <loyalty_type> campaign starts 5 days ago and ends in a day and is ACTIVE
     And the <campaign_type> campaign has an earn rule with a threshold of 500, an increment of <increment>, a multiplier of 1 and max amount of <max_amount>
-    And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, reward slug: <reward_slug>, allocation window: 0 and reward cap: 0
+    And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, allocation window: 0 and reward cap: 0
     And required fetch type are configured for the current retailer
-    And the retailer's <campaign_type> campaign with reward_slug: <reward_slug> added as ACTIVE
     And that campaign has the standard reward config configured with 1 allocable rewards
 
     And an active account holder exists for the retailer
@@ -21,8 +20,8 @@ Feature: Bink BPL - Transaction doesn't meet threshold
     And 0 issued rewards are available to the account holder for the <campaign_type> campaign
 
     Examples:
-      | campaign_type         | loyalty_type | increment | reward_goal | reward_slug     | max_amount |
-      | trenette-acc-campaign | ACCUMULATOR  | 0         | 1000        | 20percent_egift | 0          |
+      | campaign_type         | loyalty_type | increment | reward_goal | max_amount |
+      | trenette-acc-campaign | ACCUMULATOR  | 0         | 1000        | 0          |
 
   @bpl @transaction @bpl-308
   Scenario Outline: Account holder already has balance but new transaction doesn't qualify for earn and balance

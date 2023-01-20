@@ -10,10 +10,9 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
-        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 2
+        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 2
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And the retailer's trenette-acc-campaign campaign with reward_slug: free-item added as ACTIVE
         And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
         And an active account holder exists for the retailer
@@ -44,10 +43,9 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
-        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 2
+        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 2
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And the retailer's trenette-acc-campaign campaign with reward_slug: free-item added as ACTIVE
         And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
         And an active account holder exists for the retailer
@@ -74,10 +72,9 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
-        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 2
+        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 2
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And the retailer's trenette-acc-campaign campaign with reward_slug: free-item added as ACTIVE
         And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
         And an active account holder exists for the retailer
@@ -96,10 +93,9 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 2 and max amount of 0
-        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 1 and reward cap: 2
+        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 2
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And the retailer's trenette-acc-campaign campaign with reward_slug: free-item added as ACTIVE
         And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
         And an active account holder exists for the retailer
@@ -122,10 +118,9 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 2 and max amount of 0
-        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 5 and reward cap: 2
+        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 5 and reward cap: 2
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And the retailer's trenette-acc-campaign campaign with reward_slug: free-item added as ACTIVE
         And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
         And an active account holder exists for the retailer
@@ -158,10 +153,9 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         Given the trenette retailer exists with status as TEST
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
-        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, reward slug: free-item, allocation window: 5 and reward cap: 2
+        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 5 and reward cap: 2
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And the retailer's trenette-acc-campaign campaign with reward_slug: free-item added as ACTIVE
         And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
         And an active account holder exists for the retailer

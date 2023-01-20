@@ -12,7 +12,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer's trenette-campaign STAMPS campaign starts 10 days ago and ends in a day and is DRAFT
         And the trenette-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
-        And the trenette-campaign campaign has reward rule with reward goal: 700, reward slug: 10percentoff, allocation window: 0 and reward cap: 0
+        And the trenette-campaign campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
         And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
         And there is 5 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
         And I enrol an account holder passing in all required and all optional fields
@@ -33,7 +33,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
         And the retailer's trenette-campaign STAMPS campaign starts 10 days ago and ends in a day and is DRAFT
         And the trenette-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
-        And the trenette-campaign campaign has reward rule with reward goal: 700, reward slug: 10percentoff, allocation window: 0 and reward cap: 0
+        And the trenette-campaign campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
         And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
         And there is 5 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
         And I enrol an account holder passing in all required and all optional fields
