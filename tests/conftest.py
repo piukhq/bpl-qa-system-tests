@@ -95,7 +95,6 @@ from tests.shared_utils.redis import pause_redis, unpause_redis
 # from tests.api.base import Endpoints, get_callback_url
 
 
-
 if TYPE_CHECKING:
     from _pytest.config import Config
     from _pytest.config.argparsing import Parser
