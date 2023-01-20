@@ -1,4 +1,4 @@
-retailer_config:
+retailer:
   name: "Trenette"
   slug: "trenette"
   account_number_prefix: "TRNT"

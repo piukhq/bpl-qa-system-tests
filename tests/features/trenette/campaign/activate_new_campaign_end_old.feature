@@ -11,16 +11,14 @@ Feature: Bink BPL - Activate new campaign, end old
 
         And the retailer's trenette-active-campaign STAMPS campaign starts 10 days ago and ends in a day and is ACTIVE
         And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
-        And the trenette-active-campaign campaign has reward rule with reward goal: 700, reward slug: 10percentoff, allocation window: 0 and reward cap: 0
+        And the trenette-active-campaign campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
         And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And the retailer's trenette-active-campaign campaign with reward_slug: 10percentoff added as ACTIVE
         And there is 5 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 
         And the retailer's trenette-draft-campaign STAMPS campaign starts 5 days ago and ends in a week and is DRAFT
         And the trenette-draft-campaign campaign has an earn rule with a threshold of 1000, an increment of 200, a multiplier of 1 and max amount of 0
-        And the trenette-draft-campaign campaign has reward rule with reward goal: 900, reward slug: free-item, allocation window: 0 and reward cap: 0
+        And the trenette-draft-campaign campaign has reward rule with reward goal: 900, allocation window: 0 and reward cap: 0
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And the retailer's trenette-draft-campaign campaign with reward_slug: free-item added as DRAFT
         And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
 
 

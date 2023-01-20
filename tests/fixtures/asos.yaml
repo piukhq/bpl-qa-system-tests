@@ -1,4 +1,4 @@
-retailer_config:
+retailer:
   name: "Asos"
   slug: "asos"
   status: "TEST"

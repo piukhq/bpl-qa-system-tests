@@ -206,7 +206,7 @@ run_services() {
     tmux -2 new-session -d -s $TMUX_SESSION_NAME
     tmux new-window -t $TMUX_SESSION_NAME -n 'BPL'
 
-    for p in {0..10}; do
+    for p in {0..7}; do
         tmux split-pane -v
         tmux select-layout tiled
     done
@@ -230,7 +230,7 @@ run_services() {
     tmux select-pane -t 2 -T Cosmos_Transactions_API
     tmux send-keys -t 2 "cd $ROOT_DIR/cosmos && poetry run cosmos api transactions --port 8002" C-m
     tmux select-pane -t 3 -T Cosmos_Accounts_API
-    tmux send-keys -t 3 "cd $ROOT_DIR/cosmos && poetry run cosmos api transactions --port 8003" C-m
+    tmux send-keys -t 3 "cd $ROOT_DIR/cosmos && poetry run cosmos api accounts --port 8003" C-m
     tmux select-pane -t 4 -T Cosmos_Task_Worker
     tmux send-keys -t 4 "cd $ROOT_DIR/cosmos && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/cosmos poetry run cosmos task-worker" C-m
     tmux select-pane -t 5 -T Cosmos_Cron_Scheduler
@@ -253,12 +253,12 @@ run_services() {
     # tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli cron-scheduler" C-m
 
     ## Luna
-    tmux select-pane -t 10 -T Luna
-    tmux send-keys -t 10 "cd $ROOT_DIR/luna && poetry run python wsgi.py" C-m
+    tmux select-pane -t 6 -T Luna
+    tmux send-keys -t 6 "cd $ROOT_DIR/luna && poetry run python wsgi.py" C-m
 
     ## Hubble Consumer
-    tmux select-pane -t 11 -T HubbleConsumer
-    tmux send-keys -t 11 "cd $ROOT_DIR/hubble && poetry run python -m hubble.cli activity-consumer" C-m
+    tmux select-pane -t 7 -T HubbleConsumer
+    tmux send-keys -t 7 "cd $ROOT_DIR/hubble && poetry run python -m hubble.cli activity-consumer" C-m
 
     # Attach to the tmux session
     tmux attach-session -t $TMUX_SESSION_NAME
