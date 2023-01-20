@@ -10,9 +10,8 @@ Feature: Bink BPL - Activity balance not recouped
 
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer's trenette-active-campaign ACCUMULATOR campaign starts 10 days ago and ends in a day and is ACTIVE
-    And the retailer's trenette-active-campaign campaign with reward_slug: 10percentoff added as ACTIVE
     And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of None, a multiplier of 1 and max amount of 0
-    And the trenette-active-campaign campaign has reward rule with reward goal: 1000, reward slug: 10percentoff, allocation window: 2 and reward cap: 0
+    And the trenette-active-campaign campaign has reward rule with reward goal: 1000, allocation window: 2 and reward cap: 0
     And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And there is 2 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
 

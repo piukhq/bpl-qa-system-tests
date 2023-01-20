@@ -13,9 +13,9 @@ Feature: Bink BPL - Jigshaw egift - End campaign and delete/issue pending reward
     And the retailer has a old-campaign reward config configured with transaction_value: 100, and a status of ACTIVE and a JIGSAW_EGIFT fetch type
     And the retailer has a new-campaign reward config configured with transaction_value: 100, and a status of ACTIVE and a JIGSAW_EGIFT fetch type
     And the old-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
-    And the old-campaign campaign has reward rule with reward goal: 10000, reward slug: old-campaign, allocation window: 1 and reward cap: 0
+    And the old-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 0
     And the new-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
-    And the new-campaign campaign has reward rule with reward goal: 10000, reward slug: new-campaign, allocation window: 1 and reward cap: 0
+    And the new-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 0
     And the retailer's new-campaign campaign with reward_slug: new-campaign added as ACTIVE
     And the retailer's old-campaign campaign with reward_slug: old-campaign added as ACTIVE
     And the retailer has 5 active account holders
