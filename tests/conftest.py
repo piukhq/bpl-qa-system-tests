@@ -5,20 +5,19 @@ import logging
 
 # import random
 # import time
-# import uuid
+import uuid
+
 #
 # from datetime import datetime, timedelta, timezone
 from time import sleep
-from typing import TYPE_CHECKING, Any, Generator, Literal
-
-# Callable
+from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
 from uuid import uuid4
 
 import arrow
 import pytest
 import yaml
 
-# from azure.storage.blob import BlobClient
+from azure.storage.blob import BlobClient
 from faker import Faker
 from pytest_bdd import given, when
 
@@ -37,7 +36,9 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 
 import settings
 
-# from azure_actions.blob_storage import add_new_available_rewards_file, put_new_reward_updates_file
+from azure_actions.blob_storage import add_new_available_rewards_file
+
+# , put_new_reward_updates_file
 from db.cosmos import models as cosmos_models
 from db.cosmos.models import (
     Campaign,
@@ -70,6 +71,7 @@ from db.hubble import models as hubble_models
 # from db.vela import models as vela_models
 # from db.vela.models import EarnRule, RetailerRewards, RewardRule
 from settings import (
+    BLOB_STORAGE_DSN,
     COSMOS_DATABASE_URI,
     COSMOS_TEMPLATE_DB_NAME,
     HUBBLE_DATABASE_URI,
@@ -88,7 +90,7 @@ from tests.shared_utils.redis import pause_redis, unpause_redis
 #     VELA_TEMPLATE_DB_NAME,
 #     redis, REDIS_URL,MOCK_SERVICE_BASE_URL,
 #     POLARIS_DATABASE_URI,
-#     POLARIS_TEMPLATE_DB_NAME, BLOB_STORAGE_DSN,
+#     POLARIS_TEMPLATE_DB_NAME,
 #     CARINA_DATABASE_URI,
 #     CARINA_TEMPLATE_DB_NAME,
 
@@ -284,23 +286,24 @@ def add_retailer_fetch_type_preloaded(
 
 
 # fmt: off
-@when(parse("{rewards_n:d} rewards are generated for the {reward_slug} reward config with allocation status "
-            "set to {allocation_status} and deleted status set to {deleted_status}"),
+@when(parse("{rewards_n:d} rewards are generated for the {reward_slug} reward config with account holder "
+            "set to {account_holder} and deleted status set to {deleted_status}"),
       target_fixture="available_rewards")
 @given(parse(
-    "there is {rewards_n:d} rewards configured for the {reward_slug} reward config, with allocation status set to "
-    "{allocation_status} and deleted status set to {deleted_status}"),
+    "there is {rewards_n:d} rewards configured for the {reward_slug} reward config, with account holder set to "
+    "{account_holder} and deleted status set to {deleted_status}"),
     target_fixture="available_rewards")
 # fmt: on
 def add_rewards(
     cosmos_db_session: "Session",
+    account_holder: str,
     reward_slug: str,
     allocation_status: str,
     deleted_status: str,
     retailer_config: Retailer,
+    standard_campaign: Campaign,
     rewards_n: int,
 ) -> list[Reward]:
-    allocation_status_bool = allocation_status == "true"
     deleted_status_bool = deleted_status == "true"
     reward_config_id = get_reward_config_id(cosmos_db_session=cosmos_db_session, reward_slug=reward_slug)
     rewards: list[Reward] = []
@@ -308,12 +311,18 @@ def add_rewards(
     if rewards_n > 0:
         for i in range(rewards_n):
             reward = Reward(
-                id=str(uuid4()),
-                code=f"{reward_slug}/{i}",
-                allocated=allocation_status_bool,
-                deleted=deleted_status_bool,
+                reward_uuid=str(uuid4()),
                 reward_config_id=reward_config_id,
-                retailer_id=retailer.id,
+                account_holder_id=account_holder,
+                code=f"{reward_slug}/{i}",
+                deleted=deleted_status_bool,
+                issued_date=None,
+                expiry_date=None,
+                redeemed_date=None,
+                cancelled_date=None,
+                associated_url="abc@bink.com",
+                retailer_id=retailer_config.id,
+                campaign_id=standard_campaign.id,
             )
             cosmos_db_session.add(reward)
             cosmos_db_session.commit()
@@ -410,29 +419,28 @@ def add_rewards(
 #         return blob
 #
 #     return func
-#
-#
-# @pytest.fixture(scope="function")
-# def upload_rewards_to_blob_storage() -> Callable:
-#     def func(retailer_slug: str, codes: list[str], *, reward_slug: str, expired_date: str) -> BlobClient | None:
-#         """Upload some new reward codes to blob storage to test end-to-end import"""
-#         blob = None
-#
-#         if BLOB_STORAGE_DSN:
-#             logger.debug(
-#                 f"Uploading reward import file to
-#                 blob storage for {retailer_slug} " f"(reward slug: {reward_slug})..."
-#             )
-#             blob = add_new_available_rewards_file(retailer_slug, codes, reward_slug, expired_date)
-#             logger.debug(f"Successfully uploaded new reward codes to blob storage: {blob.url}")
-#         else:
-#             logger.debug("No BLOB_STORAGE_DSN set, skipping reward updates upload")
-#
-#         return blob
-#
-#     return func
-#
-#
+
+
+@pytest.fixture(scope="function")
+def upload_rewards_to_blob_storage() -> Callable:
+    def func(retailer_slug: str, codes: list[str], *, reward_slug: str, expired_date: str) -> BlobClient | None:
+        """Upload some new reward codes to blob storage to test end-to-end import"""
+        blob = None
+
+        if BLOB_STORAGE_DSN:
+            logger.debug(
+                f"Uploading reward import file to blob storage for {retailer_slug} " f"(reward slug: {reward_slug})..."
+            )
+            blob = add_new_available_rewards_file(retailer_slug, codes, reward_slug, expired_date)
+            logger.debug(f"Successfully uploaded new reward codes to blob storage: {blob.url}")
+        else:
+            logger.debug("No BLOB_STORAGE_DSN set, skipping reward updates upload")
+
+        return blob
+
+    return func
+
+
 # # fmt: off
 # @when(parse("the {retailer_slug} retailer updates selected rewards to {reward_status} status"),
 #       target_fixture="imported_reward_ids")
@@ -453,34 +461,34 @@ def add_rewards(
 #     )
 #     assert blob
 #     return [reward.id for reward in available_rewards]
-#
-#
-# # fmt: off
-# @given(
-#     parse(
-#         "the retailer provides {num_rewards:d} rewards in a csv file for the {reward_slug} "
-#         "reward slug with rewards expiry date {expired_date}"
-#     )
-# )
-# # fmt: on
-# def add_new_rewards_via_azure_blob(
-#     num_rewards: int,
-#     retailer_config: RetailerConfig,
-#     reward_slug: str,
-#     expired_date: str,
-#     upload_rewards_to_blob_storage: Callable,
-# ) -> None:
-#     reward_expired_date = None if expired_date == "None" else expired_date
-#     new_rewards_codes = [str(uuid.uuid4()) for _ in range(num_rewards)]
-#     blob = upload_rewards_to_blob_storage(
-#         retailer_slug=retailer_config.slug,
-#         codes=new_rewards_codes,
-#         reward_slug=reward_slug,
-#         expired_date=reward_expired_date,
-#     )
-#     assert blob
-#
-#
+
+
+# fmt: off
+@given(
+    parse(
+        "the retailer provides {num_rewards:d} rewards in a csv file for the {reward_slug} "
+        "reward slug with rewards expiry date {expired_date}"
+    )
+)
+# fmt: on
+def add_new_rewards_via_azure_blob(
+    num_rewards: int,
+    retailer_config: Retailer,
+    reward_slug: str,
+    expired_date: str,
+    upload_rewards_to_blob_storage: Callable,
+) -> None:
+    reward_expired_date = None if expired_date == "None" else expired_date
+    new_rewards_codes = [str(uuid.uuid4()) for _ in range(num_rewards)]
+    blob = upload_rewards_to_blob_storage(
+        retailer_slug=retailer_config.slug,
+        codes=new_rewards_codes,
+        reward_slug=reward_slug,
+        expired_date=reward_expired_date,
+    )
+    assert blob
+
+
 # # POLARIS FIXTURES
 # # fmt: off
 # @given(parse("an {status} account holder exists for the retailer"),

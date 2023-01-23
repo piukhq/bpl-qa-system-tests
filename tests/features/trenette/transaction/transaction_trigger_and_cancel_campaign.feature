@@ -9,17 +9,20 @@ Feature: Bink BPL - Trigger transaction and cancel campaign while balance adjust
     Background:
         Given the trenette retailer exists with status as TEST
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
+        And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
+        And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
+        And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
 
         And the retailer's trenette-active-campaign STAMPS campaign starts 10 days ago and ends in a day and is ACTIVE
         And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
         And the trenette-active-campaign campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
-        And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-#        And the retailer's trenette-active-campaign campaign with reward_slug: 10percentoff added as ACTIVE
 
+#        And the retailer's trenette-active-campaign campaign with reward_slug: 10percentoff added as ACTIVE
+        And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
         And the retailer's trenette-draft-campaign STAMPS campaign starts 5 days ago and ends in a week and is DRAFT
         And the trenette-draft-campaign campaign has an earn rule with a threshold of 1000, an increment of 200, a multiplier of 1 and max amount of 0
         And the trenette-draft-campaign campaign has reward rule with reward goal: 900, allocation window: 0 and reward cap: 0
-        And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
+
 #        And the retailer's trenette-draft-campaign campaign with reward_slug: free-item added as DRAFT
 
     @bpl @campaign @transaction @bpl-295

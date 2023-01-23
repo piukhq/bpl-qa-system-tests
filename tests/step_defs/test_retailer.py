@@ -1,28 +1,36 @@
 # import json
-# import logging
-# import time
+import logging
+import time
+
 #
 # from collections import defaultdict
 # from time import sleep
-# from typing import TYPE_CHECKING, Any, Literal
-#
-# import arrow
+from typing import TYPE_CHECKING, Literal
 
 from faker import Faker
-from pytest_bdd import scenarios
+from pytest_bdd import scenarios, then
+from pytest_bdd.parsers import parse
 
-# from pytest_bdd.parsers import parse
+from azure_actions.blob_storage import check_archive_blobcontainer
+
+# from tests.db_actions.hubble import get_latest_activity_by_type
+from tests.db_actions.cosmos import get_reward_config_id, get_rewards_by_reward_config
+
+# Any,
+# import arrow
+
+
+
 # from retry_tasks_lib.enums import RetryTaskStatuses
 # from sqlalchemy import func, select, sql
 
 # import settings
 
-# from azure_actions.blob_storage import check_archive_blobcontainer
 
 
 # from tests.api.base import Endpoints
 
-# from tests.db_actions.hubble import get_latest_activity_by_type
+
 # from tests.db_actions.cosmos import (
 #     create_pending_rewards_with_all_value_for_existing_account_holder,
 #     get_account_holder_balances_for_campaign,
@@ -34,9 +42,9 @@ from pytest_bdd import scenarios
 #     Campaign,
 #     Retailer,
 #     Reward,
-#     get_reward_config_id,
+#     ,
 #     get_rewards,
-#     get_rewards_by_reward_config,
+#     ,
 #     get_campaign_status,
 # )
 # from tests.db_actions.retry_tasks import (
@@ -59,8 +67,8 @@ from pytest_bdd import scenarios
 # from tests.shared_utils.response_fixtures.errors import TransactionResponses
 # from utils import word_pos_to_list_item
 
-# if TYPE_CHECKING:
-#     from sqlalchemy.orm import Session
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 scenarios("../features/trenette")
 scenarios("../features/asos")
@@ -68,18 +76,17 @@ scenarios("../features/asos")
 fake = Faker(locale="en_GB")
 
 
-# # CARINA CHECKS
-# @then(parse("the file is moved to the {container_type} container by the reward importer"))
-# def check_file_moved(
-#     container_type: Literal["archive"] | Literal["error"],
-# ) -> None:
-#     blobs, container = check_archive_blobcontainer(container_type)
-#
-#     assert len(blobs) == 1
-#
-#     container.delete_blob(blobs[0])
-#
-#
+@then(parse("the file is moved to the {container_type} container by the reward importer"))
+def check_file_moved(
+    container_type: Literal["archive"] | Literal["error"],
+) -> None:
+    blobs, container = check_archive_blobcontainer(container_type)
+
+    assert len(blobs) == 1
+
+    container.delete_blob(blobs[0])
+
+
 # @then(parse("rewards are allocated to the account holder for the {reward_slug} reward"))
 # def check_async_reward_allocation(carina_db_session: "Session", reward_slug: str) -> None:
 #     """Check that the reward in the Reward table has been marked as 'allocated' and that it has an id"""
@@ -911,33 +918,33 @@ fake = Faker(locale="en_GB")
 #     assert done
 #
 #
-# # fmt: off
-# @then(parse("{num_of_rewards:d} reward codes available for reward slug {reward_slug} "
-#             "with expiry date {expired_date} in the rewards table"))
-# # fmt: on
-# def available_reward_codes_in_carina(
-#     num_of_rewards: int, carina_db_session: "Session", reward_slug: str, expired_date: str
-# ) -> None:
-#     time.sleep(3)
-#     for i in range(30):
-#         time.sleep(i)
-#         reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
-#         new_uploaded_rewards = get_rewards_by_reward_config(carina_db_session, reward_config_id, allocated=False)
-#         if new_uploaded_rewards is not None:
-#             break
-#     assert num_of_rewards == len(new_uploaded_rewards)
-#     if expired_date == "None":
-#         for reward in new_uploaded_rewards:
-#             assert reward.expiry_date is None
-#     else:
-#         for reward in new_uploaded_rewards:
-#             assert str(reward.expiry_date) == expired_date
-#
-#         logging.info(f"Reward code = {reward.code} with expiry date is = {str(reward.expiry_date)}")
-#
-#     assert all([reward.code for reward in new_uploaded_rewards]), "Rewards not available"
-#
-#
+# fmt: off
+@then(parse("{num_of_rewards:d} reward codes available for reward slug {reward_slug} "
+            "with expiry date {expired_date} in the rewards table"))
+# fmt: on
+def available_reward_codes_in_carina(
+    num_of_rewards: int, carina_db_session: "Session", reward_slug: str, expired_date: str
+) -> None:
+    time.sleep(3)
+    for i in range(30):
+        time.sleep(i)
+        reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
+        new_uploaded_rewards = get_rewards_by_reward_config(carina_db_session, reward_config_id)
+        if new_uploaded_rewards is not None:
+            break
+    assert num_of_rewards == len(new_uploaded_rewards)
+    if expired_date == "None":
+        for reward in new_uploaded_rewards:
+            assert reward.expiry_date is None
+    else:
+        for reward in new_uploaded_rewards:
+            assert str(reward.expiry_date) == expired_date
+
+        logging.info(f"Reward code = {reward.code} with expiry date is = {str(reward.expiry_date)}")
+
+    assert all([reward.code for reward in new_uploaded_rewards]), "Rewards not available"
+
+
 # @then(parse("there is {activity_type} activity appeared"))
 # def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> None:
 #     for i in range(30):

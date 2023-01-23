@@ -29,7 +29,7 @@ def get_reward_config_id(
 ) -> int:
     return cosmos_db_session.execute(
         select(RewardConfig.id).where(
-            RewardConfig.reward_slug == reward_slug,
+            RewardConfig.slug == reward_slug,
         )
     ).scalar_one()
 
@@ -57,13 +57,9 @@ def get_rewards(cosmos_db_session: "Session", reward_ids: list[str], allocated: 
     return rewards
 
 
-def get_rewards_by_reward_config(cosmos_db_session: "Session", reward_config_id: int, allocated: bool) -> list[Reward]:
+def get_rewards_by_reward_config(cosmos_db_session: "Session", reward_config_id: int) -> list[Reward]:
     rewards = (
-        cosmos_db_session.execute(
-            select(Reward).where(Reward.reward_config_id == reward_config_id, Reward.allocated.is_(allocated))
-        )
-        .scalars()
-        .all()
+        cosmos_db_session.execute(select(Reward).where(Reward.reward_config_id == reward_config_id)).scalars().all()
     )
     return rewards
 
