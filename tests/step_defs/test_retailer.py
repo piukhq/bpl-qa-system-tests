@@ -18,16 +18,9 @@ from tests.db_actions.cosmos import get_reward_config_id, get_rewards_by_reward_
 
 # Any,
 # import arrow
-
-
-
 # from retry_tasks_lib.enums import RetryTaskStatuses
 # from sqlalchemy import func, select, sql
-
 # import settings
-
-
-
 # from tests.api.base import Endpoints
 
 

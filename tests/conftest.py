@@ -2,15 +2,15 @@ import importlib
 
 # import json
 import logging
-
 import random
+
 # import time
 import uuid
 
 #
 # from datetime import datetime, timedelta, timezone
 from time import sleep
-from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
+from typing import TYPE_CHECKING, Any, Callable, Generator, Literal, Optional
 from uuid import uuid4
 
 import arrow
@@ -41,6 +41,8 @@ from azure_actions.blob_storage import add_new_available_rewards_file
 # , put_new_reward_updates_file
 from db.cosmos import models as cosmos_models
 from db.cosmos.models import (
+    AccountHolder,
+    AccountHolderProfile,
     Campaign,
     EarnRule,
     EmailTemplate,
@@ -51,8 +53,6 @@ from db.cosmos.models import (
     Reward,
     RewardConfig,
     RewardRule,
-    AccountHolder,
-    AccountHolderProfile,
 )
 
 #     FetchType,
@@ -79,8 +79,13 @@ from settings import (
     HUBBLE_TEMPLATE_DB_NAME,
     SQL_DEBUG,
 )
-from tests.db_actions.cosmos import get_campaign_by_slug, get_fetch_type_id, get_retailer_id, get_reward_config_id, \
-    create_balance_for_account_holder
+from tests.db_actions.cosmos import (
+    create_balance_for_account_holder,
+    get_campaign_by_slug,
+    get_fetch_type_id,
+    get_retailer_id,
+    get_reward_config_id,
+)
 
 # from tests.requests.enrolment import send_get_accounts, send_post_enrolment
 # from tests.requests.status_change import send_post_campaign_status_change
@@ -298,7 +303,7 @@ def add_retailer_fetch_type_preloaded(
 # fmt: on
 def add_rewards(
     cosmos_db_session: "Session",
-    account_holder: str,
+    account_holder: Optional[str],
     reward_slug: str,
     deleted_status: str,
     retailer_config: Retailer,
