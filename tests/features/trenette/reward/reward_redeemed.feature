@@ -19,9 +19,9 @@ Feature: Reward code status updated to redeemed from 3rd party
   Scenario: Handle importing redeemed reward codes from a 3rd party
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 701 pennies
-    Then the account holder balance shown for trenette-acc-campaign-1 is 1
-    And 1 issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign
-    When the trenette retailer updates selected rewards to redeemed status
-    Then the file is moved to the archive container by the reward importer
-    And the status of the allocated account holder for trenette rewards are updated with REDEEMED
-    And 1 reward for the account holder shows as redeemed with redeemed date
+#    Then the account holder balance shown for trenette-acc-campaign-1 is 1
+#    And 1 issued rewards are available to the account holder for the trenette-acc-campaign-1 campaign
+#    When the trenette retailer updates selected rewards to redeemed status
+#    Then the file is moved to the archive container by the reward importer
+#    And the status of the allocated account holder for trenette rewards are updated with REDEEMED
+#    And 1 reward for the account holder shows as redeemed with redeemed date

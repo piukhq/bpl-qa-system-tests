@@ -5,14 +5,19 @@ from enum import Enum
 
 import settings
 
-from settings import POLARIS_API_AUTH_TOKEN, POLARIS_BASE_URL, VELA_API_AUTH_TOKEN, VELA_BASE_URL
+from settings import (
+    CAMPAINGS_API_BASE_URL,
+    POLARIS_API_AUTH_TOKEN,
+    POLARIS_BASE_URL,
+    TRANSACTIONS_API_BASE_URL,
+    VELA_API_AUTH_TOKEN,
+)
 
 
 class Endpoints(str, Enum):
     ENROL = "/accounts/enrolment"
     GETBYCREDENTIALS = "/accounts/getbycredentials"
     ACCOUNTS = "/accounts/"
-    TRANSACTION = "/transaction"
     STATUSCHANGE = "/campaigns/status_change"
 
     @property
@@ -60,8 +65,13 @@ def get_vela_headers(channel_header: bool = True, valid_token: bool = True) -> d
     return headers
 
 
-def get_vela_url(retailer_slug: str, endpoint: Endpoints) -> str:
-    return f"{VELA_BASE_URL}/{retailer_slug}" + endpoint
+def get_transaction_api(retailer_slug: str) -> str:
+    return f"{TRANSACTIONS_API_BASE_URL}/" + retailer_slug
+
+
+def get_campaign_mangt(retailer_slug: str, endpoint: Endpoints) -> str:
+    # return f"{VELA_BASE_URL}/{retailer_slug}" + endpoint
+    return f"{CAMPAINGS_API_BASE_URL}/" + retailer_slug + endpoint
 
 
 def get_callback_url(

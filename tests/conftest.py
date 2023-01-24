@@ -1,14 +1,13 @@
 import importlib
-
-# import json
+import json
 import logging
 import random
-
-# import time
+import time
 import uuid
 
-#
-# from datetime import datetime, timedelta, timezone
+from datetime import datetime
+
+# , timedelta, timezone
 from time import sleep
 from typing import TYPE_CHECKING, Any, Callable, Generator, Literal, Optional
 from uuid import uuid4
@@ -89,7 +88,7 @@ from tests.db_actions.cosmos import (
 
 # from tests.requests.enrolment import send_get_accounts, send_post_enrolment
 # from tests.requests.status_change import send_post_campaign_status_change
-# from tests.requests.transaction import post_transaction_request
+from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.redis import pause_redis, unpause_redis
 
@@ -945,24 +944,24 @@ def create_reward_rule(
     cosmos_db_session.commit()
 
 
-# @given(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
-# @when(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
-# def the_account_holder_transaction_request(
-#     account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
-# ) -> None:
-#     time.sleep(3)
-#     payload = {
-#         "id": str(uuid4()),
-#         "transaction_total": int(amount),
-#         "datetime": int(datetime.utcnow().timestamp()),
-#         "MID": "12432432",
-#         "loyalty_id": str(account_holder.account_holder_uuid),
-#         "transaction_id": "BPL" + str(random.randint(1, (10**10))),
-#     }
-#     logging.info(f"Payload of transaction : {json.dumps(payload)}")
-#     post_transaction_request(payload, retailer_config.slug, request_context)
-#
-#
+@given(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
+@when(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
+def the_account_holder_transaction_request(
+    account_holder: AccountHolder, retailer_config: Retailer, amount: int, request_context: dict
+) -> None:
+    time.sleep(3)
+    payload = {
+        "id": str(uuid4()),
+        "transaction_total": int(amount),
+        "datetime": int(datetime.utcnow().timestamp()),
+        "MID": "12432432",
+        "loyalty_id": str(account_holder.account_holder_uuid),
+        "transaction_id": "BPL" + str(random.randint(1, (10**10))),
+    }
+    logging.info(f"Payload of transaction : {json.dumps(payload)}")
+    post_transaction_request(payload, retailer_config.slug, request_context)
+
+
 # # fmt: off
 # @given(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
 # @when(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
