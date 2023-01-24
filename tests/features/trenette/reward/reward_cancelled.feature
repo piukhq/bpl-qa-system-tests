@@ -14,7 +14,7 @@ Feature: Reward code status updated to cancelled from 3rd party
     And the trenette-acc-campaign-1 campaign has an earn rule with a threshold of 100, an increment of 0, a multiplier of 1 and max amount of 0
     And the trenette-acc-campaign-1 campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
 
-    And there is 1 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
+    And there is 1 rewards configured for the 10percentoff reward config, with account holder set to None and deleted status set to false
 
   @reward @bpl @bpl-300
   Scenario: Handle importing cancelled reward codes from a 3rd party

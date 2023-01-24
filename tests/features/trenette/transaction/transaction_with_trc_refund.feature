@@ -17,7 +17,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 2
 
-        And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
+        And there is 5 rewards configured for the free-item reward config, with account holder set to None and deleted status set to false
 
         And an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is 0

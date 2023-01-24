@@ -202,7 +202,7 @@ def create_pending_rewards_with_all_value_for_existing_account_holder(
 def create_balance_for_account_holder(
     cosmos_db_session: "Session", account_holder: AccountHolder, campaign: Campaign, balance: int = 0
 ) -> None:
-    balance = CampaignBalance(account_holder_id=account_holder.id, campaign_slug=campaign.slug, balance=0)
+    balance = CampaignBalance(account_holder_id=account_holder.id, campaign_id=campaign.id, balance=0)
     cosmos_db_session.add(balance)
     cosmos_db_session.commit()
 

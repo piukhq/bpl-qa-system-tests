@@ -14,7 +14,7 @@ Feature: Bink BPL - refund (max amount set)
         And the trenette-accumulator campaign has reward rule with reward goal: 1000, allocation window: 1 and reward cap: 0
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
 
-        And there is 0 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
+        And there is 0 rewards configured for the free-item reward config, with account holder set to None and deleted status set to false
 
     @bpl @transaction @refund @bpl-670
     Scenario: Refund accepted above max amount

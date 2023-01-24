@@ -18,16 +18,9 @@ from tests.db_actions.cosmos import get_reward_config_id, get_rewards_by_reward_
 
 # Any,
 # import arrow
-
-
-
 # from retry_tasks_lib.enums import RetryTaskStatuses
 # from sqlalchemy import func, select, sql
-
 # import settings
-
-
-
 # from tests.api.base import Endpoints
 
 
@@ -923,13 +916,13 @@ def check_file_moved(
             "with expiry date {expired_date} in the rewards table"))
 # fmt: on
 def available_reward_codes_in_carina(
-    num_of_rewards: int, carina_db_session: "Session", reward_slug: str, expired_date: str
+    num_of_rewards: int, cosmos_db_session: "Session", reward_slug: str, expired_date: str
 ) -> None:
     time.sleep(3)
     for i in range(30):
         time.sleep(i)
-        reward_config_id = get_reward_config_id(carina_db_session, reward_slug)
-        new_uploaded_rewards = get_rewards_by_reward_config(carina_db_session, reward_config_id)
+        reward_config_id = get_reward_config_id(cosmos_db_session, reward_slug)
+        new_uploaded_rewards = get_rewards_by_reward_config(cosmos_db_session, reward_config_id)
         if new_uploaded_rewards is not None:
             break
     assert num_of_rewards == len(new_uploaded_rewards)

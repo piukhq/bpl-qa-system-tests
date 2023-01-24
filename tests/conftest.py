@@ -1,16 +1,15 @@
 import importlib
-
-# import json
+import json
 import logging
-
-# import random
-# import time
+import random
+import time
 import uuid
 
-#
-# from datetime import datetime, timedelta, timezone
+from datetime import datetime
+
+# , timedelta, timezone
 from time import sleep
-from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
+from typing import TYPE_CHECKING, Any, Callable, Generator, Literal, Optional
 from uuid import uuid4
 
 import arrow
@@ -41,6 +40,8 @@ from azure_actions.blob_storage import add_new_available_rewards_file
 # , put_new_reward_updates_file
 from db.cosmos import models as cosmos_models
 from db.cosmos.models import (
+    AccountHolder,
+    AccountHolderProfile,
     Campaign,
     EarnRule,
     EmailTemplate,
@@ -60,9 +61,8 @@ from db.hubble import models as hubble_models
 
 # from db.polaris import models as polaris_models
 # from db.polaris.models import (
-#     AccountHolder,
 #     AccountHolderCampaignBalance,
-#     AccountHolderProfile,
+#
 #     EmailTemplate,
 #     EmailTemplateKey,
 #     EmailTemplateRequiredKey,
@@ -78,11 +78,17 @@ from settings import (
     HUBBLE_TEMPLATE_DB_NAME,
     SQL_DEBUG,
 )
-from tests.db_actions.cosmos import get_campaign_by_slug, get_fetch_type_id, get_retailer_id, get_reward_config_id
+from tests.db_actions.cosmos import (
+    create_balance_for_account_holder,
+    get_campaign_by_slug,
+    get_fetch_type_id,
+    get_retailer_id,
+    get_reward_config_id,
+)
 
 # from tests.requests.enrolment import send_get_accounts, send_post_enrolment
 # from tests.requests.status_change import send_post_campaign_status_change
-# from tests.requests.transaction import post_transaction_request
+from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.redis import pause_redis, unpause_redis
 
@@ -296,14 +302,14 @@ def add_retailer_fetch_type_preloaded(
 # fmt: on
 def add_rewards(
     cosmos_db_session: "Session",
-    account_holder: str,
+    account_holder: Optional[str],
     reward_slug: str,
-    allocation_status: str,
     deleted_status: str,
     retailer_config: Retailer,
     standard_campaign: Campaign,
     rewards_n: int,
 ) -> list[Reward]:
+    account_holder = None if account_holder == "None" else account_holder
     deleted_status_bool = deleted_status == "true"
     reward_config_id = get_reward_config_id(cosmos_db_session=cosmos_db_session, reward_slug=reward_slug)
     rewards: list[Reward] = []
@@ -489,50 +495,48 @@ def add_new_rewards_via_azure_blob(
     assert blob
 
 
-# # POLARIS FIXTURES
-# # fmt: off
-# @given(parse("an {status} account holder exists for the retailer"),
-#        target_fixture="account_holder",
-#        )
-# # fmt: on
-# def setup_account_holder(
-#     status: str,
-#     retailer_config: RetailerConfig,
-#     polaris_db_session: "Session",
-#     vela_db_session: "Session",
-# ) -> AccountHolder:
-#
-#     account_status = {"active": "ACTIVE", "pending": "PENDING", "inactive": "INACTIVE"}.get(status, "PENDING")
-#     fixture_data = load_fixture(retailer_config.slug)
-#     account_holder = AccountHolder(
-#         email=f"pytest+{uuid4()}@bink.com",
-#         status=account_status,
-#         account_number=fixture_data.retailer_config["account_number_prefix"] + str(random.randint(1, (10**10))),
-#         retailer_id=retailer_config.id,
-#         account_holder_uuid=str(uuid4()),
-#         opt_out_token=str(uuid4()),
-#     )
-#     polaris_db_session.add(account_holder)
-#     polaris_db_session.flush()
-#
-#     ah_profile = AccountHolderProfile(
-#         account_holder_id=account_holder.id, first_name=fake.first_name(), last_name=fake.last_name()
-#     )
-#     polaris_db_session.add(ah_profile)
-#     polaris_db_session.commit()
-#
-#     campaigns = (
-#         vela_db_session.execute(
-#             select(Campaign).where(Campaign.retailer_id == retailer_config.id, Campaign.status == "ACTIVE")
-#         )
-#         .scalars()
-#         .all()
-#     )
-#     for campaign in campaigns:
-#         create_balance_for_account_holder(polaris_db_session, account_holder, campaign)
-#     return account_holder
-#
-#
+# fmt: off
+@given(parse("an {status} account holder exists for the retailer"),
+       target_fixture="account_holder",
+       )
+# fmt: on
+def setup_account_holder(
+    status: str,
+    retailer_config: Retailer,
+    cosmos_db_session: "Session",
+) -> AccountHolder:
+
+    account_status = {"active": "ACTIVE", "pending": "PENDING", "inactive": "INACTIVE"}.get(status, "PENDING")
+    fixture_data = load_fixture(retailer_config.slug)
+    account_holder = AccountHolder(
+        email=f"pytest+{uuid4()}@bink.com",
+        status=account_status,
+        account_number=fixture_data.retailer["account_number_prefix"] + str(random.randint(1, (10**10))),
+        retailer_id=retailer_config.id,
+        account_holder_uuid=str(uuid4()),
+        opt_out_token=str(uuid4()),
+    )
+    cosmos_db_session.add(account_holder)
+    cosmos_db_session.flush()
+
+    ah_profile = AccountHolderProfile(
+        account_holder_id=account_holder.id, first_name=fake.first_name(), last_name=fake.last_name()
+    )
+    cosmos_db_session.add(ah_profile)
+    cosmos_db_session.commit()
+
+    campaigns = (
+        cosmos_db_session.execute(
+            select(Campaign).where(Campaign.retailer_id == retailer_config.id, Campaign.status == "ACTIVE")
+        )
+        .scalars()
+        .all()
+    )
+    for campaign in campaigns:
+        create_balance_for_account_holder(cosmos_db_session, account_holder, campaign)
+    return account_holder
+
+
 # # fmt: off
 # @given(parse("the retailer has {num_account_holders:d} {status} account holders"),
 #        target_fixture="account_holders")
@@ -940,24 +944,24 @@ def create_reward_rule(
     cosmos_db_session.commit()
 
 
-# @given(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
-# @when(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
-# def the_account_holder_transaction_request(
-#     account_holder: AccountHolder, retailer_config: RetailerConfig, amount: int, request_context: dict
-# ) -> None:
-#     time.sleep(3)
-#     payload = {
-#         "id": str(uuid4()),
-#         "transaction_total": int(amount),
-#         "datetime": int(datetime.utcnow().timestamp()),
-#         "MID": "12432432",
-#         "loyalty_id": str(account_holder.account_holder_uuid),
-#         "transaction_id": "BPL" + str(random.randint(1, (10**10))),
-#     }
-#     logging.info(f"Payload of transaction : {json.dumps(payload)}")
-#     post_transaction_request(payload, retailer_config.slug, request_context)
-#
-#
+@given(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
+@when(parse("BPL receives a transaction for the account holder for the amount of {amount} pennies"))
+def the_account_holder_transaction_request(
+    account_holder: AccountHolder, retailer_config: Retailer, amount: int, request_context: dict
+) -> None:
+    time.sleep(3)
+    payload = {
+        "id": str(uuid4()),
+        "transaction_total": int(amount),
+        "datetime": int(datetime.utcnow().timestamp()),
+        "MID": "12432432",
+        "loyalty_id": str(account_holder.account_holder_uuid),
+        "transaction_id": "BPL" + str(random.randint(1, (10**10))),
+    }
+    logging.info(f"Payload of transaction : {json.dumps(payload)}")
+    post_transaction_request(payload, retailer_config.slug, request_context)
+
+
 # # fmt: off
 # @given(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
 # @when(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
