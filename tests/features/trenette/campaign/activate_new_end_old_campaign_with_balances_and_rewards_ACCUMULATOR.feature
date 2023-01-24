@@ -21,22 +21,22 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards ACC
 
     @bpl @campaign @bpl-290
     Scenario: Activate new campaign, cancel old - accumulator campaign
-#        Given an active account holder exists for the retailer
-#        And the account holder's trenette-active-campaign balance is 500
-#        And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff and campaign slug trenette-active-campaign
-#        And the account has 3 pending rewards for the trenette-active-campaign campaign and 10percentoff reward slug with value 700
-#
-#        When the retailer's trenette-draft-campaign campaign status is changed to active
-#
-#        And BPL receives a transaction for the account holder for the amount of 600 pennies
-#        And the task worker queue is full
-#        And the retailer's trenette-active-campaign campaign status is changed to cancelled
-#        And the task worker queue is ready
-#        Then there are 0 pending reward records for trenette-active-campaign associated with the account holder
-#        And the account holder's trenette-active-campaign balance does not exist
-#        And the vela reward-adjustment task status is cancelled
-#
-#        And the account holder balance shown for trenette-draft-campaign is 0
-#        And the account holder's trenette-active-campaign balance does not exist
-#        And there are 0 pending reward records for trenette-draft-campaign associated with the account holder
-#        And any trenette account holder rewards for 10percentoff are cancelled
+        Given an active account holder exists for the retailer
+        And the account holder's trenette-active-campaign balance is 500
+        And there are 3 issued unexpired rewards for account holder with reward slug 10percentoff and campaign slug trenette-active-campaign
+        And the account has 3 pending rewards for the trenette-active-campaign campaign and 10percentoff reward slug with value 700
+
+        When the retailer's trenette-draft-campaign campaign status is changed to active
+
+        And BPL receives a transaction for the account holder for the amount of 600 pennies
+        And the task worker queue is full
+        And the retailer's trenette-active-campaign campaign status is changed to cancelled
+        And the task worker queue is ready
+        Then there are 0 pending reward records for trenette-active-campaign associated with the account holder
+        And the account holder's trenette-active-campaign balance does not exist
+        And the vela reward-adjustment task status is cancelled
+
+        And the account holder balance shown for trenette-draft-campaign is 0
+        And the account holder's trenette-active-campaign balance does not exist
+        And there are 0 pending reward records for trenette-draft-campaign associated with the account holder
+        And any trenette account holder rewards for 10percentoff are cancelled

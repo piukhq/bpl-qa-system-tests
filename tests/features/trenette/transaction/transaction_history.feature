@@ -13,7 +13,7 @@ Feature: Bink BPL - Transaction history
     And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
     And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 0
 
-    And there is 5 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
+    And there is 5 rewards configured for the free-item reward config, with account holder set to None and deleted status set to false
     And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
 

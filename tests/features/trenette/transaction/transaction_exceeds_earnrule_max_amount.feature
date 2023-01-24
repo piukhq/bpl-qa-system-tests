@@ -15,7 +15,7 @@ Feature: Bink BPL - Transaction exceeds earn rule max amount
     And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 1000
     And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 0 and reward cap: 0
 
-    And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
+    And there is 1 rewards configured for the free-item reward config, with account holder set to None and deleted status set to false
 
   @bpl @transaction @bpl-562
   Scenario: Transaction exceeds earn rule max - Accumulator

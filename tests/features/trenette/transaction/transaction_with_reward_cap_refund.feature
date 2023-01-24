@@ -16,7 +16,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of None, a multiplier of 1 and max amount of 0
         And the trenette-acc-campaign campaign has reward rule with reward goal: 20000, allocation window: 10 and reward cap: 2
 
-        And there is 5 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
+        And there is 5 rewards configured for the 10percentoff reward config, with account holder set to None and deleted status set to false
 
     @bpl @trc @AC-1-2 @bpl-733
     Scenario: verify Purchase > TRC - Pending reward issued, no balance change

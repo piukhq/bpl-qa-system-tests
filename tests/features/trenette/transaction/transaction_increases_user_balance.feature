@@ -15,7 +15,7 @@ Feature: Bink BPL - Transaction increases user balance
     And the trenette-stmp-campaign-1 campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
     And the trenette-stmp-campaign-1 campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
 
-    And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
+    And there is 1 rewards configured for the free-item reward config, with account holder set to None and deleted status set to false
 
   @bpl @transaction @bpl-294
   Scenario: Transaction meets earn threshold (>0)
