@@ -8,18 +8,20 @@ from time import sleep
 from typing import TYPE_CHECKING, Literal
 
 from faker import Faker
-from pytest_bdd import scenarios, then, given
+from pytest_bdd import given, scenarios, then
 from pytest_bdd.parsers import parse
-
-from azure_actions.blob_storage import check_archive_blobcontainer
-
-# from tests.db_actions.hubble import get_latest_activity_by_type
-from tests.db_actions.cosmos import get_reward_config_id, get_rewards_by_reward_config, get_rewards, Reward
 
 # Any,
 # import arrow
 # from retry_tasks_lib.enums import RetryTaskStatuses
-from sqlalchemy import func, select, sql
+from sqlalchemy import select, sql
+
+from azure_actions.blob_storage import check_archive_blobcontainer
+
+# from tests.db_actions.hubble import get_latest_activity_by_type
+from tests.db_actions.cosmos import Reward, get_reward_config_id, get_rewards, get_rewards_by_reward_config
+
+# func,
 # import settings
 # from tests.api.base import Endpoints
 
@@ -368,7 +370,7 @@ def check_account_holder_reward_exists(available_rewards: list[Reward], cosmos_d
         == 0
     )
 
-# the rewards are not allocated to an account holder
+
 # # fmt: off
 # @then(parse("The account holder's transaction history has {expected_num_transaction:d} transactions, "
 #             "and the latest transaction is {transaction_amount}"))

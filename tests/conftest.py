@@ -9,7 +9,8 @@ from datetime import datetime
 
 # , timedelta, timezone
 from time import sleep
-from typing import TYPE_CHECKING, Any, Callable, Generator, Literal, Optional
+from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
+
 from uuid import uuid4
 
 import arrow
@@ -81,7 +82,6 @@ from tests.db_actions.cosmos import (
     get_campaign_by_slug,
     get_fetch_type_id,
     get_retailer_id,
-    get_reward_config_id,
 )
 from tests.db_actions.reward import assign_rewards
 
@@ -291,16 +291,38 @@ def add_retailer_fetch_type_preloaded(
 
 
 # fmt: off
-@given(parse("{rewards_n:d} {account_holder} rewards are generated for the {reward_slug} reward config with deleted status set to {deleted_status}"),
-      target_fixture="available_rewards")
+@given(parse("{rewards_n:d} {account_holder} rewards are generated for the {reward_slug} "
+             "reward config with deleted status set to {deleted_status}"), target_fixture="available_rewards")
 # fmt: on
-def add_rewards(cosmos_db_session: "Session", account_holder: AccountHolder,
-                                              reward_slug: str, deleted_status: str, retailer_config: Retailer,
-                                              standard_campaign: Campaign, rewards_n: int) -> list[Reward]:
+def add_rewards(
+    cosmos_db_session: "Session",
+    account_holder: AccountHolder,
+    reward_slug: str,
+    deleted_status: str,
+    retailer_config: Retailer,
+    standard_campaign: Campaign,
+    rewards_n: int,
+) -> list[Reward]:
     if account_holder == "unassigned":
-        rewards = assign_rewards(cosmos_db_session, reward_slug, retailer_config, standard_campaign, rewards_n, deleted_status, account_holder=None)
+        rewards = assign_rewards(
+            cosmos_db_session,
+            reward_slug,
+            retailer_config,
+            standard_campaign,
+            rewards_n,
+            deleted_status,
+            account_holder=None,
+        )
     else:
-        rewards = assign_rewards(cosmos_db_session, reward_slug, retailer_config, standard_campaign, rewards_n, deleted_status, account_holder)
+        rewards = assign_rewards(
+            cosmos_db_session,
+            reward_slug,
+            retailer_config,
+            standard_campaign,
+            rewards_n,
+            deleted_status,
+            account_holder,
+        )
     logging.info(f"{rewards_n} rewards attached to {rewards}")
     return rewards
 
@@ -374,8 +396,7 @@ def add_rewards(cosmos_db_session: "Session", account_holder: AccountHolder,
 
 @pytest.fixture(scope="function")
 def upload_reward_updates_to_blob_storage() -> Callable:
-    def func(retailer_slug: str, rewards: list[Reward],
-    reward_status: str, blob_name: str = None) -> BlobClient | None:
+    def func(retailer_slug: str, rewards: list[Reward], reward_status: str, blob_name: str = None) -> BlobClient | None:
         """Upload some reward updates to blob storage to test end-to-end import"""
         blob = None
         if blob_name is None:

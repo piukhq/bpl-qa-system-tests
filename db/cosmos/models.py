@@ -169,6 +169,7 @@ class Transaction(Base):
     # )
     transaction_earns = relationship("TransactionEarn", back_populates="transaction")
 
+
 class TransactionEarn(Base):
     __tablename__ = "transaction_earn"
 

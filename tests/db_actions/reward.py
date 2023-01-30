@@ -8,13 +8,14 @@
 #
 #     return func
 import time
+
+from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
-from typing import TYPE_CHECKING
 
 from retry_tasks_lib.db.models import RetryTask, TaskType, TaskTypeKey, TaskTypeKeyValue
 from sqlalchemy.future import select
 
-from db.cosmos.models import Retailer, Campaign, Reward, AccountHolder
+from db.cosmos.models import AccountHolder, Campaign, Retailer, Reward
 from tests.db_actions.cosmos import get_reward_config_id
 
 if TYPE_CHECKING:
@@ -53,7 +54,7 @@ def assign_rewards(
     standard_campaign: Campaign,
     rewards_n: int,
     deleted_status: str,
-    account_holder: AccountHolder,
+    account_holder: Optional[AccountHolder],
 ) -> list[Reward]:
     account_holder = None if account_holder == "None" else account_holder
     deleted_status_bool = deleted_status == "true"
