@@ -15,7 +15,7 @@ Feature: Transaction with no earn threshold
     And the trenette-acc-campaign-1 campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
     And the trenette-acc-campaign-1 campaign has reward rule with reward goal: 10000, allocation window: 0 and reward cap: 0
 
-    And there is 2 rewards configured for the 10percentoff reward config, with account holder set to None and deleted status set to false
+    And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
   @bpl @transaction @noearn-threshold
   Scenario Outline: Transaction with 0 threshold to verify balance and rewards

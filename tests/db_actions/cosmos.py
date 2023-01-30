@@ -48,9 +48,9 @@ def get_retailer_id(
     return cosmos_db_session.execute(select(Retailer.id).where(Retailer.slug == retailer_slug)).scalar_one()
 
 
-def get_rewards(cosmos_db_session: "Session", reward_ids: list[str], allocated: bool) -> list[Reward]:
+def get_rewards(cosmos_db_session: "Session", reward_ids: list[str]) -> list[Reward]:
     rewards = (
-        cosmos_db_session.execute(select(Reward).where(Reward.id.in_(reward_ids), Reward.allocated.is_(allocated)))
+        cosmos_db_session.execute(select(Reward).where(Reward.id.in_(reward_ids), Reward.account_holder_id.is_(None)))
         .scalars()
         .all()
     )

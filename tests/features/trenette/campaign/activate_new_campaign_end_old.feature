@@ -21,8 +21,7 @@ Feature: Bink BPL - Activate new campaign, end old
         And the trenette-draft-campaign campaign has an earn rule with a threshold of 1000, an increment of 200, a multiplier of 1 and max amount of 0
         And the trenette-draft-campaign campaign has reward rule with reward goal: 900, allocation window: 0 and reward cap: 0
 
-        And there is 5 rewards configured for the free-item reward config, with account holder set to None and deleted status set to false
-
+        And 5 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
     @bpl @campaign @bpl-289
     Scenario: Active campaign is ended and draft campaign is activated

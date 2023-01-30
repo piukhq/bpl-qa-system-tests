@@ -15,7 +15,7 @@ Feature: Bink BPL - Activity enrolment
     And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
     And the trenette-active-campaign campaign has reward rule with reward goal: 700, allocation window: 1 and reward cap: 0
 
-    And there is 2 rewards configured for the 10percentoff reward config, with account holder set to None and deleted status set to false
+    And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
   @bpl-722 @accepted @bpl
   Scenario: Activity for enrolment request

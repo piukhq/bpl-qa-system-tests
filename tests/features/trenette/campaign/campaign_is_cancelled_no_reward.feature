@@ -17,8 +17,8 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
     And the trenette-stmp-campaign-2 campaign has reward rule with reward goal: 100, allocation window: 0 and reward cap: 0
 
 
-    And there is 1 rewards configured for the free-item reward config, with allocation status set to false and deleted status set to false
-    And there is 1 rewards configured for the free-item-2 reward config, with allocation status set to false and deleted status set to false
+    And 1 unassigned rewards are generated for the free-item reward config with deleted status set to false
+    And 1 unassigned rewards are generated for the free-item-2 reward config with deleted status set to false
 
 # FIXME: This needs more work. It doesn't appear to address BPL-298
 # @bpl @transaction @bpl-298

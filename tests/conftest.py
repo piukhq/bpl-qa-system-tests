@@ -35,9 +35,7 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 
 import settings
 
-from azure_actions.blob_storage import add_new_available_rewards_file
-
-# , put_new_reward_updates_file
+from azure_actions.blob_storage import add_new_available_rewards_file, put_new_reward_updates_file
 from db.cosmos import models as cosmos_models
 from db.cosmos.models import (
     AccountHolder,
@@ -85,6 +83,7 @@ from tests.db_actions.cosmos import (
     get_retailer_id,
     get_reward_config_id,
 )
+from tests.db_actions.reward import assign_rewards
 
 # from tests.requests.enrolment import send_get_accounts, send_post_enrolment
 # from tests.requests.status_change import send_post_campaign_status_change
@@ -292,48 +291,17 @@ def add_retailer_fetch_type_preloaded(
 
 
 # fmt: off
-@when(parse("{rewards_n:d} rewards are generated for the {reward_slug} reward config with account holder "
-            "set to {account_holder} and deleted status set to {deleted_status}"),
+@given(parse("{rewards_n:d} {account_holder} rewards are generated for the {reward_slug} reward config with deleted status set to {deleted_status}"),
       target_fixture="available_rewards")
-@given(parse(
-    "there is {rewards_n:d} rewards configured for the {reward_slug} reward config, with account holder set to "
-    "{account_holder} and deleted status set to {deleted_status}"),
-    target_fixture="available_rewards")
 # fmt: on
-def add_rewards(
-    cosmos_db_session: "Session",
-    account_holder: Optional[str],
-    reward_slug: str,
-    deleted_status: str,
-    retailer_config: Retailer,
-    standard_campaign: Campaign,
-    rewards_n: int,
-) -> list[Reward]:
-    account_holder = None if account_holder == "None" else account_holder
-    deleted_status_bool = deleted_status == "true"
-    reward_config_id = get_reward_config_id(cosmos_db_session=cosmos_db_session, reward_slug=reward_slug)
-    rewards: list[Reward] = []
-
-    if rewards_n > 0:
-        for i in range(rewards_n):
-            reward = Reward(
-                reward_uuid=str(uuid4()),
-                reward_config_id=reward_config_id,
-                account_holder_id=account_holder,
-                code=f"{reward_slug}/{i}",
-                deleted=deleted_status_bool,
-                issued_date=None,
-                expiry_date=None,
-                redeemed_date=None,
-                cancelled_date=None,
-                associated_url="abc@bink.com",
-                retailer_id=retailer_config.id,
-                campaign_id=standard_campaign.id,
-            )
-            cosmos_db_session.add(reward)
-            cosmos_db_session.commit()
-            rewards.append(reward)
-
+def add_rewards(cosmos_db_session: "Session", account_holder: AccountHolder,
+                                              reward_slug: str, deleted_status: str, retailer_config: Retailer,
+                                              standard_campaign: Campaign, rewards_n: int) -> list[Reward]:
+    if account_holder == "unassigned":
+        rewards = assign_rewards(cosmos_db_session, reward_slug, retailer_config, standard_campaign, rewards_n, deleted_status, account_holder=None)
+    else:
+        rewards = assign_rewards(cosmos_db_session, reward_slug, retailer_config, standard_campaign, rewards_n, deleted_status, account_holder)
+    logging.info(f"{rewards_n} rewards attached to {rewards}")
     return rewards
 
 
@@ -404,27 +372,27 @@ def add_rewards(
 #     return fetch_types
 
 
-# @pytest.fixture(scope="function")
-# def upload_reward_updates_to_blob_storage() -> Callable:
-#     def func(retailer_slug: str, rewards: list[Reward],
-#     reward_status: str, blob_name: str = None) -> BlobClient | None:
-#         """Upload some reward updates to blob storage to test end-to-end import"""
-#         blob = None
-#         if blob_name is None:
-#             blob_name = f"test_import_{uuid.uuid4()}.csv"
-#
-#         if BLOB_STORAGE_DSN:
-#             logger.debug(f"Uploading reward updates to blob storage for {retailer_slug}...")
-#             blob = put_new_reward_updates_file(
-#                 retailer_slug=retailer_slug, rewards=rewards, blob_name=blob_name, reward_status=reward_status
-#             )
-#             logger.debug(f"Successfully uploaded reward updates to blob storage: {blob.url}")
-#         else:
-#             logger.debug("No BLOB_STORAGE_DSN set, skipping reward updates upload")
-#
-#         return blob
-#
-#     return func
+@pytest.fixture(scope="function")
+def upload_reward_updates_to_blob_storage() -> Callable:
+    def func(retailer_slug: str, rewards: list[Reward],
+    reward_status: str, blob_name: str = None) -> BlobClient | None:
+        """Upload some reward updates to blob storage to test end-to-end import"""
+        blob = None
+        if blob_name is None:
+            blob_name = f"test_import_{uuid.uuid4()}.csv"
+
+        if BLOB_STORAGE_DSN:
+            logger.debug(f"Uploading reward updates to blob storage for {retailer_slug}...")
+            blob = put_new_reward_updates_file(
+                retailer_slug=retailer_slug, rewards=rewards, blob_name=blob_name, reward_status=reward_status
+            )
+            logger.debug(f"Successfully uploaded reward updates to blob storage: {blob.url}")
+        else:
+            logger.debug("No BLOB_STORAGE_DSN set, skipping reward updates upload")
+
+        return blob
+
+    return func
 
 
 @pytest.fixture(scope="function")
@@ -447,26 +415,26 @@ def upload_rewards_to_blob_storage() -> Callable:
     return func
 
 
-# # fmt: off
-# @when(parse("the {retailer_slug} retailer updates selected rewards to {reward_status} status"),
-#       target_fixture="imported_reward_ids")
-# # fmt: on
-# def reward_updates_upload(
-#     retailer_slug: str,
-#     reward_status: str,
-#     available_rewards: list[Reward],
-#     upload_reward_updates_to_blob_storage: Callable,
-# ) -> list[str]:
-#     """
-#     The fixture should place a CSV file onto blob storage, which a running instance of
-#     carina (the scheduler job for doing these imports) will pick up and process, putting rows into carina's DB
-#     for today's date.
-#     """
-#     blob = upload_reward_updates_to_blob_storage(
-#         retailer_slug=retailer_slug, rewards=available_rewards, reward_status=reward_status
-#     )
-#     assert blob
-#     return [reward.id for reward in available_rewards]
+# fmt: off
+@when(parse("the {retailer_slug} retailer updates selected rewards to {reward_status} status"),
+      target_fixture="imported_reward_ids")
+# fmt: on
+def reward_updates_upload(
+    retailer_slug: str,
+    reward_status: str,
+    available_rewards: list[Reward],
+    upload_reward_updates_to_blob_storage: Callable,
+) -> list[str]:
+    """
+    The fixture should place a CSV file onto blob storage, which a running instance of
+    carina (the scheduler job for doing these imports) will pick up and process, putting rows into carina's DB
+    for today's date.
+    """
+    blob = upload_reward_updates_to_blob_storage(
+        retailer_slug=retailer_slug, rewards=available_rewards, reward_status=reward_status
+    )
+    assert blob
+    return [reward.id for reward in available_rewards]
 
 
 # fmt: off
