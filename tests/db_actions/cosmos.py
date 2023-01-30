@@ -64,8 +64,8 @@ def get_rewards_by_reward_config(cosmos_db_session: "Session", reward_config_id:
     return rewards
 
 
-def get_account_holder_for_retailer(polaris_db_session: "Session", retailer_id: int) -> AccountHolder:
-    return polaris_db_session.execute(select(AccountHolder).where(retailer_id == retailer_id)).scalar_one()
+def get_account_holder_for_retailer(cosmos_db_session: "Session", retailer_id: int) -> AccountHolder:
+    return cosmos_db_session.execute(select(AccountHolder).where(retailer_id == retailer_id)).scalar_one()
 
 
 def get_account_holder_with_email(polaris_db_session: "Session", email: str, retailer_id: int) -> AccountHolder:

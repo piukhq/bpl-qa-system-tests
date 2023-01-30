@@ -1,4 +1,4 @@
-# import json
+import json
 import logging
 import time
 
@@ -10,26 +10,26 @@ from typing import TYPE_CHECKING, Literal
 from faker import Faker
 from pytest_bdd import given, scenarios, then
 from pytest_bdd.parsers import parse
-
 # Any,
 # import arrow
 # from retry_tasks_lib.enums import RetryTaskStatuses
 from sqlalchemy import select, sql
 
 from azure_actions.blob_storage import check_archive_blobcontainer
+from db.cosmos.models import Retailer, AccountHolder
 
 # from tests.db_actions.hubble import get_latest_activity_by_type
-from tests.db_actions.cosmos import Reward, get_reward_config_id, get_rewards, get_rewards_by_reward_config
+from tests.db_actions.cosmos import Reward, get_reward_config_id, get_rewards, get_rewards_by_reward_config, get_account_holder_for_retailer
 
 # func,
-# import settings
-# from tests.api.base import Endpoints
+import settings
+from tests.api.base import Endpoints
 
 
 # from tests.db_actions.cosmos import (
 #     create_pending_rewards_with_all_value_for_existing_account_holder,
 #     get_account_holder_balances_for_campaign,
-#     get_account_holder_for_retailer,
+#
 #     get_account_holder_reward,
 #     get_ordered_pending_rewards,
 #     get_pending_rewards,
@@ -48,8 +48,7 @@ from tests.db_actions.cosmos import Reward, get_reward_config_id, get_rewards, g
 # from tests.db_actions.reward import get_last_created_reward_issuance_task
 
 # from tests.db_actions.vela import
-# from tests.requests.enrolment import (
-#     send_get_accounts,
+from tests.requests.enrolment import (send_get_accounts)
 #     send_get_accounts_by_credential,
 #     send_number_of_accounts,
 #     send_number_of_accounts_by_post_credential,
@@ -287,36 +286,34 @@ def reward_gets_soft_deleted(cosmos_db_session: "Session", imported_reward_ids: 
 #     polaris_db_session.refresh(account_holder)
 #     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
 #     assert balances_by_slug[campaign_slug].balance == amount
-#
-#
-# def check_returned_account_holder_campaign_balance(
-#     retailer_config: RetailerConfig, account_holder: AccountHolder, campaign_slug: str, expected_amount: int
-# ) -> None:
-#     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
-#     logging.info(f"Response HTTP status code: {resp.status_code}")
-#     logging.info(
-#         f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-#         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
-#     )
-#     balance_for_campaign =
-#     {balance["campaign_slug"]: balance["value"] for balance in resp.json()["current_balances"]}[
-#         campaign_slug
-#     ]
-#     logging.info(f"the account holder's balance is: {int(balance_for_campaign * 100)}")
-#     assert int(balance_for_campaign * 100) == expected_amount
-#
-#
-# # fmt: off
-# @then(parse("the account holder balance shown for {campaign_slug} is {expected_balance:d}"))
-# # fmt: on
-# def check_account_balance(
-#     polaris_db_session: "Session", retailer_config: RetailerConfig, campaign_slug: str, expected_balance: int
-# ) -> None:
-#     time.sleep(3)
-#     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-#     check_returned_account_holder_campaign_balance(retailer_config, account_holder, campaign_slug, expected_balance)
-#
-#
+
+
+def check_returned_account_holder_campaign_balance(
+    retailer_config: Retailer, account_holder: AccountHolder, campaign_slug: str, expected_amount: int
+) -> None:
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+    balance_for_campaign = {balance["campaign_slug"]: balance["value"]
+                            for balance in resp.json()["current_balances"]}[campaign_slug]
+    logging.info(f"the account holder's balance is: {int(balance_for_campaign * 100)}")
+    assert int(balance_for_campaign * 100) == expected_amount
+
+
+# fmt: off
+@then(parse("the account holder balance shown for {campaign_slug} is {expected_balance:d}"))
+# fmt: on
+def check_account_balance(
+    cosmos_db_session: "Session", retailer_config: Retailer, campaign_slug: str, expected_balance: int
+) -> None:
+    time.sleep(3)
+    account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
+    check_returned_account_holder_campaign_balance(retailer_config, account_holder, campaign_slug, expected_balance)
+
+
 # # fmt: off
 # @then(parse("the balance shown for each account holder for the {campaign_slug} campaign "
 #             "is {expected_balance:d}"))
@@ -930,7 +927,7 @@ def available_reward_codes_in_carina(
             assert reward.expiry_date is None
     else:
         for reward in new_uploaded_rewards:
-            assert str(reward.expiry_date) == expired_date
+            assert str(reward.expiry_date.date()) == expired_date
 
         logging.info(f"Reward code = {reward.code} with expiry date is = {str(reward.expiry_date)}")
 
