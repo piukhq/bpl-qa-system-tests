@@ -4,22 +4,24 @@ import time
 
 #
 # from collections import defaultdict
-# from time import sleep
+from time import sleep
 from typing import TYPE_CHECKING, Literal
 
 from faker import Faker
-from pytest_bdd import scenarios, then
+from pytest_bdd import given, scenarios, then
 from pytest_bdd.parsers import parse
-
-from azure_actions.blob_storage import check_archive_blobcontainer
-
-# from tests.db_actions.hubble import get_latest_activity_by_type
-from tests.db_actions.cosmos import get_reward_config_id, get_rewards_by_reward_config
 
 # Any,
 # import arrow
 # from retry_tasks_lib.enums import RetryTaskStatuses
-# from sqlalchemy import func, select, sql
+from sqlalchemy import select, sql
+
+from azure_actions.blob_storage import check_archive_blobcontainer
+
+# from tests.db_actions.hubble import get_latest_activity_by_type
+from tests.db_actions.cosmos import Reward, get_reward_config_id, get_rewards, get_rewards_by_reward_config
+
+# func,
 # import settings
 # from tests.api.base import Endpoints
 
@@ -34,9 +36,6 @@ from tests.db_actions.cosmos import get_reward_config_id, get_rewards_by_reward_
 #     update_account_holder_pending_rewards_conversion_date,
 #     Campaign,
 #     Retailer,
-#     Reward,
-#     ,
-#     get_rewards,
 #     ,
 #     get_campaign_status,
 # )
@@ -120,25 +119,25 @@ def check_file_moved(
 #             break
 #
 #     assert all(rewards_deleted) == deleted, f"All rewards are soft deleted as {deleted}"
-#
-#
-# @then(parse("the imported rewards are soft deleted"))
-# def reward_gets_soft_deleted(carina_db_session: "Session", imported_reward_ids: list[str]) -> None:
-#     rewards = get_rewards(carina_db_session, imported_reward_ids, allocated=True)
-#     for i in range(15):
-#         logging.info(f"Sleeping for {i} seconds...")
-#         sleep(i)  # Need to allow enough time for the task to soft delete rewards
-#         for reward in rewards:
-#             carina_db_session.refresh(reward)
-#
-#         if all([reward.deleted for reward in rewards]):
-#             break
-#         logging.info("Not all rewards deleted yet...")
-#
-#     assert all([reward.deleted for reward in rewards]), "All rewards not soft deleted"
-#     logging.info("All Rewards were soft deleted")
-#
-#
+
+
+@then(parse("the imported rewards are soft deleted"))
+def reward_gets_soft_deleted(cosmos_db_session: "Session", imported_reward_ids: list[str]) -> None:
+    rewards = get_rewards(cosmos_db_session, imported_reward_ids)
+    for i in range(15):
+        logging.info(f"Sleeping for {i} seconds...")
+        sleep(i)  # Need to allow enough time for the task to soft delete rewards
+        for reward in rewards:
+            cosmos_db_session.refresh(reward)
+
+        if all([reward.deleted for reward in rewards]):
+            break
+        logging.info("Not all rewards deleted yet...")
+
+    assert all([reward.deleted for reward in rewards]), "All rewards not soft deleted"
+    logging.info("All Rewards were soft deleted")
+
+
 # # fmt: off
 # @then(parse("there are {rewards_n:d} rewards for the {reward_slug} reward config, with allocated set to "
 #             "{allocation_status} and deleted set to {deleted_status}"))
@@ -358,20 +357,20 @@ def check_file_moved(
 #         if campaign_slug in balances_by_campaign_slug:
 #             continue
 #     assert campaign_slug not in balances_by_campaign_slug
-#
-#
-# @given("an account holder reward with this reward uuid does not exist")
-# def check_account_holder_reward_exists(available_rewards: list[Reward], polaris_db_session: "Session") -> None:
-#     assert (
-#         polaris_db_session.execute(
-#             select(sql.functions.count("*"))
-#             .select_from(AccountHolderReward)
-#             .where(AccountHolderReward.reward_uuid.in_([str(reward.id) for reward in available_rewards]))
-#         ).scalar()
-#         == 0
-#     )
-#
-#
+
+
+@given("an account holder reward with this reward uuid does not exist")
+def check_account_holder_reward_exists(available_rewards: list[Reward], cosmos_db_session: "Session") -> None:
+    assert (
+        cosmos_db_session.execute(
+            select(sql.functions.count("*"))
+            .select_from(Reward)
+            .where(Reward.reward_uuid.in_([str(reward.id) for reward in available_rewards]))
+        ).scalar()
+        == 0
+    )
+
+
 # # fmt: off
 # @then(parse("The account holder's transaction history has {expected_num_transaction:d} transactions, "
 #             "and the latest transaction is {transaction_amount}"))

@@ -26,9 +26,8 @@ Feature: Bink BPL - Jigshaw egift - End campaign and delete/issue pending reward
     And the account holders each have 2 ISSUED rewards for the new-campaign campaign with the new-campaign reward slug expiring in 5 days
     And the account holders each have 2 pending rewards for the old-campaign campaign and old-campaign reward slug with a value of 10000
     And the account holders each have 2 pending rewards for the new-campaign campaign and new-campaign reward slug with a value of 10000
-    And there is 2 rewards configured for the old-campaign reward config, with account holder set to None and deleted status set to false
-    And there is 2 rewards configured for the new-campaign reward config, with account holder set to None and deleted status set to false
-
+    And 2 unassigned rewards are generated for the old-campaign reward config with deleted status set to false
+    And 2 unassigned rewards are generated for the new-campaign reward config with deleted status set to false
 
   @bpl @asos @bpl-517 @bpl-516
   Scenario Outline: End campaign - delete/issue the pending rewards

@@ -9,10 +9,14 @@
 #     return func
 import time
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+from uuid import uuid4
 
 from retry_tasks_lib.db.models import RetryTask, TaskType, TaskTypeKey, TaskTypeKeyValue
 from sqlalchemy.future import select
+
+from db.cosmos.models import AccountHolder, Campaign, Retailer, Reward
+from tests.db_actions.cosmos import get_reward_config_id
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -41,3 +45,40 @@ def get_last_created_reward_issuance_task(carina_db_session: "Session", reward_c
             break
 
     return allocation_task
+
+
+def assign_rewards(
+    cosmos_db_session: "Session",
+    reward_slug: str,
+    retailer_config: Retailer,
+    standard_campaign: Campaign,
+    rewards_n: int,
+    deleted_status: str,
+    account_holder: Optional[AccountHolder],
+) -> list[Reward]:
+    account_holder = None if account_holder == "None" else account_holder
+    deleted_status_bool = deleted_status == "true"
+    reward_config_id = get_reward_config_id(cosmos_db_session=cosmos_db_session, reward_slug=reward_slug)
+    rewards: list[Reward] = []
+
+    if rewards_n > 0:
+        for i in range(rewards_n):
+            reward = Reward(
+                reward_uuid=str(uuid4()),
+                reward_config_id=reward_config_id,
+                account_holder_id=account_holder,
+                code=f"{reward_slug}/{i}",
+                deleted=deleted_status_bool,
+                issued_date=None,
+                expiry_date=None,
+                redeemed_date=None,
+                cancelled_date=None,
+                associated_url="abc@bink.com",
+                retailer_id=retailer_config.id,
+                campaign_id=standard_campaign.id,
+            )
+            cosmos_db_session.add(reward)
+            cosmos_db_session.commit()
+            rewards.append(reward)
+
+    return rewards

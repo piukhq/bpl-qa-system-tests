@@ -13,11 +13,14 @@ Feature: Reward already allocated and uploading status from 3rd party
     And the trenette-acc-campaign-1 campaign has an earn rule with a threshold of 100, an increment of 0, a multiplier of 1 and max amount of 0
     And the trenette-acc-campaign-1 campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
 
-    And there is 2 rewards configured for the 10percentoff reward config, with account holder set to None and deleted status set to false
+    And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
+
 
   @reward @bpl @bpl-299
   Scenario: Reward allocated in carina not found in polaris
-    Given an account holder reward with this reward uuid does not exist
+#    Given an account holder reward with this reward uuid does not exist
+
     When the trenette retailer updates selected rewards to redeemed status
+#    And the rewards are not allocated to an account holder
     Then the file is moved to the archive container by the reward importer
     And the imported rewards are soft deleted

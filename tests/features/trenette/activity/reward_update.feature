@@ -14,7 +14,7 @@ Feature: Bink BPL - Activity pending reward- total cost to user affected by refu
     And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of None, a multiplier of 1 and max amount of 0
     And the trenette-active-campaign campaign has reward rule with reward goal: 1000, allocation window: 2 and reward cap: 2
 
-    And there is 2 rewards configured for the 10percentoff reward config, with account holder set to None and deleted status set to false
+    And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
   @bpl-734-1 @bpl-734 @bpl
   Scenario: REWARD_UPDATE activity created when we process refund [slush=refund]

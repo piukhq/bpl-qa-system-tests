@@ -11,8 +11,7 @@ Feature: Bink BPL - Decoupling reward type
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
 
         And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And there is 5 rewards configured for the 10percentoff reward config, with allocation status set to false and deleted status set to false
-
+        And 5 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
     @bpl @campaign-accumulator @bpl-724 @bpl-589
     Scenario: Single reward slug can be used against multiple campaign - accumulator
 

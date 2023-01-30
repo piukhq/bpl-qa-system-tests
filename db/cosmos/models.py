@@ -39,14 +39,15 @@ class Campaign(Base):
     pending_rewards = relationship("PendingReward", back_populates="campaign")
     current_balances = relationship("CampaignBalance", back_populates="campaign")
     rewards = relationship("Reward", back_populates="campaign")
-    transactions = relationship("Transaction", secondary="transaction_campaign", back_populates="campaigns")
-    transaction_campaigns = relationship("TransactionCampaign", back_populates="campaign", overlaps="transactions")
+    # transactions = relationship("Transaction", secondary="transaction_earn", back_populates="campaigns")
+    # transaction_earn = relationship("TransactionEarn", back_populates="campaign", overlaps="transactions")
 
 
 class EarnRule(Base):
     __tablename__ = "earn_rule"
 
     campaign = relationship("Campaign", back_populates="earn_rule")
+    transaction_earns = relationship("TransactionEarn", back_populates="earn_rule")
 
 
 class RewardRule(Base):
@@ -166,18 +167,11 @@ class Transaction(Base):
     #     primaryjoin="Transaction.mid==RetailerStore.mid",
     #     foreign_keys=Column(String(128), nullable=False, index=True),
     # )
-    campaigns = relationship(
-        "Campaign", secondary="transaction_campaign", back_populates="transactions", overlaps="transaction_campaigns"
-    )
-    transaction_campaigns = relationship(
-        "TransactionCampaign", back_populates="transaction", overlaps="transactions,campaign"
-    )
+    transaction_earns = relationship("TransactionEarn", back_populates="transaction")
 
 
-class TransactionCampaign(Base):
-    __tablename__ = "transaction_campaign"
+class TransactionEarn(Base):
+    __tablename__ = "transaction_earn"
 
-    campaign = relationship(
-        "Campaign", uselist=False, back_populates="transaction_campaigns", overlaps="campaigns,transactions"
-    )
-    transaction = relationship("Transaction", back_populates="transaction_campaigns", overlaps="campaigns,transactions")
+    earn_rule = relationship("EarnRule", uselist=False, back_populates="transaction_earns")
+    transaction = relationship("Transaction", uselist=False, back_populates="transaction_earns")
