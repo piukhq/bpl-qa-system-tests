@@ -8,23 +8,29 @@ from time import sleep
 from typing import TYPE_CHECKING, Literal
 
 from faker import Faker
-from pytest_bdd import given, scenarios, then
+from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
+
 # Any,
 # import arrow
 # from retry_tasks_lib.enums import RetryTaskStatuses
 from sqlalchemy import select, sql
 
-from azure_actions.blob_storage import check_archive_blobcontainer
-from db.cosmos.models import Retailer, AccountHolder
-
-# from tests.db_actions.hubble import get_latest_activity_by_type
-from tests.db_actions.cosmos import Reward, get_reward_config_id, get_rewards, get_rewards_by_reward_config, get_account_holder_for_retailer
-
 # func,
 import settings
+
+from azure_actions.blob_storage import check_archive_blobcontainer
+from db.cosmos.models import AccountHolder, Retailer
 from tests.api.base import Endpoints
 
+# from tests.db_actions.hubble import get_latest_activity_by_type
+from tests.db_actions.cosmos import (
+    Reward,
+    get_account_holder_for_retailer,
+    get_reward_config_id,
+    get_rewards,
+    get_rewards_by_reward_config,
+)
 
 # from tests.db_actions.cosmos import (
 #     create_pending_rewards_with_all_value_for_existing_account_holder,
@@ -39,16 +45,17 @@ from tests.api.base import Endpoints
 #     ,
 #     get_campaign_status,
 # )
-# from tests.db_actions.retry_tasks import (
-#     get_latest_callback_task_for_account_holder,
-#     get_latest_task,
-#     get_retry_task_audit_data,
-#     get_tasks_by_type_and_key_value,
-# )
-# from tests.db_actions.reward import get_last_created_reward_issuance_task
+from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
 
 # from tests.db_actions.vela import
-from tests.requests.enrolment import (send_get_accounts)
+from tests.requests.enrolment import send_get_accounts
+
+# get_retry_task_audit_data,
+# get_tasks_by_type_and_key_value,
+
+# from tests.db_actions.reward import get_last_created_reward_issuance_task
+
+
 #     send_get_accounts_by_credential,
 #     send_number_of_accounts,
 #     send_number_of_accounts_by_post_credential,
@@ -193,73 +200,68 @@ def reward_gets_soft_deleted(cosmos_db_session: "Session", imported_reward_ids: 
 #     assert reward_config.status == status
 #
 #
-# # POLARIS CHECKS
-# # fmt: off
-# @then("the account holder is activated",
-#       target_fixture="account_holder")
-# # fmt: on
-# def account_holder_is_activated(polaris_db_session: "Session", retailer_config: RetailerConfig) -> AccountHolder:
-#     sleep(3)
-#     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-#
-#     for i in range(1, 18):  # 3 minute wait
-#         logging.info(
-#             f"Sleeping for 10 seconds while waiting for
-#             account activation (account holder id: {account_holder.id})..."
-#         )
-#         sleep(3)
-#         polaris_db_session.refresh(account_holder)
-#         if account_holder.status == "ACTIVE":
-#             break
-#     logging.info(
-#         "\n"
-#         f"  Account holder status : {account_holder.status}\n"
-#         f"  Account number: {account_holder.account_number}\n"
-#         f"  Account UUID: {account_holder.account_holder_uuid}"
-#     )
-#     assert account_holder.status == "ACTIVE"
-#     assert account_holder.account_number is not None
-#     assert account_holder.account_holder_uuid is not None
-#     assert account_holder.opt_out_token is not None
-#
-#     return account_holder
-#
-#
-# # fmt: off
-# @then("the account holder activation is started",
-#       target_fixture="account_holder")
-# # fmt: on
-# def the_account_holder_activation_is_started(
-#     polaris_db_session: "Session", retailer_config: RetailerConfig
-# ) -> AccountHolder:
-#     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-#     assert account_holder.status == "ACTIVE"
-#
-#     logging.info(
-#         f"\nAccount holder status : {account_holder.status}\n"
-#         f"Account number: {account_holder.account_number}\n"
-#         f"Account UUID: {account_holder.account_holder_uuid}"
-#     )
-#
-#     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
-#     logging.info(f"Response HTTP status code: {resp.status_code}")
-#     logging.info(
-#         f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-#         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
-#     )
-#
-#     assert resp.json()["UUID"] is not None
-#     assert resp.json()["email"] is not None
-#     assert resp.json()["status"] == "active"
-#     assert resp.json()["account_number"] is not None
-#     assert resp.json()["current_balances"] == [{"campaign_slug": "N/A", "value": 0}]
-#     assert resp.json()["transaction_history"] == []
-#     assert resp.json()["rewards"] == []
-#     assert resp.json()["pending_rewards"] == []
-#
-#     return account_holder
-#
-#
+# fmt: off
+@then("the account holder is activated", target_fixture="account_holder")
+# fmt: on
+def account_holder_is_activated(cosmos_db_session: "Session", retailer_config: Retailer) -> AccountHolder:
+    sleep(3)
+    account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
+
+    for i in range(1, 18):  # 3 minute wait
+        logging.info(
+            f"Sleeping for 10 seconds while waiting for account "
+            f"activation (account holder id: {account_holder.id})..."
+        )
+        sleep(3)
+        cosmos_db_session.refresh(account_holder)
+        if account_holder.status == "ACTIVE":
+            break
+    logging.info(
+        "\n"
+        f"  Account holder status : {account_holder.status}\n"
+        f"  Account number: {account_holder.account_number}\n"
+        f"  Account UUID: {account_holder.account_holder_uuid}"
+    )
+    assert account_holder.status == "ACTIVE"
+    assert account_holder.account_number is not None
+    assert account_holder.account_holder_uuid is not None
+    assert account_holder.opt_out_token is not None
+
+    return account_holder
+
+
+# fmt: off
+@then("the account holder activation is started", target_fixture="account_holder")
+# fmt: on
+def the_account_holder_activation_is_started(cosmos_db_session: "Session", retailer_config: Retailer) -> AccountHolder:
+    account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
+    assert account_holder.status == "ACTIVE"
+
+    logging.info(
+        f"\nAccount holder status : {account_holder.status}\n"
+        f"Account number: {account_holder.account_number}\n"
+        f"Account UUID: {account_holder.account_holder_uuid}"
+    )
+
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.ACCOUNTS_API_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+
+    assert resp.json()["UUID"] is not None
+    assert resp.json()["email"] is not None
+    assert resp.json()["status"] == "active"
+    assert resp.json()["account_number"] is not None
+    assert resp.json()["current_balances"] == [{"campaign_slug": "N/A", "value": 0}]
+    assert resp.json()["transaction_history"] == []
+    assert resp.json()["rewards"] == []
+    assert resp.json()["pending_rewards"] == []
+
+    return account_holder
+
+
 # # fmt: off
 # @then(parse("there is no balance shown for {campaign_slug} for account holder"))
 # # fmt: on
@@ -294,11 +296,12 @@ def check_returned_account_holder_campaign_balance(
     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
     logging.info(f"Response HTTP status code: {resp.status_code}")
     logging.info(
-        f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"Response of GET {settings.ACCOUNTS_API_BASE_URL}{Endpoints.ACCOUNTS}"
         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
     )
-    balance_for_campaign = {balance["campaign_slug"]: balance["value"]
-                            for balance in resp.json()["current_balances"]}[campaign_slug]
+    balance_for_campaign = {balance["campaign_slug"]: balance["value"] for balance in resp.json()["current_balances"]}[
+        campaign_slug
+    ]
     logging.info(f"the account holder's balance is: {int(balance_for_campaign * 100)}")
     assert int(balance_for_campaign * 100) == expected_amount
 
@@ -337,23 +340,23 @@ def check_account_balance(
 # ) -> None:
 #     balances = get_account_holder_balances_for_campaign(polaris_db_session, account_holders, campaign_slug)
 #     assert not balances
-#
-#
-# @then(parse("the account holder's {campaign_slug} balance does not exist"))
-# def check_account_holder_balance_no_longer_exists(
-#     campaign_slug: str,
-#     polaris_db_session: "Session",
-#     account_holder: AccountHolder,
-# ) -> None:
-#     for i in range(5):
-#         sleep(i)
-#         polaris_db_session.refresh(account_holder)
-#         balances_by_campaign_slug = {
-#             ahcb.campaign_slug: ahcb.balance for ahcb in account_holder.accountholdercampaignbalance_collection
-#         }
-#         if campaign_slug in balances_by_campaign_slug:
-#             continue
-#     assert campaign_slug not in balances_by_campaign_slug
+
+
+@then(parse("the account holder's {campaign_slug} balance does not exist"))
+def check_account_holder_balance_no_longer_exists(
+    campaign_slug: str,
+    cosmos_db_session: "Session",
+    account_holder: AccountHolder,
+) -> None:
+    for i in range(5):
+        sleep(i)
+        cosmos_db_session.refresh(account_holder)
+        balances_by_campaign_slug = {
+            ahcb.campaign_slug: ahcb.balance for ahcb in account_holder.accountholdercampaignbalance_collection
+        }
+        if campaign_slug in balances_by_campaign_slug:
+            continue
+    assert campaign_slug not in balances_by_campaign_slug
 
 
 @given("an account holder reward with this reward uuid does not exist")
@@ -753,88 +756,81 @@ def check_account_holder_reward_exists(available_rewards: list[Reward], cosmos_d
 #         if not campaign_status == CampaignStatuses.ENDED:
 #             continue
 #     assert campaign_status == CampaignStatuses.ENDED
-#
-#
-# # RETRY TASK CHECKS
-# @then(parse("a {retry_task} retryable error is received {number_of_time:d} time with {status_code:d} responses"))
-# def retry_task_error_received(
-#     polaris_db_session: "Session", retry_task: str, number_of_time: int, status_code: int
-# ) -> None:
-#
-#     for i in range(15):
-#         sleep(i)
-#         task = get_latest_task(polaris_db_session, task_name=retry_task)
-#         if task.audit_data is not None:
-#             break
-#
-#     for i, data in enumerate(task.audit_data):
-#         if i < number_of_time:
-#             assert data["response"]["status"] == 500
-#         elif i == number_of_time:
-#             assert data["response"]["status"] == 200
-#
-#
-# @then("an enrolment callback task is saved in the database")
-# def verify_callback_task_saved_in_db(polaris_db_session: "Session", retailer_config: RetailerConfig) -> None:
-#     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-#     callback_task = get_latest_callback_task_for_account_holder(polaris_db_session)
-#     assert callback_task is not None
-#     assert settings.MOCK_SERVICE_BASE_URL in callback_task.get_params()["callback_url"]
-#     assert callback_task.get_params()["third_party_identifier"] == "identifier"
-#     assert callback_task.get_params()["account_holder_id"] == account_holder.id
-#
-#
-# @then(parse("the {task_name} is retried {num_retried:d} time and successful on attempt {num_success:d}"))
-# def number_of_callback_attempts(
-#     polaris_db_session: "Session", task_name: str, num_retried: int, num_success: int
-# ) -> None:
-#     for i in range(5):
-#         sleep(i)
-#         task = get_latest_task(polaris_db_session, task_name)
-#         if task.attempts == num_success:
-#             break
-#     logging.info(f"{task_name} retried number of {num_retried} time ")
-#     assert task.attempts == num_success
-#
-#
-# # fmt: off
-# @when(parse("the {system} {task_name} task status is {task_status}"))
-# @then(parse("the {system} {task_name} task status is {task_status}"))
-# # fmt: on
-# def check_retry_task_status(
-#     polaris_db_session: "Session",
-#     vela_db_session: "Session",
-#     carina_db_session: "Session",
-#     system: Literal["polaris"] | Literal["vela"] | Literal["carina"],
-#     task_name: str,
-#     task_status: str,
-# ) -> None:
-#
-#     match system:
-#         case "polaris":
-#             db_session = polaris_db_session
-#         case "vela":
-#             db_session = vela_db_session
-#         case "carina":
-#             db_session = carina_db_session
-#         case _:
-#             raise ValueError("Unrecognised application")
-#
-#     for i in range(20):
-#         task = get_latest_task(db_session, task_name)
-#         if task is None:
-#             logging.info(f"No task found. Sleeping for {i} seconds...")
-#             sleep(i)
-#             continue
-#         if task.status.value == task_status:
-#             logging.info(f"{task.status} is {task_status}")
-#             break
-#         logging.info(f"Task status is {task.status}. Sleeping for {i} seconds...")
-#         sleep(i)
-#         db_session.refresh(task)
-#     assert task.status.value == task_status
-#
-#
+
+
+# RETRY TASK CHECKS
+@then(parse("a {retry_task} retryable error is received {number_of_time:d} time with {status_code:d} responses"))
+def retry_task_error_received(
+    cosmos_db_session: "Session", retry_task: str, number_of_time: int, status_code: int
+) -> None:
+
+    for i in range(15):
+        sleep(i)
+        task = get_latest_task(cosmos_db_session, task_name=retry_task)
+        if task.audit_data is not None:
+            break
+
+    for i, data in enumerate(task.audit_data):
+        if i < number_of_time:
+            assert data["response"]["status"] == 500
+        elif i == number_of_time:
+            assert data["response"]["status"] == 200
+
+
+@then("an enrolment callback task is saved in the database")
+def verify_callback_task_saved_in_db(cosmos_db_session: "Session", retailer_config: Retailer) -> None:
+    account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
+    callback_task = get_latest_callback_task_for_account_holder(cosmos_db_session)
+    assert callback_task is not None
+    assert settings.MOCK_SERVICE_BASE_URL in callback_task.get_params()["callback_url"]
+    assert callback_task.get_params()["third_party_identifier"] == "identifier"
+    assert callback_task.get_params()["account_holder_id"] == account_holder.id
+
+
+@then(parse("the {task_name} is retried {num_retried:d} time and successful on attempt {num_success:d}"))
+def number_of_callback_attempts(
+    cosmos_db_session: "Session", task_name: str, num_retried: int, num_success: int
+) -> None:
+    for i in range(5):
+        sleep(i)
+        task = get_latest_task(cosmos_db_session, task_name)
+        if task.attempts == num_success:
+            break
+    logging.info(f"{task_name} retried number of {num_retried} time ")
+    assert task.attempts == num_success
+
+
+# fmt: off
+@when(parse("the {system} {task_name} task status is {task_status}"))
+@then(parse("the {system} {task_name} task status is {task_status}"))
+# fmt: on
+def check_retry_task_status(cosmos_db_session: "Session", task_name: str, task_status: str) -> None:
+
+    # match system:
+    #     case "polaris":
+    #         db_session = polaris_db_session
+    #     case "vela":
+    #         db_session = vela_db_session
+    #     case "carina":
+    #         db_session = carina_db_session
+    #     case _:
+    #         raise ValueError("Unrecognised application")
+
+    for i in range(20):
+        task = get_latest_task(cosmos_db_session, task_name)
+        if task is None:
+            logging.info(f"No task found. Sleeping for {i} seconds...")
+            sleep(i)
+            continue
+        if task.status.value == task_status:
+            logging.info(f"{task.status} is {task_status}")
+            break
+        logging.info(f"Task status is {task.status}. Sleeping for {i} seconds...")
+        sleep(i)
+        cosmos_db_session.refresh(task)
+    assert task.status.value == task_status
+
+
 # @then(parse("the {retry_task} did not find rewards and return {status_code:d}"))
 # def retry_task_not_found_rewards(carina_db_session: "Session", retry_task: str, status_code: int) -> None:
 #

@@ -67,6 +67,7 @@ BLOB_IMPORT_SCHEDULE=* * * * *
 PROMETHEUS_HTTP_SERVER_PORT=9300
 PRE_LOADED_REWARD_BASE_URL=http://reward-base.url%
 ACTIVITY_DB=hubble_auto
+PUBLIC_URL=http://localhost:8000
 EOF
     )
 
@@ -215,9 +216,8 @@ run_services() {
         tmux select-layout tiled
     done
 
-    for proj in polaris vela carina; do
-        rm -rf $PROMETHEUS_ROOT_DIR/$proj/*
-    done
+    rm -rf $PROMETHEUS_ROOT_DIR/cosmos/*
+
 
     # tmux gui formatting
     tmux set -g mouse on
