@@ -9,13 +9,13 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-def get_latest_callback_task_for_account_holder(polaris_db_session: "Session") -> RetryTask:
+def get_latest_callback_task_for_account_holder(cosmos_db_session: "Session") -> RetryTask:
     task_name = "enrolment-callback"
-    task_type = get_task_type_from_task_name(polaris_db_session, task_name)
+    task_type = get_task_type_from_task_name(cosmos_db_session, task_name)
     for i in (1, 3, 5, 10):
         time.sleep(i)
         callback_task = (
-            polaris_db_session.execute(
+            cosmos_db_session.execute(
                 select(RetryTask)
                 .where(RetryTask.task_type_id == task_type.task_type_id)
                 .order_by(RetryTask.created_at.desc())

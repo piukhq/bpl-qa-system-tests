@@ -76,6 +76,7 @@ from settings import (
     HUBBLE_DATABASE_URI,
     HUBBLE_TEMPLATE_DB_NAME,
     SQL_DEBUG,
+    MOCK_SERVICE_BASE_URL
 )
 from tests.db_actions.cosmos import (
     create_balance_for_account_holder,
@@ -85,21 +86,22 @@ from tests.db_actions.cosmos import (
 )
 from tests.db_actions.reward import assign_rewards
 
-# from tests.requests.enrolment import send_get_accounts, send_post_enrolment
-# from tests.requests.status_change import send_post_campaign_status_change
+from tests.requests.enrolment import send_post_enrolment
+# send_get_accounts,
+from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.redis import pause_redis, unpause_redis
 
 #     VELA_DATABASE_URI,
 #     VELA_TEMPLATE_DB_NAME,
-#     redis, REDIS_URL,MOCK_SERVICE_BASE_URL,
+#     redis, REDIS_URL,
 #     POLARIS_DATABASE_URI,
 #     POLARIS_TEMPLATE_DB_NAME,
 #     CARINA_DATABASE_URI,
 #     CARINA_TEMPLATE_DB_NAME,
 
-# from tests.api.base import Endpoints, get_callback_url
+from tests.api.base import Endpoints, get_callback_url
 
 
 if TYPE_CHECKING:
@@ -548,80 +550,80 @@ def setup_account_holder(
 #             )
 #         )
 #     return account_holders
-#
-#
-# # fmt: off
-# @when(parse("an account holder is enrolled passing in all required and optional fields with a callback URL for "
-#             "{num_failures:d} consecutive HTTP {status_code:d} responses"))
-# # fmt: on
-# def post_enrolment_with_known_repeated_callback(
-#     retailer_config: RetailerConfig, num_failures: int, status_code: int
-# ) -> None:
-#     enrol_account_holder(
-#         retailer_config, callback_url=get_callback_url(num_failures=num_failures, status_code=status_code)
-#     )
-#
-#
-# @given(parse("I enrol an account holder passing in all required and all optional fields"))
-# @when(parse("I enrol an account holder passing in all required and all optional fields"))
-# @when(parse("the account holder enrol to retailer with all required and all optional fields"))
-# def enrol_accountholder_with_all_required_fields(retailer_config: RetailerConfig) -> None:
-#     return enrol_account_holder(retailer_config)
-#
-#
-# def enrol_account_holder(
-#     retailer_config: RetailerConfig,
-#     incl_optional_fields: bool = True,
-#     callback_url: str | None = None,
-# ) -> None:
-#     if incl_optional_fields:
-#         request_body = all_required_and_all_optional_credentials(callback_url=callback_url)
-#     else:
-#         request_body = only_required_credentials()
-#     resp = send_post_enrolment(retailer_config.slug, request_body)
-#     time.sleep(3)
-#     logging.info(
-#         f"Response HTTP status code for enrolment: {resp.status_code} "
-#         f"Response status: {json.dumps(resp.json(), indent=4)}"
-#     )
-#     assert resp.status_code == 202
-#     logging.info(f"Account holder response: {resp}")
-#
-#
-# def all_required_and_all_optional_credentials(callback_url: str | None = None) -> dict:
-#     payload = {
-#         "credentials": _get_credentials(),
-#         "marketing_preferences": [{"key": "marketing_pref", "value": True}],
-#         "callback_url": callback_url or f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
-#         "third_party_identifier": "identifier",
-#     }
-#     logging.info("`Request body for POST Enrol: " + json.dumps(payload, indent=4))
-#     return payload
-#
-#
-# def _get_credentials() -> dict:
-#     return {
-#         "email": f"qa_pytest_{uuid4()}@bink.com",
-#         "first_name": fake.first_name(),
-#         "last_name": fake.last_name(),
-#     }
-#
-#
-# def only_required_credentials() -> dict:
-#     credentials = _get_credentials()
-#     del credentials["address_line2"]
-#     del credentials["postcode"]
-#     del credentials["city"]
-#     payload = {
-#         "credentials": credentials,
-#         "marketing_preferences": [{"key": "marketing_pref", "value": True}],
-#         "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
-#         "third_party_identifier": "identifier",
-#     }
-#     logging.info("Request body for POST Enrol: " + json.dumps(payload, indent=4))
-#     return payload
-#
-#
+
+
+# fmt: off
+@when(parse("an account holder is enrolled passing in all required and optional fields with a callback URL for "
+            "{num_failures:d} consecutive HTTP {status_code:d} responses"))
+# fmt: on
+def post_enrolment_with_known_repeated_callback(
+    retailer_config: Retailer, num_failures: int, status_code: int
+) -> None:
+    enrol_account_holder(
+        retailer_config, callback_url=get_callback_url(num_failures=num_failures, status_code=status_code)
+    )
+
+
+@given(parse("I enrol an account holder passing in all required and all optional fields"))
+@when(parse("I enrol an account holder passing in all required and all optional fields"))
+@when(parse("the account holder enrol to retailer with all required and all optional fields"))
+def enrol_accountholder_with_all_required_fields(retailer_config: Retailer) -> None:
+    return enrol_account_holder(retailer_config)
+
+
+def enrol_account_holder(
+    retailer_config: Retailer,
+    incl_optional_fields: bool = True,
+    callback_url: str | None = None,
+) -> None:
+    if incl_optional_fields:
+        request_body = all_required_and_all_optional_credentials(callback_url=callback_url)
+    else:
+        request_body = only_required_credentials()
+    resp = send_post_enrolment(retailer_config.slug, request_body)
+    time.sleep(3)
+    logging.info(
+        f"Response HTTP status code for enrolment: {resp.status_code} "
+        f"Response status: {json.dumps(resp.json(), indent=4)}"
+    )
+    assert resp.status_code == 202
+    logging.info(f"Account holder response: {resp}")
+
+
+def all_required_and_all_optional_credentials(callback_url: str | None = None) -> dict:
+    payload = {
+        "credentials": _get_credentials(),
+        "marketing_preferences": [{"key": "marketing_pref", "value": True}],
+        "callback_url": callback_url or f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
+        "third_party_identifier": "identifier",
+    }
+    logging.info("`Request body for POST Enrol: " + json.dumps(payload, indent=4))
+    return payload
+
+
+def _get_credentials() -> dict:
+    return {
+        "email": f"qa_pytest_{uuid4()}@bink.com",
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
+    }
+
+
+def only_required_credentials() -> dict:
+    credentials = _get_credentials()
+    del credentials["address_line2"]
+    del credentials["postcode"]
+    del credentials["city"]
+    payload = {
+        "credentials": credentials,
+        "marketing_preferences": [{"key": "marketing_pref", "value": True}],
+        "callback_url": f"{MOCK_SERVICE_BASE_URL}/enrol/callback/success",
+        "third_party_identifier": "identifier",
+    }
+    logging.info("Request body for POST Enrol: " + json.dumps(payload, indent=4))
+    return payload
+
+
 # # fmt: off
 # @given(parse("the account holders each have {num_rewards:d} {reward_status} rewards for the {campaign_slug} "
 #              "campaign with the {reward_slug} reward slug expiring {expiring}"))
@@ -951,28 +953,28 @@ def the_account_holder_transaction_request(
     post_transaction_request(payload, retailer_config.slug, request_context)
 
 
-# # fmt: off
-# @given(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
-# @when(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
-# # fmt: on
-# def send_post_campaign_change_request(
-#     request_context: dict,
-#     status: str,
-#     retailer_config: RetailerConfig,
-#     campaign_slug: str,
-# ) -> None:
-#     payload: dict[str, Any] = {
-#         "requested_status": status,
-#         "campaign_slugs": [campaign_slug],
-#         "activity_metadata": {"sso_username": "qa_auto"},
-#     }
-#
-#     request = send_post_campaign_status_change(
-#         request_context=request_context, retailer_slug=retailer_config.slug, request_body=payload
-#     )
-#     assert request.status_code == 200
-#
-#
+# fmt: off
+@given(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
+@when(parse("the retailer's {campaign_slug} campaign status is changed to {status}"))
+# fmt: on
+def send_post_campaign_change_request(
+    request_context: dict,
+    status: str,
+    retailer_config: Retailer,
+    campaign_slug: str,
+) -> None:
+    payload: dict[str, Any] = {
+        "requested_status": status,
+        "campaign_slugs": [campaign_slug],
+        "activity_metadata": {"sso_username": "qa_auto"},
+    }
+
+    request = send_post_campaign_status_change(
+        request_context=request_context, retailer_slug=retailer_config.slug, request_body=payload
+    )
+    assert request.status_code == 200
+
+
 # # RETRY TASK FIXTURES
 # # fmt: off
 # @when(parse("each account holder has a queued reward-adjustment task for the {campaign_slug} campaign with an "

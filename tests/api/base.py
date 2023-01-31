@@ -8,8 +8,8 @@ import settings
 from settings import (
     CAMPAINGS_API_BASE_URL,
     POLARIS_API_AUTH_TOKEN,
-    POLARIS_BASE_URL,
     TRANSACTIONS_API_BASE_URL,
+    ACCOUNTS_API_BASE_URL,
     VELA_API_AUTH_TOKEN,
 )
 
@@ -43,10 +43,6 @@ def get_polaris_headers(channel_header: bool = True, valid_token: bool = True) -
     return headers
 
 
-def get_polaris_url(retailer_slug: str, endpoint: Endpoints) -> str:
-    return f"{POLARIS_BASE_URL}/{retailer_slug}" + endpoint
-
-
 def get_vela_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
     if valid_token:
         auth_token = VELA_API_AUTH_TOKEN
@@ -65,12 +61,15 @@ def get_vela_headers(channel_header: bool = True, valid_token: bool = True) -> d
     return headers
 
 
+def get_accounts_url(retailer_slug: str, endpoint: Endpoints) -> str:
+    return f"{ACCOUNTS_API_BASE_URL}/{retailer_slug}" + endpoint
+
+
 def get_transaction_api(retailer_slug: str) -> str:
     return f"{TRANSACTIONS_API_BASE_URL}/" + retailer_slug
 
 
-def get_campaign_mangt(retailer_slug: str, endpoint: Endpoints) -> str:
-    # return f"{VELA_BASE_URL}/{retailer_slug}" + endpoint
+def get_campaign_mngt(retailer_slug: str, endpoint: Endpoints) -> str:
     return f"{CAMPAINGS_API_BASE_URL}/" + retailer_slug + endpoint
 
 
