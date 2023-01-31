@@ -6,10 +6,10 @@ from enum import Enum
 import settings
 
 from settings import (
+    ACCOUNTS_API_BASE_URL,
     CAMPAINGS_API_BASE_URL,
     POLARIS_API_AUTH_TOKEN,
     TRANSACTIONS_API_BASE_URL,
-    ACCOUNTS_API_BASE_URL,
     VELA_API_AUTH_TOKEN,
 )
 

@@ -10,7 +10,6 @@ from datetime import datetime
 # , timedelta, timezone
 from time import sleep
 from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
-
 from uuid import uuid4
 
 import arrow
@@ -75,9 +74,10 @@ from settings import (
     COSMOS_TEMPLATE_DB_NAME,
     HUBBLE_DATABASE_URI,
     HUBBLE_TEMPLATE_DB_NAME,
+    MOCK_SERVICE_BASE_URL,
     SQL_DEBUG,
-    MOCK_SERVICE_BASE_URL
 )
+from tests.api.base import get_callback_url
 from tests.db_actions.cosmos import (
     create_balance_for_account_holder,
     get_campaign_by_slug,
@@ -85,8 +85,8 @@ from tests.db_actions.cosmos import (
     get_retailer_id,
 )
 from tests.db_actions.reward import assign_rewards
-
 from tests.requests.enrolment import send_post_enrolment
+
 # send_get_accounts,
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
@@ -100,8 +100,6 @@ from tests.shared_utils.redis import pause_redis, unpause_redis
 #     POLARIS_TEMPLATE_DB_NAME,
 #     CARINA_DATABASE_URI,
 #     CARINA_TEMPLATE_DB_NAME,
-
-from tests.api.base import Endpoints, get_callback_url
 
 
 if TYPE_CHECKING:
@@ -556,9 +554,7 @@ def setup_account_holder(
 @when(parse("an account holder is enrolled passing in all required and optional fields with a callback URL for "
             "{num_failures:d} consecutive HTTP {status_code:d} responses"))
 # fmt: on
-def post_enrolment_with_known_repeated_callback(
-    retailer_config: Retailer, num_failures: int, status_code: int
-) -> None:
+def post_enrolment_with_known_repeated_callback(retailer_config: Retailer, num_failures: int, status_code: int) -> None:
     enrol_account_holder(
         retailer_config, callback_url=get_callback_url(num_failures=num_failures, status_code=status_code)
     )

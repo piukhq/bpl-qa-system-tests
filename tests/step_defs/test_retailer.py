@@ -32,9 +32,6 @@ from tests.db_actions.cosmos import (
     get_rewards_by_reward_config,
 )
 
-# from tests.db_actions.vela import
-from tests.requests.enrolment import send_get_accounts
-
 # from tests.db_actions.cosmos import (
 #     create_pending_rewards_with_all_value_for_existing_account_holder,
 #     get_account_holder_balances_for_campaign,
@@ -48,9 +45,13 @@ from tests.requests.enrolment import send_get_accounts
 #     ,
 #     get_campaign_status,
 # )
-from tests.db_actions.retry_tasks import (get_latest_callback_task_for_account_holder, get_latest_task)
-    # get_retry_task_audit_data,
-    # get_tasks_by_type_and_key_value,
+from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
+
+# from tests.db_actions.vela import
+from tests.requests.enrolment import send_get_accounts
+
+# get_retry_task_audit_data,
+# get_tasks_by_type_and_key_value,
 
 # from tests.db_actions.reward import get_last_created_reward_issuance_task
 
@@ -200,15 +201,17 @@ def reward_gets_soft_deleted(cosmos_db_session: "Session", imported_reward_ids: 
 #
 #
 # fmt: off
-@then("the account holder is activated",target_fixture="account_holder")
+@then("the account holder is activated", target_fixture="account_holder")
 # fmt: on
 def account_holder_is_activated(cosmos_db_session: "Session", retailer_config: Retailer) -> AccountHolder:
     sleep(3)
     account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
 
     for i in range(1, 18):  # 3 minute wait
-        logging.info(f"Sleeping for 10 seconds while waiting for account "
-                     f"activation (account holder id: {account_holder.id})...")
+        logging.info(
+            f"Sleeping for 10 seconds while waiting for account "
+            f"activation (account holder id: {account_holder.id})..."
+        )
         sleep(3)
         cosmos_db_session.refresh(account_holder)
         if account_holder.status == "ACTIVE":
@@ -230,9 +233,7 @@ def account_holder_is_activated(cosmos_db_session: "Session", retailer_config: R
 # fmt: off
 @then("the account holder activation is started", target_fixture="account_holder")
 # fmt: on
-def the_account_holder_activation_is_started(
-    cosmos_db_session: "Session", retailer_config: Retailer
-) -> AccountHolder:
+def the_account_holder_activation_is_started(cosmos_db_session: "Session", retailer_config: Retailer) -> AccountHolder:
     account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
     assert account_holder.status == "ACTIVE"
 
@@ -298,7 +299,9 @@ def check_returned_account_holder_campaign_balance(
         f"Response of GET {settings.ACCOUNTS_API_BASE_URL}{Endpoints.ACCOUNTS}"
         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
     )
-    balance_for_campaign = {balance["campaign_slug"]: balance["value"] for balance in resp.json()["current_balances"]}[campaign_slug]
+    balance_for_campaign = {balance["campaign_slug"]: balance["value"] for balance in resp.json()["current_balances"]}[
+        campaign_slug
+    ]
     logging.info(f"the account holder's balance is: {int(balance_for_campaign * 100)}")
     assert int(balance_for_campaign * 100) == expected_amount
 

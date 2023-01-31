@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from tests.api.base import Endpoints, get_polaris_headers, get_accounts_url
+from tests.api.base import Endpoints, get_accounts_url, get_polaris_headers
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
