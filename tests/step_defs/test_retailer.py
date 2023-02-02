@@ -7,12 +7,13 @@ import time
 from time import sleep
 from typing import TYPE_CHECKING, Literal
 
+# Any,
+import arrow
+
 from faker import Faker
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 
-# Any,
-# import arrow
 # from retry_tasks_lib.enums import RetryTaskStatuses
 from sqlalchemy import select, sql
 
@@ -20,12 +21,13 @@ from sqlalchemy import select, sql
 import settings
 
 from azure_actions.blob_storage import check_archive_blobcontainer
-from db.cosmos.models import AccountHolder, Retailer
+from db.cosmos.models import AccountHolder, PendingReward, Retailer
 from tests.api.base import Endpoints
 
 # from tests.db_actions.hubble import get_latest_activity_by_type
 from tests.db_actions.cosmos import (
     Reward,
+    create_pending_rewards_with_all_value_for_existing_account_holder,
     get_account_holder_for_retailer,
     get_reward_config_id,
     get_rewards,
@@ -33,16 +35,13 @@ from tests.db_actions.cosmos import (
 )
 
 # from tests.db_actions.cosmos import (
-#     create_pending_rewards_with_all_value_for_existing_account_holder,
 #     get_account_holder_balances_for_campaign,
-#
 #     get_account_holder_reward,
 #     get_ordered_pending_rewards,
 #     get_pending_rewards,
 #     update_account_holder_pending_rewards_conversion_date,
 #     Campaign,
 #     Retailer,
-#     ,
 #     get_campaign_status,
 # )
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
@@ -669,39 +668,39 @@ def check_account_holder_reward_exists(available_rewards: list[Reward], cosmos_d
 #         f"\nThe {list_position} pending reward value is : {pending_reward.value} "
 #         f"\nThe {list_position} pending reward total cost to user is : {pending_reward.total_cost_to_user}"
 #     )
-#
-#
-# # fmt: off
-# @when(parse("the account has a pending rewards with count of {prr_count:d}, value {value:d}, "
-#             "total cost to user {total_cost_to_user:d} for {campaign_slug} campaign and {reward_slug} "
-#             "reward slug with a conversion date {converting}"))
-# # fmt: on
-# def update_existing_account_holder_with_pending_rewards(
-#     account_holder: AccountHolder,
-#     retailer_config: RetailerConfig,
-#     prr_count: int,
-#     value: int,
-#     total_cost_to_user: int,
-#     polaris_db_session: "Session",
-#     campaign_slug: str,
-#     reward_slug: str,
-#     converting: str,
-# ) -> AccountHolderPendingReward:
-#
-#     pending_rewards = create_pending_rewards_with_all_value_for_existing_account_holder(
-#         polaris_db_session,
-#         retailer_config.slug,
-#         arrow.utcnow().dehumanize(converting).date(),
-#         prr_count,
-#         value,
-#         total_cost_to_user,
-#         account_holder.id,
-#         campaign_slug,
-#         reward_slug,
-#     )
-#     return pending_rewards
-#
-#
+
+
+# fmt: off
+@when(parse("the account has a pending rewards with count of {prr_count:d}, value {value:d}, "
+            "total cost to user {total_cost_to_user:d} for {campaign_slug} campaign and {reward_slug} "
+            "reward slug with a conversion date {converting}"))
+# fmt: on
+def update_existing_account_holder_with_pending_rewards(
+    account_holder: AccountHolder,
+    retailer_config: Retailer,
+    prr_count: int,
+    value: int,
+    total_cost_to_user: int,
+    polaris_db_session: "Session",
+    campaign_slug: str,
+    reward_slug: str,
+    converting: str,
+) -> PendingReward:
+
+    pending_rewards = create_pending_rewards_with_all_value_for_existing_account_holder(
+        polaris_db_session,
+        retailer_config.slug,
+        arrow.utcnow().dehumanize(converting).date(),
+        prr_count,
+        value,
+        total_cost_to_user,
+        account_holder.id,
+        campaign_slug,
+        reward_slug,
+    )
+    return pending_rewards
+
+
 # @when(parse("the account's pending rewards conversion date is {conversion_date} for {campaign_slug} campaign"))
 # def convert_pending_reward_conversion_date_to_now(
 #     polaris_db_session: "Session",
@@ -709,7 +708,7 @@ def check_account_holder_reward_exists(available_rewards: list[Reward], cosmos_d
 #     retailer_config: RetailerConfig,
 #     conversion_date: str,
 #     campaign_slug: str,
-# ) -> AccountHolderPendingReward:
+# ) -> PendingReward:
 #     return update_account_holder_pending_rewards_conversion_date(
 #         polaris_db_session,
 #         account_holder,
@@ -805,17 +804,6 @@ def number_of_callback_attempts(
 @then(parse("the {system} {task_name} task status is {task_status}"))
 # fmt: on
 def check_retry_task_status(cosmos_db_session: "Session", task_name: str, task_status: str) -> None:
-
-    # match system:
-    #     case "polaris":
-    #         db_session = polaris_db_session
-    #     case "vela":
-    #         db_session = vela_db_session
-    #     case "carina":
-    #         db_session = carina_db_session
-    #     case _:
-    #         raise ValueError("Unrecognised application")
-
     for i in range(20):
         task = get_latest_task(cosmos_db_session, task_name)
         if task is None:
