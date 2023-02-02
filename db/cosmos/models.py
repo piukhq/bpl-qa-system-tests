@@ -111,10 +111,12 @@ class FetchType(Base):
 
     retailer = relationship("Retailer", back_populates="fetch_types", secondary="retailer_fetch_type")
     reward_configs = relationship("RewardConfig", back_populates="fetch_type")
+    retailer_fetch_type = relationship("RetailerFetchType", back_populates="fetch_type")
 
 
 class RetailerFetchType(Base):
     __tablename__ = "retailer_fetch_type"
+    fetch_type = relationship("FetchType", back_populates="retailer_fetch_type")
 
 
 class CampaignBalance(Base):

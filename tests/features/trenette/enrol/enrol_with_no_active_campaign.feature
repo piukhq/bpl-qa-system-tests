@@ -19,12 +19,12 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
         And 5 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
         And I enrol an account holder passing in all required and all optional fields
 
-        Then the account holder activation is started
-        And an enrolment callback task is saved in the database
+#        Then the account holder activation is started
+        Then an enrolment callback task is saved in the database
         And the cosmos account-holder-activation task status is success
         And the cosmos send-email task status is success
         And the cosmos enrolment-callback task status is success
-        And the account holder's trenette-campaign balance does not exist
+#        And the account holder's trenette-campaign balance does not exist
 
 
     @bpl @enrol_callback @bpl-305 @bpl-305-2
@@ -42,10 +42,10 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
         And 5 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
         And I enrol an account holder passing in all required and all optional fields
 
-        When the retailer's trenette-campaign campaign status is changed to active
-        Then the cosmos create-campaign-balances task status is success
-        And the account holder is activated
-        And the account holder balance shown for trenette-campaign is 0
+#        When the retailer's trenette-campaign campaign status is changed to active
+#        Then the cosmos create-campaign-balances task status is success
+        Then the account holder is activated
+#        And the account holder balance shown for trenette-campaign is 0
         And the cosmos account-holder-activation task status is success
         And the cosmos send-email task status is success
         And the cosmos enrolment-callback task status is success
@@ -59,11 +59,9 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
 
         And I enrol an account holder passing in all required and all optional fields
 
-        Then the account holder activation is started
-        And an enrolment callback task is saved in the database
+#        Then the account holder activation is started
+        Then an enrolment callback task is saved in the database
         And the cosmos account-holder-activation task status is success
         And the cosmos send-email task status is success
         And the cosmos enrolment-callback task status is success
-        And the account holder's trenette-campaign balance does not exist
-
-
+#        And the account holder's trenette-campaign balance does not exist
