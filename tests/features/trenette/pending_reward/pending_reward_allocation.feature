@@ -21,6 +21,6 @@ Feature: Bink BPL - Ensure a Pending reward is allocated to account holder when 
     Given an active account holder exists for the retailer
     And the account has 1 pending rewards for the trenette-active-campaign campaign and 10percentoff reward slug with value 700
     When the account's pending rewards conversion date is in 0 days for trenette-active-campaign campaign
-    Then the polaris pending-reward-allocation task status is success
-    And the carina reward-issuance task status is success
+    Then the cosmos pending-reward-allocation task status is success
+    And the cosmos reward-issuance task status is success
     And 1 issued rewards are available to the account holder for the trenette-active-campaign campaign

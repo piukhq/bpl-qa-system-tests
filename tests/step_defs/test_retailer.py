@@ -2,7 +2,6 @@ import json
 import logging
 import time
 
-#
 # from collections import defaultdict
 from time import sleep
 from typing import TYPE_CHECKING, Literal
@@ -24,7 +23,7 @@ from azure_actions.blob_storage import check_archive_blobcontainer
 from db.cosmos.models import AccountHolder, PendingReward, Retailer
 from tests.api.base import Endpoints
 
-# from tests.db_actions.hubble import get_latest_activity_by_type
+from tests.db_actions.hubble import get_latest_activity_by_type
 from tests.db_actions.cosmos import (
     Reward,
     create_pending_rewards_with_all_value_for_existing_account_holder,
@@ -47,7 +46,7 @@ from tests.db_actions.cosmos import (
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
 
 # from tests.db_actions.vela import
-from tests.requests.enrolment import send_get_accounts
+from tests.requests.enrolment import send_get_accounts, send_post_enrolment
 
 # get_retry_task_audit_data,
 # get_tasks_by_type_and_key_value,
@@ -58,7 +57,6 @@ from tests.requests.enrolment import send_get_accounts
 #     send_get_accounts_by_credential,
 #     send_number_of_accounts,
 #     send_number_of_accounts_by_post_credential,
-#     send_post_enrolment,
 # )
 # from tests.requests.status_change import send_post_campaign_status_change
 # from tests.shared_utils.response_fixtures.errors import TransactionResponses
@@ -276,17 +274,17 @@ def the_account_holder_activation_is_started(cosmos_db_session: "Session", retai
 #     )
 #     for i in range(len(resp.json()["current_balances"])):
 #         assert resp.json()["current_balances"][i]["campaign_slug"] != campaign_slug
-#
-#
-# @then(parse("the newly enrolled account holder's {campaign_slug} balance is {amount:d}"))
-# def get_account_and_check_balance(
-#     polaris_db_session: "Session", campaign_slug: str, amount: int, retailer_config: RetailerConfig
-# ) -> None:
-#     time.sleep(2)
-#     account_holder = get_account_holder_for_retailer(polaris_db_session, retailer_config.id)
-#     polaris_db_session.refresh(account_holder)
-#     balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
-#     assert balances_by_slug[campaign_slug].balance == amount
+
+
+@then(parse("the newly enrolled account holder's {campaign_slug} balance is {amount:d}"))
+def get_account_and_check_balance(
+    cosmos_db_session: "Session", campaign_slug: str, amount: int, retailer_config: Retailer
+) -> None:
+    time.sleep(2)
+    account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
+    cosmos_db_session.refresh(account_holder)
+    balances_by_slug = {ahcb.campaign_slug: ahcb for ahcb in account_holder.accountholdercampaignbalance_collection}
+    assert balances_by_slug[campaign_slug].balance == amount
 
 
 def check_returned_account_holder_campaign_balance(
@@ -918,66 +916,66 @@ def available_reward_codes_in_carina(
     assert all([reward.code for reward in new_uploaded_rewards]), "Rewards not available"
 
 
-# @then(parse("there is {activity_type} activity appeared"))
-# def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> None:
-#     for i in range(30):
-#         time.sleep(i)
-#         activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
-#
-#         if activity is not None:
-#             break
-#         logging.info(f"waiting {i} seconds for activity appear")
-#
-#     assert activity.type == activity_type
-#     logging.info(f"Activity type {activity.type} occurred")
-#
-#
-# @then(parse("{activity_type} activity has result field {field_value} as {result_field}"))
-# def activity_data_field(activity_type: str,
-# field_value: str, result_field: str, hubble_db_session: "Session") -> None:
-#     for i in range(15):
-#         time.sleep(i)
-#         activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
-#         if activity is not None:
-#             break
-#
-#     assert activity.data[field_value] == result_field
-#     logging.info(f"Activity Type {activity_type} result field: {activity.data['result']}")
-#
+@then(parse("there is {activity_type} activity appeared"))
+def activity_type_appeared(activity_type: str, hubble_db_session: "Session") -> None:
+    for i in range(30):
+        time.sleep(i)
+        activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
 
-# @when("I enrol a same account holder again")
-# def enrolment_again(retailer_config: "RetailerConfig") -> None:
-#     request_body = {
-#         "credentials": _get_credentials(),
-#         "marketing_preferences": [{"key": "marketing_pref", "value": True}],
-#         "callback_url": f"{settings.MOCK_SERVICE_BASE_URL}/enrol/callback/success",
-#         "third_party_identifier": "identifier",
-#     }
-#     resp = send_post_enrolment(retailer_config.slug, request_body)
-#     assert resp.status_code == 202
-#
-#     duplicate_resp = send_post_enrolment(retailer_config.slug, request_body)
-#     assert duplicate_resp.status_code == 409
-#
-#
-# def _get_credentials() -> dict:
-#     return {
-#         "email": "qa_pytest_dulpicate@bink.com",
-#         "first_name": fake.first_name(),
-#         "last_name": fake.last_name(),
-#     }
-#
-#
-# @when(parse("I enrol an account holder without {enrolment_field} field"))
-# def enrolment_without_field(enrolment_field: str, retailer_config: "RetailerConfig") -> None:
-#     credentials = _get_credentials()
-#     del credentials["first_name"]
-#     request_body = {
-#         "credentials": credentials,
-#         "marketing_preferences": [{"key": "marketing_pref", "value": True}],
-#         "callback_url": f"{settings.MOCK_SERVICE_BASE_URL}/enrol/callback/success",
-#         "third_party_identifier": "identifier",
-#     }
-#     logging.info("Request body for POST Enrol: " + json.dumps(request_body, indent=4))
-#     resp = send_post_enrolment(retailer_config.slug, request_body)
-#     assert resp.status_code == 422
+        if activity is not None:
+            break
+        logging.info(f"waiting {i} seconds for activity appear")
+
+    assert activity.type == activity_type
+    logging.info(f"Activity type {activity.type} occurred")
+
+
+@then(parse("{activity_type} activity has result field {field_value} as {result_field}"))
+def activity_data_field(activity_type: str,
+field_value: str, result_field: str, hubble_db_session: "Session") -> None:
+    for i in range(15):
+        time.sleep(i)
+        activity = get_latest_activity_by_type(hubble_db_session=hubble_db_session, activity_type=activity_type)
+        if activity is not None:
+            break
+
+    assert activity.data[field_value] == result_field
+    logging.info(f"Activity Type {activity_type} result field: {activity.data['result']}")
+
+
+@when("I enrol a same account holder again")
+def enrolment_again(retailer_config: "RetailerConfig") -> None:
+    request_body = {
+        "credentials": _get_credentials(),
+        "marketing_preferences": [{"key": "marketing_pref", "value": True}],
+        "callback_url": f"{settings.MOCK_SERVICE_BASE_URL}/enrol/callback/success",
+        "third_party_identifier": "identifier",
+    }
+    resp = send_post_enrolment(retailer_config.slug, request_body)
+    assert resp.status_code == 202
+
+    duplicate_resp = send_post_enrolment(retailer_config.slug, request_body)
+    assert duplicate_resp.status_code == 409
+
+
+def _get_credentials() -> dict:
+    return {
+        "email": "qa_pytest_dulpicate@bink.com",
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
+    }
+
+
+@when(parse("I enrol an account holder without {enrolment_field} field"))
+def enrolment_without_field(enrolment_field: str, retailer_config: "RetailerConfig") -> None:
+    credentials = _get_credentials()
+    del credentials["first_name"]
+    request_body = {
+        "credentials": credentials,
+        "marketing_preferences": [{"key": "marketing_pref", "value": True}],
+        "callback_url": f"{settings.MOCK_SERVICE_BASE_URL}/enrol/callback/success",
+        "third_party_identifier": "identifier",
+    }
+    logging.info("Request body for POST Enrol: " + json.dumps(request_body, indent=4))
+    resp = send_post_enrolment(retailer_config.slug, request_body)
+    assert resp.status_code == 422
