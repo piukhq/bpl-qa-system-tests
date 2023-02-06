@@ -231,7 +231,7 @@ run_services() {
     # create tmux panes with the following layout example
     ## Cosmos
     tmux select-pane -t 0 -T Cosmos_Public_API
-    tmux send-keys -t 0 "cd $ROOT_DIR/cosmos && poetry run cosmos api public_api --port 8000" C-m
+    tmux send-keys -t 0 "cd $ROOT_DIR/cosmos && poetry run cosmos api public --port 8000" C-m
     tmux select-pane -t 1 -T Cosmos_Campaigns_API
     tmux send-keys -t 1 "cd $ROOT_DIR/cosmos && poetry run cosmos api campaigns --port 8001" C-m
     tmux select-pane -t 2 -T Cosmos_Transactions_API
