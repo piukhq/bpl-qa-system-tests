@@ -7,7 +7,8 @@ import uuid
 
 from datetime import datetime
 
-# , timedelta, timezone
+# , timezone
+# , timedelta,
 from time import sleep
 from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
 from uuid import uuid4
@@ -18,16 +19,13 @@ import yaml
 
 from azure.storage.blob import BlobClient
 from faker import Faker
-from pytest_bdd import given, when
-
-# then
+from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
 
 # from redis import Redis
-# from retry_tasks_lib.utils.synchronous import enqueue_many_retry_tasks, sync_create_many_tasks
-from sqlalchemy import create_engine, delete
-
-# update
+# from retry_tasks_lib.utils.synchronous import sync_create_many_tasks
+# enqueue_many_retry_tasks,
+from sqlalchemy import create_engine, delete, update
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
@@ -41,6 +39,7 @@ from db.cosmos.models import (
     AccountHolder,
     AccountHolderProfile,
     Campaign,
+    CampaignBalance,
     EarnRule,
     EmailTemplate,
     EmailTemplateKey,
@@ -53,21 +52,7 @@ from db.cosmos.models import (
 )
 
 #     FetchType,
-# from db.carina import models as carina_models
-# from db.carina.models import FetchType, RetailerFetchType, RewardCampaign, RewardConfig
 from db.hubble import models as hubble_models
-
-# from db.polaris import models as polaris_models
-# from db.polaris.models import (
-#     AccountHolderCampaignBalance,
-#
-#     EmailTemplate,
-#     EmailTemplateKey,
-#     EmailTemplateRequiredKey,
-#     RetailerConfig,
-# )
-# from db.vela import models as vela_models
-# from db.vela.models import EarnRule, RetailerRewards, RewardRule
 from settings import (
     BLOB_STORAGE_DSN,
     COSMOS_DATABASE_URI,
@@ -77,29 +62,23 @@ from settings import (
     MOCK_SERVICE_BASE_URL,
     SQL_DEBUG,
 )
-from tests.api.base import get_callback_url
+from tests.api.base import Endpoints, get_callback_url
 from tests.db_actions.cosmos import (
     create_balance_for_account_holder,
+    create_pending_rewards_for_existing_account_holder,
+    create_rewards_for_existing_account_holder,
     get_campaign_by_slug,
     get_fetch_type_id,
     get_retailer_id,
 )
 from tests.db_actions.reward import assign_rewards
-from tests.requests.enrolment import send_post_enrolment
-
-# send_get_accounts,
+from tests.requests.enrolment import send_get_accounts, send_post_enrolment
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.redis import pause_redis, unpause_redis
 
-#     VELA_DATABASE_URI,
-#     VELA_TEMPLATE_DB_NAME,
-#     redis, REDIS_URL,
-#     POLARIS_DATABASE_URI,
-#     POLARIS_TEMPLATE_DB_NAME,
-#     CARINA_DATABASE_URI,
-#     CARINA_TEMPLATE_DB_NAME,
+# from retry_tasks_lib.utils.synchronous import sync_create_many_tasks
 
 
 if TYPE_CHECKING:
@@ -236,10 +215,14 @@ def add_reward_config(
 ) -> RewardConfig:
     retailer_id = get_retailer_id(cosmos_db_session=cosmos_db_session, retailer_slug=retailer_config.slug)
     fetch_type_id = get_fetch_type_id(cosmos_db_session=cosmos_db_session, fetch_type_name=fetch_type_name)
+
+    if status not in {"ACTIVE", "INACTIVE"}:
+        raise ValueError("Invalid Status")
+
     reward_config = RewardConfig(
         slug=reward_slug,
         retailer_id=retailer_id,
-        status=status,
+        active=status == "ACTIVE",
         required_fields_values=required_fields_values,
         fetch_type_id=fetch_type_id,
     )
@@ -526,28 +509,26 @@ def setup_account_holder(
     return account_holder
 
 
-# # fmt: off
-# @given(parse("the retailer has {num_account_holders:d} {status} account holders"),
-#        target_fixture="account_holders")
-# # fmt: on
-# def make_multiple_account_holders(
-#     retailer_config: RetailerConfig,
-#     polaris_db_session: "Session",
-#     vela_db_session: "Session",
-#     num_account_holders: int,
-#     status: str,
-# ) -> list["AccountHolder"]:
-#     account_holders: list[AccountHolder] = []
-#     for i in range(num_account_holders):
-#         account_holders.append(
-#             setup_account_holder(
-#                 status,
-#                 retailer_config=retailer_config,
-#                 polaris_db_session=polaris_db_session,
-#                 vela_db_session=vela_db_session,
-#             )
-#         )
-#     return account_holders
+# fmt: off
+@given(parse("the retailer has {num_account_holders:d} {status} account holders"),
+       target_fixture="account_holders")
+# fmt: on
+def make_multiple_account_holders(
+    retailer_config: Retailer,
+    cosmos_db_session: "Session",
+    num_account_holders: int,
+    status: str,
+) -> list["AccountHolder"]:
+    account_holders: list[AccountHolder] = []
+    for i in range(num_account_holders):
+        account_holders.append(
+            setup_account_holder(
+                status,
+                retailer_config=retailer_config,
+                cosmos_db_session=cosmos_db_session,
+            )
+        )
+    return account_holders
 
 
 # fmt: off
@@ -620,49 +601,49 @@ def only_required_credentials() -> dict:
     return payload
 
 
-# # fmt: off
-# @given(parse("the account holders each have {num_rewards:d} {reward_status} rewards for the {campaign_slug} "
-#              "campaign with the {reward_slug} reward slug expiring {expiring}"))
-# # fmt: on
-# def make_account_holder_rewards(
-#     retailer_config: RetailerConfig,
-#     account_holders: list[AccountHolder],
-#     polaris_db_session: "Session",
-#     num_rewards: int,
-#     reward_status: str,
-#     campaign_slug: str,
-#     reward_slug: str,
-#     expiring: str,
-# ) -> None:
-#     for account_holder in account_holders:
-#         create_rewards_for_existing_account_holder(
-#             polaris_db_session,
-#             retailer_slug=retailer_config.slug,
-#             reward_count=num_rewards,
-#             account_holder_id=account_holder.id,
-#             campaign_slug=campaign_slug,
-#             reward_slug=reward_slug,
-#             status=reward_status,
-#             expiry_date=arrow.utcnow().dehumanize(expiring).datetime,
-#         )
-#
-#
-# # fmt: off
-# @given(parse("the account holders each have {num_rewards:d} pending rewards for the {campaign_slug} campaign "
-#              "and {reward_slug} reward slug with a value of {value:d}"))
-# # fmt: on
-# def make_account_holder_pending_rewards(
-#     retailer_config: RetailerConfig,
-#     account_holders: list[AccountHolder],
-#     polaris_db_session: "Session",
-#     num_rewards: int,
-#     campaign_slug: str,
-#     reward_slug: str,
-#     value: int,
-# ) -> None:
-#     for account_holder in account_holders:
-#         create_pending_rewards_for_existing_account_holder
-#         (polaris_db_session, retailer_config.slug, num_rewards, account_holder.id, campaign_slug, reward_slug, value)
+# fmt: off
+@given(parse("the account holders each have {num_rewards:d} {reward_status} rewards for the {campaign_slug} "
+             "campaign with the {reward_slug} reward slug expiring {expiring}"))
+# fmt: on
+def make_account_holder_rewards(
+    retailer_config: Retailer,
+    account_holders: list[AccountHolder],
+    cosmos_db_session: "Session",
+    num_rewards: int,
+    reward_status: str,
+    campaign_slug: str,
+    reward_slug: str,
+    expiring: str,
+) -> None:
+    for account_holder in account_holders:
+        create_rewards_for_existing_account_holder(
+            cosmos_db_session,
+            retailer_slug=retailer_config.slug,
+            reward_count=num_rewards,
+            account_holder_id=account_holder.id,
+            campaign_slug=campaign_slug,
+            reward_slug=reward_slug,
+            status=reward_status,
+            expiry_date=arrow.utcnow().dehumanize(expiring).datetime,
+        )
+
+
+# fmt: off
+@given(parse("the account holders each have {num_rewards:d} pending rewards for the {campaign_slug} campaign "
+             "and {reward_slug} reward slug with a value of {value:d}"))
+# fmt: on
+def make_account_holder_pending_rewards(
+    retailer_config: Retailer,
+    account_holders: list[AccountHolder],
+    cosmos_db_session: "Session",
+    num_rewards: int,
+    campaign_slug: str,
+    reward_slug: str,
+    value: int,
+) -> None:
+    for account_holder in account_holders:
+        create_pending_rewards_for_existing_account_holder
+        (cosmos_db_session, retailer_config.slug, num_rewards, account_holder.id, campaign_slug, reward_slug, value)
 
 
 # fmt: off
@@ -708,92 +689,91 @@ def add_vars_to_email_template(
     cosmos_db_session.commit()
 
 
-# # fmt: off
-# @given(parse("the account has {reward_count} issued unexpired rewards for the {campaign_slug} campaign"))
-# # fmt: on
-# def update_existing_account_holder_with_rewards(
-#     account_holder: AccountHolder,
-#     retailer_config: RetailerConfig,
-#     reward_count: int,
-#     campaign_slug: str,
-#     polaris_db_session: "Session",
-# ) -> AccountHolder:
-#
-#     create_rewards_for_existing_account_holder(
-#         polaris_db_session,
-#         retailer_slug=retailer_config.slug,
-#         reward_count=reward_count,
-#         account_holder_id=account_holder.id,
-#         campaign_slug=campaign_slug,
-#     )
-#
-#     return account_holder
-#
-#
-# # fmt: off
-# @given(parse("the account has {count} pending rewards for the {campaign_slug} campaign and {reward_slug} "
-#              "reward slug with value {reward_goal}"))
-# # fmt: on
-# def update_existing_account_holder_with_pending_rewards(
-#     account_holder: AccountHolder,
-#     retailer_config: RetailerConfig,
-#     count: int,
-#     polaris_db_session: "Session",
-#     reward_goal: int,
-#     campaign_slug: str,
-#     reward_slug: str,
-# ) -> AccountHolder:
-#
-#     create_pending_rewards_for_existing_account_holder(
-#         polaris_db_session, retailer_config.slug, count, account_holder.id, campaign_slug, reward_slug, reward_goal
-#     )
-#
-#     return account_holder
-#
-#
-# # fmt: off
-# @given(parse("the account holder's {campaign_slug} balance is {amount:d}"))
-# # fmt: on
-# def update_existing_account_holder_with_campaign_balance(
-#     account_holder: AccountHolder, amount: int, polaris_db_session: "Session", campaign_slug: str
-# ) -> None:
-#
-#     polaris_db_session.execute(
-#         update(AccountHolderCampaignBalance)
-#         .values(balance=amount)
-#         .where(
-#             AccountHolderCampaignBalance.account_holder_id == account_holder.id,
-#             AccountHolderCampaignBalance.campaign_slug == campaign_slug,
-#         )
-#     )
-#
-#     polaris_db_session.commit()
-#     logging.info(f"Account holder balance updated to {amount}")
-#
-#
-# # fmt: off
-# @then(parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status} "
-#             "with redeemed date"))
-# # fmt: on
-# def verify_account_holder_reward_status(
-#     retailer_config: RetailerConfig, account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
-# ) -> None:
-#     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
-#     logging.info(f"Response HTTP status code: {resp.status_code}")
-#     logging.info(
-#         f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-#         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
-#     )
-#     assert len(resp.json()["rewards"]) == expected_num_rewards
-#     for i in range(expected_num_rewards):
-#         redeemed_date = resp.json()["rewards"][i]["redeemed_date"]
-#         if reward_status == "redeemed":
-#             assert redeemed_date is not None
-#         elif reward_status == "cancelled":
-#             assert redeemed_date is None
-#         assert resp.json()["rewards"][i]["status"] == reward_status
-#
-#
+# fmt: off
+@given(parse("the account has {reward_count} issued unexpired rewards for the {campaign_slug} campaign"))
+# fmt: on
+def update_existing_account_holder_with_rewards(
+    account_holder: AccountHolder,
+    retailer_config: Retailer,
+    reward_count: int,
+    campaign_slug: str,
+    cosmos_db_session: "Session",
+) -> AccountHolder:
+
+    create_rewards_for_existing_account_holder(
+        cosmos_db_session,
+        retailer_slug=retailer_config.slug,
+        reward_count=reward_count,
+        account_holder_id=account_holder.id,
+        campaign_slug=campaign_slug,
+    )
+
+    return account_holder
+
+
+# fmt: off
+@given(parse("the account has {count} pending rewards for the {campaign_slug} campaign and {reward_slug} "
+             "reward slug with value {reward_goal}"))
+# fmt: on
+def update_existing_account_holder_with_pending_rewards(
+    account_holder: AccountHolder,
+    retailer_config: Retailer,
+    count: int,
+    cosmos_db_session: "Session",
+    reward_goal: int,
+    campaign_slug: str,
+    reward_slug: str,
+) -> AccountHolder:
+    create_pending_rewards_for_existing_account_holder(
+        cosmos_db_session, retailer_config.slug, count, account_holder.id, campaign_slug, reward_slug, reward_goal
+    )
+
+    return account_holder
+
+
+# fmt: off
+@given(parse("the account holder's {campaign_slug} balance is {amount:d}"))
+# fmt: on
+def update_existing_account_holder_with_campaign_balance(
+    account_holder: AccountHolder, amount: int, cosmos_db_session: "Session", campaign_slug: str
+) -> None:
+    campaign = get_campaign_by_slug(cosmos_db_session=cosmos_db_session, campaign_slug=campaign_slug)
+    cosmos_db_session.execute(
+        update(CampaignBalance)
+        .values(balance=amount)
+        .where(
+            CampaignBalance.account_holder_id == account_holder.id,
+            CampaignBalance.campaign_id == campaign.id,
+        )
+    )
+
+    cosmos_db_session.commit()
+    logging.info(f"Account holder balance updated to {amount}")
+
+
+# fmt: off
+@then(parse("{expected_num_rewards:d} reward for the account holder shows as {reward_status} "
+            "with redeemed date"))
+# fmt: on
+def verify_account_holder_reward_status(
+    retailer_config: Retailer, account_holder: AccountHolder, expected_num_rewards: int, reward_status: str
+) -> None:
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.ACCOUNTS_API_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+    assert len(resp.json()["rewards"]) == expected_num_rewards
+    for i in range(expected_num_rewards):
+        redeemed_date = resp.json()["rewards"][i]["redeemed_date"]
+        if reward_status == "redeemed":
+            assert redeemed_date is not None
+        elif reward_status == "cancelled":
+            assert redeemed_date is None
+        assert resp.json()["rewards"][i]["status"] == reward_status
+
+
 # # fmt: off
 # @given(parse("there are {reward_count} issued unexpired rewards for account holder with "
 #              "reward slug {reward_slug} and campaign slug {campaign_slug}"))
@@ -961,7 +941,7 @@ def send_post_campaign_change_request(
 ) -> None:
     payload: dict[str, Any] = {
         "requested_status": status,
-        "campaign_slugs": [campaign_slug],
+        "campaign_slug": campaign_slug,
         "activity_metadata": {"sso_username": "qa_auto"},
     }
 
@@ -971,38 +951,39 @@ def send_post_campaign_change_request(
     assert request.status_code == 200
 
 
-# # RETRY TASK FIXTURES
-# # fmt: off
-# @when(parse("each account holder has a queued reward-adjustment task for the {campaign_slug} campaign with an "
-#             "adjustment amount of {adjustment_amount:d}"))
-# # fmt: on
-# def enqueue_reward_adjustment_tasks_for_account_holders(
-#     retailer_config: RetailerConfig,
-#     vela_db_session: "Session",
-#     account_holders: list[AccountHolder],
-#     campaign_slug: str,
-#     adjustment_amount: int,
-# ) -> None:
-#     task_params_list = [
-#         {
-#             "processed_transaction_id": list(range(len(account_holders)))[i],
-#             "retailer_slug": retailer_config.slug,
-#             "adjustment_amount": adjustment_amount,
-#             "campaign_slug": campaign_slug,
-#             "account_holder_uuid": ah.account_holder_uuid,
-#             "transaction_datetime": datetime.now(tz=timezone.utc),
-#         }
-#         for i, ah in enumerate(account_holders)
-#     ]
-#     logging.info("Making reward-adjustment tasks...")
-#     tasks = sync_create_many_tasks(vela_db_session, task_type_name="reward-adjustment", params_list=task_params_list)
-#     vela_db_session.commit()
-#     logging.info("Enqueueing reward-adjustment tasks...")
-#     redis = Redis.from_url(REDIS_URL)
-#     enqueue_many_retry_tasks
-#     (vela_db_session, retry_tasks_ids=[task.retry_task_id for task in tasks], connection=redis)
-#
-#
+# RETRY TASK FIXTURES
+# fmt: off
+@when(parse("each account holder has a queued reward-adjustment task for the {campaign_slug} campaign with an "
+            "adjustment amount of {adjustment_amount:d}"))
+# fmt: on
+def enqueue_reward_adjustment_tasks_for_account_holders(
+    retailer_config: Retailer,
+    cosmos_db_session: "Session",
+    account_holders: list[AccountHolder],
+    campaign_slug: str,
+    adjustment_amount: int,
+) -> None:
+    # task_params_list = [
+    #     {
+    #         "processed_transaction_id": list(range(len(account_holders)))[i],
+    #         "retailer_slug": retailer_config.slug,
+    #         "adjustment_amount": adjustment_amount,
+    #         "campaign_slug": campaign_slug,
+    #         "account_holder_uuid": ah.account_holder_uuid,
+    #         "transaction_datetime": datetime.now(tz=timezone.utc),
+    #     }
+    #     for i, ah in enumerate(account_holders)
+    # ]
+    logging.info("Making reward-adjustment tasks...")
+    # tasks = sync_create_many_tasks(cosmos_db_session,
+    #                                task_type_name="reward-adjustment", params_list=task_params_list)
+    cosmos_db_session.commit()
+    logging.info("Enqueueing reward-adjustment tasks...")
+    # redis = Redis.from_url(REDIS_URL)
+    # enqueue_many_retry_tasks
+    # (cosmos_db_session, retry_tasks_ids=[task.retry_task_id for task in tasks], connection=redis)
+
+
 # # fmt: off
 # @when(parse("there are reward-issuance tasks for the account holders for the {reward_slug} reward slug "
 #             "and {campaign_slug} campaign_slug on the queue"))

@@ -14,7 +14,7 @@ Feature: Bink BPL - Activate new campaign, end old
         And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
         And the trenette-active-campaign campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
 
-        And there is 5 rewards configured for the 10percentoff reward config, with account holder set to None and deleted status set to false
+        And 5 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
         And the retailer's trenette-draft-campaign STAMPS campaign starts 5 days ago and ends in a week and is DRAFT
@@ -26,9 +26,9 @@ Feature: Bink BPL - Activate new campaign, end old
     @bpl @campaign @bpl-289
     Scenario: Active campaign is ended and draft campaign is activated
         Given an active account holder exists for the retailer
-#        And the account holder's trenette-active-campaign balance is 500
-#        And the account has 3 pending rewards for the trenette-active-campaign campaign and 10percentoff reward slug with value 700
-#        And the account has 3 issued unexpired rewards for the trenette-active-campaign campaign
+        And the account holder's trenette-active-campaign balance is 500
+        And the account has 3 pending rewards for the trenette-active-campaign campaign and 10percentoff reward slug with value 700
+        And the account has 3 issued unexpired rewards for the trenette-active-campaign campaign
 #
 #        And the retailer's trenette-draft-campaign campaign status is changed to active
 #        And BPL receives a transaction for the account holder for the amount of 600 pennies
