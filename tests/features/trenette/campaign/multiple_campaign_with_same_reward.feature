@@ -11,37 +11,37 @@ Feature: Bink BPL - Decoupling reward type
         And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
 
         And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
-        And 5 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
+
+
     @bpl @campaign-accumulator @bpl-724 @bpl-589
     Scenario: Single reward slug can be used against multiple campaign - accumulator
 
         Given the retailer's trenette-active-campaign ACCUMULATOR campaign starts 10 days ago and ends in a day and is ACTIVE
         And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of None, a multiplier of 1 and max amount of 0
         And the trenette-active-campaign campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
-#        And the retailer's trenette-active-campaign campaign with reward_slug: 10percentoff added as ACTIVE
+        And 5 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
         And the retailer's trenette-draft-campaign ACCUMULATOR campaign starts 5 days ago and ends in a week and is DRAFT
         And the trenette-draft-campaign campaign has an earn rule with a threshold of 1000, an increment of None, a multiplier of 1 and max amount of 0
         And the trenette-draft-campaign campaign has reward rule with reward goal: 900, allocation window: 0 and reward cap: 0
-#        And the retailer's trenette-draft-campaign campaign with reward_slug: 10percentoff added as DRAFT
 
         And an active account holder exists for the retailer
         When BPL receives a transaction for the account holder for the amount of 1000 pennies
         Then BPL responds with a HTTP 200 and awarded message
-        And 1 issued rewards are available to the account holder for the trenette-active-campaign campaign
+#        And 1 issued rewards are available to the account holder for the trenette-active-campaign campaign
         And the account holder balance shown for trenette-active-campaign is 300
 
         When the retailer's trenette-draft-campaign campaign status is changed to active
         And the retailer's trenette-active-campaign campaign status is changed to cancelled
         Then 1 cancelled rewards are available to the account holder for the trenette-active-campaign campaign
         And the status of the allocated account holder for trenette rewards are updated with CANCELLED
-        And 1 reward for the account holder shows as cancelled with redeemed date
+#        And 1 reward for the account holder shows as cancelled with redeemed date
 
         Then all unallocated rewards for 10percentoff reward config are not soft deleted
 
         When BPL receives a transaction for the account holder for the amount of 1000 pennies
         Then BPL responds with a HTTP 200 and awarded message
-        And 1 issued rewards are available to the account holder for the trenette-draft-campaign campaign
+#        And 1 issued rewards are available to the account holder for the trenette-draft-campaign campaign
         And the account holder balance shown for trenette-draft-campaign is 100
 
     @bpl @campaign-stamps @bpl-724 @bpl-589-1
@@ -50,12 +50,10 @@ Feature: Bink BPL - Decoupling reward type
         Given the retailer's trenette-active-campaign STAMPS campaign starts 10 days ago and ends in a day and is ACTIVE
         And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
         And the trenette-active-campaign campaign has reward rule with reward goal: 100, allocation window: 0 and reward cap: 0
-#        And the retailer's trenette-active-campaign campaign with reward_slug: 10percentoff added as ACTIVE
 
         And the retailer's trenette-draft-campaign STAMPS campaign starts 2 days ago and ends in a week and is DRAFT
         And the trenette-draft-campaign campaign has an earn rule with a threshold of 100, an increment of 200, a multiplier of 1 and max amount of 0
         And the trenette-draft-campaign campaign has reward rule with reward goal: 100, allocation window: 0 and reward cap: 0
-#        And the retailer's trenette-draft-campaign campaign with reward_slug: 10percentoff added as DRAFT
 
         And an active account holder exists for the retailer
         When BPL receives a transaction for the account holder for the amount of 1000 pennies

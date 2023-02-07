@@ -17,8 +17,6 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards ACC
         And the trenette-draft-campaign campaign has an earn rule with a threshold of 1000, an increment of 200, a multiplier of 1 and max amount of 0
         And the trenette-draft-campaign campaign has reward rule with reward goal: 900, allocation window: 30 and reward cap: 0
 
-#        And the retailer's trenette-draft-campaign campaign with reward_slug: free-item added as DRAFT
-
     @bpl @campaign @bpl-290
     Scenario: Activate new campaign, cancel old - accumulator campaign
         Given an active account holder exists for the retailer

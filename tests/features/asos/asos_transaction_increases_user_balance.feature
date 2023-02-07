@@ -15,12 +15,12 @@ Feature: Bink BPL - Jigshaw egift - Transaction increases user balance
     And the retailer's asos-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
     And the asos-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
     And the asos-campaign campaign has reward rule with reward goal: 10000, allocation window: 0 and reward cap: 0
-    And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
-#
-#    And an active account holder exists for the retailer
-#    When BPL receives a transaction for the account holder for the amount of 5500 pennies
-#    Then 0 issued rewards are available to the account holder for the asos-campaign campaign
-#    And the account holder balance shown for asos-campaign is 5500
-#    When BPL receives a transaction for the account holder for the amount of 6000 pennies
+    And 2 unassigned rewards are generated for the free-item reward config with deleted status set to false
+
+    And an active account holder exists for the retailer
+    When BPL receives a transaction for the account holder for the amount of 5500 pennies
+    Then 0 issued rewards are available to the account holder for the asos-campaign campaign
+    And the account holder balance shown for asos-campaign is 5500
+    When BPL receives a transaction for the account holder for the amount of 6000 pennies
 #    Then 1 issued rewards are available to the account holder for the asos-campaign campaign
-#    And the account holder balance shown for asos-campaign is 1500
+    And the account holder balance shown for asos-campaign is 1500
