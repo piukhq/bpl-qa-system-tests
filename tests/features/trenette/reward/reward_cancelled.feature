@@ -16,7 +16,7 @@ Feature: Reward code status updated to cancelled from 3rd party
 
     And 1 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
-  @reward @bpl @bpl-300
+  @reward @bpl @bpl-300 @bpl-2.0
   Scenario: Handle importing cancelled reward codes from a 3rd party
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 701 pennies

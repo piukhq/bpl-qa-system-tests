@@ -16,7 +16,7 @@ Feature: Bink BPL - Ensure a Pending reward is allocated to account holder when 
 
     And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
-  @bpl @pending_reward @bpl-765
+  @bpl @pending_reward @bpl-765 @bpl-2.0
   Scenario: pending reward is allocated to account holder
     Given an active account holder exists for the retailer
     And the account has 1 pending rewards for the trenette-active-campaign campaign and 10percentoff reward slug with value 700

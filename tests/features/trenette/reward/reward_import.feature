@@ -15,13 +15,13 @@ Feature: Reward code added via azure
     And the trenette-acc-campaign-1 campaign has an earn rule with a threshold of 100, an increment of 0, a multiplier of 1 and max amount of 0
     And the trenette-acc-campaign-1 campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
 
-  @reward @bpl-678 @bpl-678-ac-1 @bpl
+  @reward @bpl-678 @bpl-678-ac-1 @bpl @bpl-2.0
   Scenario: importing reward codes without expire date from azure blob storage
     Given the retailer provides 2 rewards in a csv file for the 10percentoff reward slug with rewards expiry date None
     Then the file is moved to the archive container by the reward importer
     And 2 reward codes available for reward slug 10percentoff with expiry date None in the rewards table
 
-  @reward @bpl-678 @bpl-678-ac-2 @bpl
+  @reward @bpl-678 @bpl-678-ac-2 @bpl @bpl-2.0
   Scenario: importing reward codes with expire date from azure blob storage
     Given the retailer provides 3 rewards in a csv file for the 10percentoff reward slug with rewards expiry date 2023-01-16
     Then the file is moved to the archive container by the reward importer

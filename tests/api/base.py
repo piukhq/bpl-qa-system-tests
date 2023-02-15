@@ -19,6 +19,7 @@ class Endpoints(str, Enum):
     GETBYCREDENTIALS = "/accounts/getbycredentials"
     ACCOUNTS = "/accounts/"
     STATUSCHANGE = "/status-change"
+    MARKETING_UNSUBSCRIBE = "/marketing/unsubscribe?u="
 
     @property
     def endpoint(self) -> str:
@@ -71,6 +72,10 @@ def get_transaction_api(retailer_slug: str) -> str:
 
 def get_campaign_mngt(retailer_slug: str, endpoint: Endpoints) -> str:
     return f"{CAMPAINGS_API_BASE_URL}/" + retailer_slug + endpoint
+
+
+def get_public_api(retailer_slug: str, endpoint: Endpoints) -> str:
+    return f"{settings.PUBLIC_API_BASE_URL}/" + retailer_slug + endpoint
 
 
 def get_callback_url(

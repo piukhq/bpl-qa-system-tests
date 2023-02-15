@@ -17,7 +17,7 @@ Feature: Bink BPL - Activity balance not recouped
 
     And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
-  @bpl-706 @balance_recouped @bpl
+  @bpl-706 @balance_recouped @bpl @bpl-2.0
   Scenario: Activity for balance not recouped - pending reward
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 1000 pennies

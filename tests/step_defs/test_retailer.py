@@ -19,12 +19,13 @@ from sqlalchemy import select, sql
 import settings
 
 from azure_actions.blob_storage import check_archive_blobcontainer
-from db.cosmos.models import AccountHolder, PendingReward, Retailer
+from db.cosmos.models import AccountHolder, Campaign, PendingReward, Retailer
 from tests.api.base import Endpoints
 from tests.db_actions.cosmos import (
     Reward,
     create_pending_rewards_with_all_value_for_existing_account_holder,
     get_account_holder_for_retailer,
+    get_account_holder_market_pref,
     get_retailer_id,
     get_reward_config_id,
     get_rewards,
@@ -47,7 +48,12 @@ from tests.db_actions.hubble import get_latest_activity_by_type
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
 
 # from tests.db_actions.vela import
-from tests.requests.enrolment import send_get_accounts, send_get_accounts_by_credential, send_post_enrolment
+from tests.requests.enrolment import (
+    send_get_accounts,
+    send_get_accounts_by_credential,
+    send_marketing_unsubscribe,
+    send_post_enrolment,
+)
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
 
@@ -231,7 +237,11 @@ def account_holder_is_activated(cosmos_db_session: "Session", retailer_config: R
 # fmt: off
 @then("the account holder activation is started", target_fixture="account_holder")
 # fmt: on
-def the_account_holder_activation_is_started(cosmos_db_session: "Session", retailer_config: Retailer) -> AccountHolder:
+def the_account_holder_activation_is_started(
+    cosmos_db_session: "Session",
+    retailer_config: Retailer,
+    standard_campaign: Campaign,
+) -> AccountHolder:
     account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
     assert account_holder.status == "ACTIVE"
 
@@ -252,12 +262,33 @@ def the_account_holder_activation_is_started(cosmos_db_session: "Session", retai
     assert resp.json()["email"] is not None
     assert resp.json()["status"] == "active"
     assert resp.json()["account_number"] is not None
-    assert resp.json()["current_balances"] == [{"campaign_slug": "N/A", "value": 0}]
+    if standard_campaign.status == "ACTIVE":
+        assert resp.json()["current_balances"] == [{"campaign_slug": standard_campaign.slug, "value": 0.0}]
+    else:
+        assert resp.json()["current_balances"] == [{"campaign_slug": "N/A", "value": 0}]
     assert resp.json()["transaction_history"] == []
     assert resp.json()["rewards"] == []
     assert resp.json()["pending_rewards"] == []
 
     return account_holder
+
+
+@when("I unsubscribe for marketing preferences")
+def i_unsubscribe_for_marketing_preferences(cosmos_db_session: "Session", retailer_config: Retailer) -> None:
+    account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
+
+    resp = send_marketing_unsubscribe(retailer_config.slug, account_holder.opt_out_token)
+    time.sleep(3)
+    logging.info(f"Response HTTP status code for marketing unsubscribe: {resp.status_code} ")
+    assert resp.status_code == 202
+    logging.info(f"Account holder unsubscribe: {resp}")
+
+
+@then(parse("the value in the marketing preferences is {value}"))
+def value_in_marketing_prefrences(value: str, cosmos_db_session: "Session", retailer_config: Retailer) -> None:
+    account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
+    marketing_value = get_account_holder_market_pref(cosmos_db_session, account_holder.id)
+    assert marketing_value.value == value
 
 
 # # fmt: off
@@ -370,63 +401,63 @@ def check_account_holder_reward_exists(available_rewards: list[Reward], cosmos_d
     )
 
 
-# # fmt: off
-# @then(parse("The account holder's transaction history has {expected_num_transaction:d} transactions, "
-#             "and the latest transaction is {transaction_amount}"))
-# # fmt: on
-# def verify_transaction_history_balance(
-#     expected_num_transaction: int,
-#     retailer_config: RetailerConfig,
-#     account_holder: AccountHolder,
-#     transaction_amount: str,
-#     standard_campaign: Campaign,
-# ) -> None:
-#     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
-#     logging.info(f"Response HTTP status code: {resp.status_code}")
-#     logging.info(
-#         f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-#         f"{account_holder.account_holder_uuid} transaction history: "
-#         f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
-#     )
-#
-#     # Sorting the transaction history in the response. using delay to make sure there is different datetime
-#     time.sleep(3)
-#     tx_history_list = resp.json()["transaction_history"]
-#
-#     assert len(tx_history_list) == expected_num_transaction
-#     assert resp.json()["transaction_history"][0]["datetime"] is not None
-#     assert resp.json()["transaction_history"][0]["amount"] == transaction_amount
-#     assert resp.json()["transaction_history"][0]["amount_currency"] == "GBP"
-#     assert resp.json()["transaction_history"][0]["location"] == "N/A"
-#     assert resp.json()["transaction_history"][0]["loyalty_earned_type"] == standard_campaign.loyalty_type
-#
-#     if standard_campaign.loyalty_type == "ACCUMULATOR":
-#         assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == transaction_amount
-#
-#     elif standard_campaign.loyalty_type == "STAMPS":
-#         if transaction_amount.startswith("-"):
-#             assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == "0"
-#         else:
-#             assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == "1"
-#
-#
-# # fmt: off
-# @then(parse("there is {expected_num_transaction:d} transaction history in array"))
-# # fmt: on
-# def verify_transaction_history_in_get_by_credential(
-#     expected_num_transaction: int, retailer_config: RetailerConfig, account_holder: AccountHolder
-# ) -> None:
-#     request_body = {"email": account_holder.email, "account_number": account_holder.account_number}
-#     resp = send_get_accounts_by_credential(retailer_config.slug, request_body)
-#     logging.info(f"Response for POST getbycredential HTTP status code: {resp.status_code}")
-#     logging.info(
-#         f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.GETBYCREDENTIALS} transaction history: "
-#         f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
-#     )
-#     assert resp.status_code == 200
-#     assert len(resp.json()["transaction_history"]) == expected_num_transaction
-#
-#
+# fmt: off
+@then(parse("The account holder's transaction history has {expected_num_transaction:d} transactions, "
+            "and the latest transaction is {transaction_amount}"))
+# fmt: on
+def verify_transaction_history_balance(
+    expected_num_transaction: int,
+    retailer_config: Retailer,
+    account_holder: AccountHolder,
+    transaction_amount: str,
+    standard_campaign: Campaign,
+) -> None:
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.TRANSACTIONS_API_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid} transaction history: "
+        f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
+    )
+
+    # Sorting the transaction history in the response. using delay to make sure there is different datetime
+    time.sleep(3)
+    tx_history_list = resp.json()["transaction_history"]
+
+    assert len(tx_history_list) == expected_num_transaction
+    assert resp.json()["transaction_history"][0]["datetime"] is not None
+    assert resp.json()["transaction_history"][0]["amount"] == transaction_amount
+    assert resp.json()["transaction_history"][0]["amount_currency"] == "GBP"
+    assert resp.json()["transaction_history"][0]["location"] == "N/A"
+    assert resp.json()["transaction_history"][0]["loyalty_earned_type"] == standard_campaign.loyalty_type
+
+    if standard_campaign.loyalty_type == "ACCUMULATOR":
+        assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == transaction_amount
+
+    elif standard_campaign.loyalty_type == "STAMPS":
+        if transaction_amount.startswith("-"):
+            assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == "0"
+        else:
+            assert resp.json()["transaction_history"][0]["loyalty_earned_value"] == "1"
+
+
+# fmt: off
+@then(parse("there is {expected_num_transaction:d} transaction history in array"))
+# fmt: on
+def verify_transaction_history_in_get_by_credential(
+    expected_num_transaction: int, retailer_config: Retailer, account_holder: AccountHolder
+) -> None:
+    request_body = {"email": account_holder.email, "account_number": account_holder.account_number}
+    resp = send_get_accounts_by_credential(retailer_config.slug, request_body)
+    logging.info(f"Response for POST getbycredential HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.TRANSACTIONS_API_BASE_URL}{Endpoints.GETBYCREDENTIALS} transaction history: "
+        f"{json.dumps(resp.json()['transaction_history'], indent=4)}"
+    )
+    assert resp.status_code == 200
+    assert len(resp.json()["transaction_history"]) == expected_num_transaction
+
+
 # # fmt: off
 # @then(parse("BPL set up to receive only
 # {num_of_transaction} recent transaction appeared into transaction history with "
