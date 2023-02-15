@@ -4,7 +4,7 @@ Feature: Bink BPL - Transaction Activity
   I want to the enrol with retailer
   So that activity should appear
 
-  @bpl-905-1 @accepted @bpl
+  @bpl-905-1 @accepted @bpl @bpl-2.0
   Scenario: Transaction activity - refund window
     Given the trenette retailer exists with status as TEST
     And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
@@ -23,7 +23,7 @@ Feature: Bink BPL - Transaction Activity
     When BPL receives a transaction for the account holder for the amount of 750 pennies
     Then the account holder balance shown for trenette-active-campaign is 50
     And there is TX_IMPORT activity appeared
-#    And there is TX_HISTORY activity appeared
+    And there is TX_HISTORY activity appeared
     And there is BALANCE_CHANGE activity appeared
     And there is REWARD_STATUS activity appeared
     When BPL receives a transaction for the account holder for the amount of -700 pennies
@@ -38,7 +38,7 @@ Feature: Bink BPL - Transaction Activity
     And there is BALANCE_CHANGE activity appeared
     And there is REWARD_STATUS activity appeared
 
-  @bpl-905-2 @accepted @bpl
+  @bpl-905-2 @accepted @bpl @bpl-2.0
   Scenario: Transaction activity - no refund window
     Given the trenette retailer exists with status as TEST
     And the retailer has a WELCOME_EMAIL email template configured with template id 99999999

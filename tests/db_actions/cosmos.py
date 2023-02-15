@@ -12,6 +12,7 @@ from db.cosmos.models import (
     Campaign,
     CampaignBalance,
     FetchType,
+    MarketingPreference,
     PendingReward,
     Retailer,
     Reward,
@@ -66,6 +67,12 @@ def get_rewards_by_reward_config(cosmos_db_session: "Session", reward_config_id:
 
 def get_account_holder_for_retailer(cosmos_db_session: "Session", retailer_id: int) -> AccountHolder:
     return cosmos_db_session.execute(select(AccountHolder).where(retailer_id == retailer_id)).scalar_one()
+
+
+def get_account_holder_market_pref(cosmos_db_session: "Session", account_holder_id: int) -> MarketingPreference:
+    return cosmos_db_session.execute(
+        select(MarketingPreference).where(account_holder_id == account_holder_id)
+    ).scalar_one()
 
 
 # def get_account_holder_with_email(polaris_db_session: "Session", email: str, retailer_id: int) -> AccountHolder:

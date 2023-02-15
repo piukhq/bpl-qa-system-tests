@@ -15,7 +15,7 @@ Feature: Reward already allocated and uploading status from 3rd party
 
     And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
-  @reward @bpl @bpl-299
+  @reward @bpl @bpl-299 @bpl-2.0
   Scenario: Reward not found
 
     When the trenette retailer updates selected rewards to redeemed status

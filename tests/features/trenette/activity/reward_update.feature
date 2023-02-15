@@ -16,7 +16,7 @@ Feature: Bink BPL - Activity pending reward- total cost to user affected by refu
 
     And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
-  @bpl-734-1 @bpl-734 @bpl
+  @bpl-734-1 @bpl-734 @bpl @bpl-2.0
   Scenario: REWARD_UPDATE activity created when we process refund [slush=refund]
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 3333 pennies
@@ -27,7 +27,7 @@ Feature: Bink BPL - Activity pending reward- total cost to user affected by refu
     And the account holder balance shown for trenette-active-campaign is 0
     Then there is REWARD_UPDATE activity appeared
 
-  @bpl-734-2 @bpl-734 @bpl
+  @bpl-734-2 @bpl-734 @bpl @bpl-2.0
   Scenario: REWARD_UPDATE activity created when we process refund [slush>refund]
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 3333 pennies
