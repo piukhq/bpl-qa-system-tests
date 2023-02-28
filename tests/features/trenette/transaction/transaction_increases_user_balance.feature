@@ -17,7 +17,7 @@ Feature: Bink BPL - Transaction increases user balance
 
     And 1 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
-  @bpl @transaction @bpl-294
+  @bpl @transaction @bpl-294 @bpl-2.0
   Scenario: Transaction meets earn threshold (>0)
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 550 pennies

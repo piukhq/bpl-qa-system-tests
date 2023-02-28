@@ -43,7 +43,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
         And I enrol an account holder passing in all required and all optional fields
 
         When the retailer's trenette-campaign campaign status is changed to active
-#        Then the cosmos create-campaign-balances task status is success
+        Then the cosmos create-campaign-balances task status is success
         Then the account holder is activated
         And the account holder balance shown for trenette-campaign is 0
         And the cosmos account-holder-activation task status is success

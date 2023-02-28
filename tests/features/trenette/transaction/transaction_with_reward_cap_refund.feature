@@ -17,7 +17,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
         And the trenette-acc-campaign campaign has reward rule with reward goal: 20000, allocation window: 10 and reward cap: 2
 
         And 5 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
-    @bpl @trc @AC-1-2 @bpl-733
+    @bpl @trc @AC-1-2 @bpl-733 @bpl-2.0
     Scenario: verify Purchase > TRC - Pending reward issued, no balance change
         Given an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is 2000
@@ -25,7 +25,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
         Then 2 pending rewards are available to the account holder for the trenette-acc-campaign campaign
         And the account holder balance shown for trenette-acc-campaign is 2000
 
-    @bpl @trc @AC-3 @bpl-733
+    @bpl @trc @AC-3 @bpl-733 @bpl-2.0
     Scenario: verify there is slush available on one pending reward
         Given an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is 2000
@@ -41,7 +41,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
         And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 45000 with a conversion date in 10 days
         And the account holder's 2nd pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 24500 with a conversion date in 10 days
 
-    @bpl @trc @AC-4 @bpl-733
+    @bpl @trc @AC-4 @bpl-733 @bpl-2.0
     Scenario: verify there is slush available over multiple pending reward
         Given an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is 2000
@@ -57,7 +57,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
         And the account holder's 1st pending reward record for trenette-acc-campaign has count of 3, value of 10000 and total cost to user of 30500 with a conversion date in 10 days
         And the account holder's 2nd pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 20000 with a conversion date in 10 days
 
-    @bpl @trc @AC-5 @bpl-733
+    @bpl @trc @AC-5 @bpl-733 @bpl-2.0
     Scenario: verify when a refund happens and there is not enough slush, balance gets affected
         Given an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is 500
@@ -73,7 +73,7 @@ Feature: Bink BPL - Transaction with a reward cap and refund window
         And the account holder's 1st pending reward record for trenette-acc-campaign has count of 3, value of 10000 and total cost to user of 30000 with a conversion date in 10 days
         And the account holder's 2nd pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 20000 with a conversion date in 10 days
 
-    @bpl @trc @AC-6-733 @bpl-733
+    @bpl @trc @AC-6-733 @bpl-733 @bpl-2.0
     Scenario: verify when a refund happens and there is not enough slush, pending rewards are removed and balance affected
         Given an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is 2000

@@ -5,7 +5,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
     Where a campaign reward rule has transaction reward cap (TRC) set and allocation window
     So I make sure that rewards issuance are done correctly adhering to TRC
 
-    @bpl @trc @AC-1-2-3 @bpl-690
+    @bpl @trc @AC-1-2-3 @bpl-690 @bpl-2.0
     Scenario: Pending rewards issued honouring TRC - 1x multiplier - Example 1
         Given the trenette retailer exists with status as TEST
         And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
@@ -42,7 +42,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         And the account holder's 1st pending reward record for trenette-acc-campaign has count of 1, value of 10000 and total cost to user of 10000 with a conversion date in a day
         And 1 pending rewards are available to the account holder for the trenette-acc-campaign campaign
 
-    @bpl @trc @AC-4-5 @bpl-690
+    @bpl @trc @AC-4-5 @bpl-690 @bpl-2.0
     Scenario: Pending rewards issued honouring TRC - 1x multiplier - Example 2
         Given the trenette retailer exists with status as TEST
         And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
@@ -75,7 +75,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         And 1 pending rewards are available to the account holder for the trenette-acc-campaign campaign
 
 
-    @bpl @trc @AC-6 @bpl-690
+    @bpl @trc @AC-6 @bpl-690 @bpl-2.0
     Scenario: Pending rewards issued honouring TRC - 1x multiplier - Example 3
         Given the trenette retailer exists with status as TEST
         And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
@@ -100,7 +100,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 20000 with a conversion date in a day
         And 2 pending rewards are available to the account holder for the trenette-acc-campaign campaign
 
-    @bpl @trc @AC-7 @bpl-690
+    @bpl @trc @AC-7 @bpl-690  @bpl-2.0
     Scenario:  Pending rewards issued honouring TRC - 2x multiplier - Example 1
         Given the trenette retailer exists with status as TEST
         And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
@@ -129,7 +129,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 50000 with a conversion date in a day
         And 2 pending rewards are available to the account holder for the trenette-acc-campaign campaign
 
-    @bpl @trc @AC-8 @bpl-690
+    @bpl @trc @AC-8 @bpl-690 @bpl-2.0
     Scenario:  Pending rewards issued honouring TRC - 2x multiplier - Coversation day 5 in future (Confluence page Example-4)
         Given the trenette retailer exists with status as TEST
         And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
@@ -168,7 +168,7 @@ Feature: Bink BPL - Transaction with a reward cap with TRC
         And the account holder's 1st pending reward record for trenette-acc-campaign has count of 2, value of 10000 and total cost to user of 50000 with a conversion date in 5 days
 
 
-    @bpl @trc @AC-9 @bpl-690
+    @bpl @trc @AC-9 @bpl-690 @bpl-2.0
     Scenario:  Pending rewards issued honouring TRC - 1x multiplier - (Confluence page Example-3)
         Given the trenette retailer exists with status as TEST
         And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999

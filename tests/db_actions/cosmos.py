@@ -122,10 +122,14 @@ def create_rewards_for_existing_account_holder(
     reward_count: int,
     account_holder_id: int,
     campaign_slug: str,
-    reward_slug: str | None = "reward-test-slug",
-    status: str = "ISSUED",
+    reward_slug: str = "reward-test-slug",
+    deleted: bool = False,
     expiry_date: datetime | None = None,
 ) -> None:
+    campaign = get_campaign_by_slug(cosmos_db_session=cosmos_db_session, campaign_slug=campaign_slug)
+    retailer_id = get_retailer_id(cosmos_db_session=cosmos_db_session, retailer_slug=retailer_slug)
+    reward_config_id = get_reward_config_id(cosmos_db_session=cosmos_db_session, reward_slug=reward_slug)
+
     rewards = []
     for _ in range(1, int(reward_count) + 1):
         reward = Reward(
@@ -133,12 +137,12 @@ def create_rewards_for_existing_account_holder(
             code=str(uuid4()),
             issued_date=datetime.now() - timedelta(days=1),
             expiry_date=expiry_date if expiry_date else datetime.now() + timedelta(days=1),
-            status=status,
-            campaign_slug=campaign_slug,
-            reward_slug=reward_slug,
-            retailer_slug=retailer_slug,
-            idempotency_token=str(uuid4()),
+            deleted=deleted,
+            campaign_id=campaign.id,
+            reward_config_id=reward_config_id,
+            retailer_id=retailer_id,
             account_holder_id=account_holder_id,
+            associated_url="http://reward-base.url/reward?",
         )
         rewards.append(reward)
 
@@ -182,7 +186,7 @@ def create_pending_rewards_with_all_value_for_existing_account_holder(
     value: int,
     total_cost_to_user: int,
     account_holder_id: int,
-    campaign_slug: str,
+    campaign_id: str,
     reward_slug: str | None,
 ) -> PendingReward:
 
@@ -190,11 +194,8 @@ def create_pending_rewards_with_all_value_for_existing_account_holder(
         created_date=datetime.now() - timedelta(days=1),
         conversion_date=conversion_date,
         value=value,
-        campaign_slug=campaign_slug,
-        reward_slug=reward_slug,
-        retailer_slug=retailer_slug,
+        campaign_id=campaign_id,
         account_holder_id=account_holder_id,
-        idempotency_token=str(uuid4()),
         count=prr_count,
         total_cost_to_user=total_cost_to_user,
         pending_reward_uuid=str(uuid4()),

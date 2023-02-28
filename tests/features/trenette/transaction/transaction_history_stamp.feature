@@ -17,7 +17,7 @@ Feature: Bink BPL - Transaction history for stamp campaign
 
     And 5 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
-  @bpl @transaction-history-stamp-1 @bpl-600
+  @bpl @transaction-history-stamp-1 @bpl-600 @bpl-2.0
   Scenario: Transaction history with amount - stamp campaign
     Given an active account holder exists for the retailer
     And the account holder's trenette-acc-campaign balance is 300
@@ -27,7 +27,7 @@ Feature: Bink BPL - Transaction history for stamp campaign
     And the account holder balance shown for trenette-acc-campaign is 400
     Then The account holder's transaction history has 1 transactions, and the latest transaction is 6.00
 
-  @bpl @transaction-history-stamp-2 @bpl-600
+  @bpl @transaction-history-stamp-2 @bpl-600 @bpl-2.0
   Scenario: Transaction history with refund - stamp campaign
     Given an active account holder exists for the retailer
     And the account holder's trenette-acc-campaign balance is 300
@@ -39,7 +39,7 @@ Feature: Bink BPL - Transaction history for stamp campaign
     And the account holder balance shown for trenette-acc-campaign is 300
     And The account holder's transaction history has 1 transactions, and the latest transaction is -6.00
 
-  @bpl @transaction-history-stamp-3 @bpl-600
+  @bpl @transaction-history-stamp-3 @bpl-600 @bpl-2.0
   Scenario: Transaction history with maximum 10 record - stamp campaign
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of 150 pennies

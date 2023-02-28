@@ -22,11 +22,11 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 
-def get_last_created_reward_issuance_task(carina_db_session: "Session", reward_config_id: int) -> RetryTask:
+def get_last_created_reward_issuance_task(cosmos_db_session: "Session", reward_config_id: int) -> RetryTask:
     for i in (1, 3, 5, 10):
         time.sleep(i)
         allocation_task = (
-            carina_db_session.execute(
+            cosmos_db_session.execute(
                 select(RetryTask)
                 .where(
                     TaskType.task_type_id == RetryTask.task_type_id,

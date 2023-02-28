@@ -17,7 +17,7 @@ Feature: Bink BPL - refund
 
     And 1 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
-  @bpl @transaction @refund @bpl-540
+  @bpl @transaction @refund @bpl-540 @bpl-2.0
   Scenario: Refund accepted and balance updated with 0
     Given an active account holder exists for the retailer
 
