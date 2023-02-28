@@ -46,6 +46,7 @@ from db.cosmos.models import (
     EmailTemplateRequiredKey,
     Retailer,
     RetailerFetchType,
+    RetailerStore,
     Reward,
     RewardConfig,
     RewardRule,
@@ -316,11 +317,11 @@ def add_rewards(
 #        )
 # # fmt: on
 # def standard_reward_and_reward_config(
-#     carina_db_session: "Session",
+#     cosmos_db_session: "Session",
 #     reward_n: int,
-#     retailer_config: RetailerConfig,
-#     request_context: dict,
+#     retailer_config: Retailer,
 #     fetch_types: list[FetchType],
+#     standard_campaign: Campaign,
 # ) -> list[RewardConfig]:
 #     fixture_data = load_fixture(retailer_config.slug)
 #     reward_configs: list = []
@@ -328,46 +329,49 @@ def add_rewards(
 #
 #         for reward_config_data in fixture_data.reward_config.get(fetch_type.name, []):
 #             reward_config = RewardConfig(
-#                 retailer_id=request_context["carina_retailer_id"], fetch_type_id=fetch_type.id, **reward_config_data
+#                 retailer_id=retailer_config.id, fetch_type_id=fetch_type.id, **reward_config_data
 #             )
-#             carina_db_session.add(reward_config)
+#             cosmos_db_session.add(reward_config)
 #             reward_configs.append(reward_config)
 #
 #     if reward_n > 0:
-#         carina_db_session.flush()
+#         cosmos_db_session.flush()
 #         for config in reward_configs:
-#             carina_db_session.add_all(
+#             cosmos_db_session.add_all(
 #                 Reward(
 #                     id=str(uuid4()),
-#                     code=f"{config.reward_slug}/{i}",
-#                     allocated=False,
+#                     code=f"{config.slug}/{i}",
 #                     deleted=False,
 #                     reward_config_id=config.id,
-#                     retailer_id=request_context["carina_retailer_id"],
+#                     retailer_id=retailer_config.id,
+#                     associated_url="",
+#                     issued_date=None,
+#                     expiry_date=None,
+#                     redeemed_date=None,
+#                     cancelled_date=None,
+#                     campaign_id=standard_campaign.id,
+#                     account_holder_id=None
 #                 )
 #                 for i in range(1, reward_n + 1)
 #             )
 #
-#     carina_db_session.commit()
+#     cosmos_db_session.commit()
 #     return reward_configs
 
 
 # # fmt: off
-# @given(parse("required fetch type are configured for the current retailer"),
-#        target_fixture="fetch_types"
-#        )
+# @given(parse("required fetch type are configured for the current retailer"), target_fixture="fetch_types")
 # # fmt: on
 # def get_fetch_type(
-#     cosmos_db_session: "Session", retailer_config: Retailer, request_context: dict
+#     cosmos_db_session: "Session", retailer_config: Retailer
 # ) -> list[FetchType]:
 #     fixture_data = load_fixture(retailer_config.slug)
-#     retailer_id = request_context["cosmos_retailer_id"]
 #     fetch_types = cosmos_db_session.execute(select(FetchType)).scalars().all()
 #     for fetch_type in fetch_types:
 #         if fetch_type.name in fixture_data.retailer_fetch_type:
 #             cosmos_db_session.add(
 #                 RetailerFetchType(
-#                     retailer_id=retailer_id,
+#                     retailer_id=retailer_config.id,
 #                     fetch_type_id=fetch_type.id,
 #                     **fixture_data.retailer_fetch_type[fetch_type.name],
 #                 )
@@ -623,7 +627,6 @@ def make_account_holder_rewards(
             account_holder_id=account_holder.id,
             campaign_slug=campaign_slug,
             reward_slug=reward_slug,
-            status=reward_status,
             expiry_date=arrow.utcnow().dehumanize(expiring).datetime,
         )
 
@@ -686,6 +689,15 @@ def add_vars_to_email_template(
         required_key = EmailTemplateRequiredKey(email_template_id=email_template.id, email_template_key_id=key)
         cosmos_db_session.add(required_key)
 
+    cosmos_db_session.commit()
+
+
+# fmt: off
+@given(parse("the retailer store name as: {store_name}"))
+# fmt: on
+def location_attached(cosmos_db_session: "Session", retailer_config: Retailer, store_name: str) -> None:
+    retailer_store = RetailerStore(store_name=store_name, mid="1234", retailer_id=retailer_config.id)
+    cosmos_db_session.add(retailer_store)
     cosmos_db_session.commit()
 
 
@@ -774,29 +786,29 @@ def verify_account_holder_reward_status(
         assert resp.json()["rewards"][i]["status"] == reward_status
 
 
-# # fmt: off
-# @given(parse("there are {reward_count} issued unexpired rewards for account holder with "
-#              "reward slug {reward_slug} and campaign slug {campaign_slug}"))
-# # fmt: on
-# def update_existing_account_holder_with_rewards_for_reward_slug(
-#     account_holder: AccountHolder,
-#     retailer_config: RetailerConfig,
-#     reward_count: int,
-#     reward_slug: str,
-#     campaign_slug: str,
-#     polaris_db_session: "Session",
-# ) -> AccountHolder:
-#     create_rewards_for_existing_account_holder(
-#         polaris_db_session,
-#         retailer_slug=retailer_config.slug,
-#         reward_count=reward_count,
-#         account_holder_id=account_holder.id,
-#         campaign_slug=campaign_slug,
-#         reward_slug=reward_slug,
-#     )
-#     return account_holder
-#
-#
+# fmt: off
+@given(parse("there are {reward_count} issued unexpired rewards for account holder with "
+             "reward slug {reward_slug} and campaign slug {campaign_slug}"))
+# fmt: on
+def update_existing_account_holder_with_rewards_for_reward_slug(
+    account_holder: AccountHolder,
+    retailer_config: Retailer,
+    reward_count: int,
+    reward_slug: str,
+    campaign_slug: str,
+    cosmos_db_session: "Session",
+) -> AccountHolder:
+    create_rewards_for_existing_account_holder(
+        cosmos_db_session,
+        retailer_slug=retailer_config.slug,
+        reward_count=reward_count,
+        account_holder_id=account_holder.id,
+        campaign_slug=campaign_slug,
+        reward_slug=reward_slug,
+    )
+    return account_holder
+
+
 # # VELA FIXTURES
 # # fmt: off
 # @given(parse("that retailer has the standard campaigns configured"),

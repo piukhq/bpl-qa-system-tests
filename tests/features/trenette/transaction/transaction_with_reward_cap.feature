@@ -17,7 +17,7 @@ Feature: Bink BPL - Transaction with a reward cap with no allocation window
         And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 0 and reward cap: 2
         And 5 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
-    @bpl @trc @bpl-702
+    @bpl @trc @bpl-702 @bpl-2.0
     Scenario Outline: Transaction with reward cap
         Given an active account holder exists for the retailer
         And the account holder's trenette-acc-campaign balance is <starting_balance>

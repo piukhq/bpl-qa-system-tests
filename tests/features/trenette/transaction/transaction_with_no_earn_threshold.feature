@@ -17,7 +17,7 @@ Feature: Transaction with no earn threshold
 
     And 2 unassigned rewards are generated for the 10percentoff reward config with deleted status set to false
 
-  @bpl @transaction @noearn-threshold
+  @bpl @transaction @noearn-threshold @bpl-2.0
   Scenario Outline: Transaction with 0 threshold to verify balance and rewards
     Given an active account holder exists for the retailer
     When BPL receives a transaction for the account holder for the amount of <tx_amount_1> pennies

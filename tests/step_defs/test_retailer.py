@@ -11,6 +11,7 @@ import arrow
 from faker import Faker
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
+from retry_tasks_lib.enums import RetryTaskStatuses
 
 # from retry_tasks_lib.enums import RetryTaskStatuses
 from sqlalchemy import select, sql
@@ -26,6 +27,8 @@ from tests.db_actions.cosmos import (
     create_pending_rewards_with_all_value_for_existing_account_holder,
     get_account_holder_for_retailer,
     get_account_holder_market_pref,
+    get_campaign_by_slug,
+    get_ordered_pending_rewards,
     get_retailer_id,
     get_reward_config_id,
     get_rewards,
@@ -46,22 +49,19 @@ from tests.db_actions.hubble import get_latest_activity_by_type
 #     get_campaign_status,
 # )
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
+from tests.db_actions.reward import get_last_created_reward_issuance_task
 
 # from tests.db_actions.vela import
 from tests.requests.enrolment import (
     send_get_accounts,
     send_get_accounts_by_credential,
     send_marketing_unsubscribe,
+    send_number_of_accounts,
+    send_number_of_accounts_by_post_credential,
     send_post_enrolment,
 )
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
-
-# get_retry_task_audit_data,
-# get_tasks_by_type_and_key_value,
-
-# from tests.db_actions.reward import get_last_created_reward_issuance_task
-
 
 #     send_get_accounts_by_credential,
 #     send_number_of_accounts,
@@ -69,7 +69,14 @@ from tests.shared_utils.response_fixtures.errors import TransactionResponses
 # )
 # from tests.requests.status_change import send_post_campaign_status_change
 # from tests.shared_utils.response_fixtures.errors import TransactionResponses
-# from utils import word_pos_to_list_item
+from utils import word_pos_to_list_item
+
+# get_retry_task_audit_data,
+# get_tasks_by_type_and_key_value,
+
+# from tests.db_actions.reward import get_last_created_reward_issuance_task
+
+
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -91,24 +98,24 @@ def check_file_moved(
     container.delete_blob(blobs[0])
 
 
-# @then(parse("rewards are allocated to the account holder for the {reward_slug} reward"))
-# def check_async_reward_allocation(carina_db_session: "Session", reward_slug: str) -> None:
-#     """Check that the reward in the Reward table has been marked as 'allocated' and that it has an id"""
-#     reward_config_id = get_reward_config_id(carina_db_session=carina_db_session, reward_slug=reward_slug)
-#
-#     reward_allocation_task = get_last_created_reward_issuance_task(
-#         carina_db_session=carina_db_session, reward_config_id=reward_config_id
-#     )
-#     for i in range(20):
-#         logging.info(f"Waiting {i} seconds for reward allocation task completion...")
-#         time.sleep(i)
-#         carina_db_session.refresh(reward_allocation_task)
-#         if reward_allocation_task.status == RetryTaskStatuses.SUCCESS:
-#             break
-#
-#     reward = carina_db_session.query(Reward).filter_by(id=reward_allocation_task.get_params()["reward_uuid"]).one()
-#     assert reward.allocated
-#     assert reward.id
+@then(parse("rewards are allocated to the account holder for the {reward_slug} reward"))
+def check_async_reward_allocation(cosmos_db_session: "Session", reward_slug: str) -> None:
+    """Check that the reward in the Reward table has been marked as 'allocated' and that it has an id"""
+    reward_config_id = get_reward_config_id(cosmos_db_session=cosmos_db_session, reward_slug=reward_slug)
+
+    reward_allocation_task = get_last_created_reward_issuance_task(
+        cosmos_db_session=cosmos_db_session, reward_config_id=reward_config_id
+    )
+    for i in range(20):
+        logging.info(f"Waiting {i} seconds for reward allocation task completion...")
+        time.sleep(i)
+        cosmos_db_session.refresh(reward_allocation_task)
+        if reward_allocation_task.status == RetryTaskStatuses.SUCCESS:
+            break
+
+    reward = cosmos_db_session.query(Reward).filter_by(id=reward_allocation_task.get_params()["reward_config_id"]).one()
+    assert reward.account_holder_id
+    assert reward.id
 
 
 @then(parse("all unallocated rewards for {reward_slug} reward config {are_arenot} soft deleted"))
@@ -291,21 +298,21 @@ def value_in_marketing_prefrences(value: str, cosmos_db_session: "Session", reta
     assert marketing_value.value == value
 
 
-# # fmt: off
-# @then(parse("there is no balance shown for {campaign_slug} for account holder"))
-# # fmt: on
-# def send_get_request_to_accounts_check_balance_for_campaign(
-#     retailer_config: RetailerConfig, account_holder: AccountHolder, campaign_slug: str
-# ) -> None:
-#     time.sleep(3)
-#     resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
-#     logging.info(f"Response HTTP status code: {resp.status_code}")
-#     logging.info(
-#         f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-#         f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
-#     )
-#     for i in range(len(resp.json()["current_balances"])):
-#         assert resp.json()["current_balances"][i]["campaign_slug"] != campaign_slug
+# fmt: off
+@then(parse("there is no balance shown for {campaign_slug} for account holder"))
+# fmt: on
+def send_get_request_to_accounts_check_balance_for_campaign(
+    retailer_config: Retailer, account_holder: AccountHolder, campaign_slug: str
+) -> None:
+    time.sleep(3)
+    resp = send_get_accounts(retailer_config.slug, account_holder.account_holder_uuid)
+    logging.info(f"Response HTTP status code: {resp.status_code}")
+    logging.info(
+        f"Response of GET {settings.ACCOUNTS_API_BASE_URL}{Endpoints.ACCOUNTS}"
+        f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+    )
+    for i in range(len(resp.json()["current_balances"])):
+        assert resp.json()["current_balances"][i]["campaign_slug"] != campaign_slug
 
 
 @then(parse("the newly enrolled account holder's {campaign_slug} balance is {amount:d}"))
@@ -458,33 +465,32 @@ def verify_transaction_history_in_get_by_credential(
     assert len(resp.json()["transaction_history"]) == expected_num_transaction
 
 
-# # fmt: off
-# @then(parse("BPL set up to receive only
-# {num_of_transaction} recent transaction appeared into transaction history with "
-#             "{get_by_account} for the account holder"))
-# # fmt: on
-# def check_number_of_transaction_on_get_account_resonse(
-#     num_of_transaction: str, get_by_account: str, retailer_config: RetailerConfig, account_holder: AccountHolder
-# ) -> None:
-#     if get_by_account == "get by account":
-#         resp = send_number_of_accounts(num_of_transaction, retailer_config.slug, account_holder.account_holder_uuid)
-#         logging.info(f"Response HTTP status code: {resp.status_code}")
-#         logging.info(
-#             f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-#             f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
-#         )
-#     elif get_by_account == "get by credential":
-#         payload = {"email": account_holder.email, "account_number": account_holder.account_number}
-#         resp = send_number_of_accounts_by_post_credential(num_of_transaction, retailer_config.slug, payload)
-#         logging.info(f"Response HTTP status code: {resp.status_code}")
-#         logging.info(
-#             f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
-#             f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
-#         )
-#     else:
-#         logging.info("Couldn't find correct call services")
-#     assert resp.status_code == 200
-#     assert len(resp.json()["transaction_history"]) == int(num_of_transaction)
+# fmt: off
+@then(parse("BPL set up to receive only {num_of_transaction} recent transaction appeared into transaction history with "
+            "{get_by_account} for the account holder"))
+# fmt: on
+def check_number_of_transaction_on_get_account_resonse(
+    num_of_transaction: str, get_by_account: str, retailer_config: Retailer, account_holder: AccountHolder
+) -> None:
+    if get_by_account == "get by account":
+        resp = send_number_of_accounts(num_of_transaction, retailer_config.slug, account_holder.account_holder_uuid)
+        logging.info(f"Response HTTP status code: {resp.status_code}")
+        logging.info(
+            f"Response of GET {settings.ACCOUNTS_API_BASE_URL}{Endpoints.ACCOUNTS}"
+            f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+        )
+    elif get_by_account == "get by credential":
+        payload = {"email": account_holder.email, "account_number": account_holder.account_number}
+        resp = send_number_of_accounts_by_post_credential(num_of_transaction, retailer_config.slug, payload)
+        logging.info(f"Response HTTP status code: {resp.status_code}")
+        logging.info(
+            f"Response of GET {settings.ACCOUNTS_API_BASE_URL}{Endpoints.ACCOUNTS}"
+            f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
+        )
+    else:
+        logging.info("Couldn't find correct call services")
+    assert resp.status_code == 200
+    assert len(resp.json()["transaction_history"]) == int(num_of_transaction)
 
 
 # fmt: off
@@ -652,53 +658,53 @@ def check_account_holder_reward_statuses(
 #         if str(reward.status) == "CANCELLED":
 #             continue
 #         assert str(reward.status) == "CANCELLED"
-#
-#
-# @then(parse("the account holder has {num:d} pending reward records for the {campaign_slug} campaign"))
-# def account_holder_has_num_pending_reward_records(
-#     polaris_db_session: "Session",
-#     account_holder: AccountHolder,
-#     campaign_slug: str,
-#     num: int,
-# ) -> None:
-#     assert len(get_ordered_pending_rewards(polaris_db_session, account_holder, campaign_slug)) == num
-#
-#
-# # fmt: off
-# @then(parse("the account holder's {list_position} pending reward record for {campaign_slug} has count of "
-#             "{count:d}, value of {value:d} and total cost to user of {total_cost_to_user:d} with a conversion "
-#             "date {converting}"))
-# # fmt: on
-# def account_holder_has_pending_reward_with_trc(
-#     polaris_db_session: "Session",
-#     account_holder: AccountHolder,
-#     list_position: str,
-#     campaign_slug: str,
-#     count: int,
-#     total_cost_to_user: int,
-#     value: int,
-#     converting: str,
-# ) -> None:
-#     time.sleep(3)
-#
-#     try:
-#         pending_reward = word_pos_to_list_item(
-#             list_position, get_ordered_pending_rewards(polaris_db_session, account_holder, campaign_slug)
-#         )
-#     except IndexError:
-#         assert False, f"No '{list_position}' pending reward found."
-#
-#     assert pending_reward
-#     assert pending_reward.count == count
-#     assert pending_reward.total_cost_to_user == total_cost_to_user
-#     assert pending_reward.value == value
-#     assert pending_reward.conversion_date.date() == arrow.utcnow().dehumanize(converting).date()
-#     logging.info(
-#         f"\nThe {list_position} pending reward conversion date is : {str(pending_reward.conversion_date.date())} "
-#         f"\nThe {list_position} pending reward count is : {pending_reward.count} "
-#         f"\nThe {list_position} pending reward value is : {pending_reward.value} "
-#         f"\nThe {list_position} pending reward total cost to user is : {pending_reward.total_cost_to_user}"
-#     )
+
+
+@then(parse("the account holder has {num:d} pending reward records for the {campaign_slug} campaign"))
+def account_holder_has_num_pending_reward_records(
+    cosmos_db_session: "Session",
+    account_holder: AccountHolder,
+    campaign_slug: str,
+    num: int,
+) -> None:
+    assert len(get_ordered_pending_rewards(cosmos_db_session, account_holder, campaign_slug)) == num
+
+
+# fmt: off
+@then(parse("the account holder's {list_position} pending reward record for {campaign_slug} has count of "
+            "{count:d}, value of {value:d} and total cost to user of {total_cost_to_user:d} with a conversion "
+            "date {converting}"))
+# fmt: on
+def account_holder_has_pending_reward_with_trc(
+    cosmos_db_session: "Session",
+    account_holder: AccountHolder,
+    list_position: str,
+    campaign_slug: str,
+    count: int,
+    total_cost_to_user: int,
+    value: int,
+    converting: str,
+) -> None:
+    time.sleep(3)
+
+    try:
+        pending_reward = word_pos_to_list_item(
+            list_position, get_ordered_pending_rewards(cosmos_db_session, account_holder, campaign_slug)
+        )
+    except IndexError:
+        assert False, f"No '{list_position}' pending reward found."
+
+    assert pending_reward
+    assert pending_reward.count == count
+    assert pending_reward.total_cost_to_user == total_cost_to_user
+    assert pending_reward.value == value
+    assert pending_reward.conversion_date.date() == arrow.utcnow().dehumanize(converting).date()
+    logging.info(
+        f"\nThe {list_position} pending reward conversion date is : {str(pending_reward.conversion_date.date())} "
+        f"\nThe {list_position} pending reward count is : {pending_reward.count} "
+        f"\nThe {list_position} pending reward value is : {pending_reward.value} "
+        f"\nThe {list_position} pending reward total cost to user is : {pending_reward.total_cost_to_user}"
+    )
 
 
 # fmt: off
@@ -712,21 +718,21 @@ def update_existing_account_holder_with_pending_rewards(
     prr_count: int,
     value: int,
     total_cost_to_user: int,
-    polaris_db_session: "Session",
+    cosmos_db_session: "Session",
     campaign_slug: str,
     reward_slug: str,
     converting: str,
 ) -> PendingReward:
-
+    campaign = get_campaign_by_slug(cosmos_db_session=cosmos_db_session, campaign_slug=campaign_slug)
     pending_rewards = create_pending_rewards_with_all_value_for_existing_account_holder(
-        polaris_db_session,
+        cosmos_db_session,
         retailer_config.slug,
         arrow.utcnow().dehumanize(converting).date(),
         prr_count,
         value,
         total_cost_to_user,
         account_holder.id,
-        campaign_slug,
+        campaign.id,
         reward_slug,
     )
     return pending_rewards

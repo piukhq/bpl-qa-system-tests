@@ -64,6 +64,7 @@ BLOB_IMPORT_CONTAINER=$BLOB_IMPORT_CONTAINER
 BLOB_ARCHIVE_CONTAINER=$BLOB_ARCHIVE_CONTAINER
 EVENT_HORIZON_CLIENT_ID=$EVENT_HORIZON_CLIENT_ID
 BLOB_IMPORT_SCHEDULE=* * * * *
+REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
 PROMETHEUS_HTTP_SERVER_PORT=9300
 PRE_LOADED_REWARD_BASE_URL=http://reward-base.url
 ACTIVITY_DB=hubble_auto
@@ -200,6 +201,7 @@ EOF
     echo "$COSMOS_ENV_FILE" >local.env
     echo "- Updating python environment"
     poetry config --local virtualenvs.in-project true
+    poetry env use 3.11
     poetry install --sync --without dev
     echo "- Resetting cosmos database"
     psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE cosmos_template;"

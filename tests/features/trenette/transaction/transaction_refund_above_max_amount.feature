@@ -16,7 +16,7 @@ Feature: Bink BPL - refund (max amount set)
 
         And 0 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
-    @bpl @transaction @refund @bpl-670
+    @bpl @transaction @refund @bpl-670 @bpl-2.0
     Scenario: Refund accepted above max amount
         Given an active account holder exists for the retailer
         When BPL receives a transaction for the account holder for the amount of 2000 pennies

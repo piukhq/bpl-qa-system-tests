@@ -16,9 +16,10 @@ Feature: Bink BPL - Transaction history
     And 5 unassigned rewards are generated for the free-item reward config with deleted status set to false
     And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
     And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
+    And the retailer store name as: bink.com
 
 
-  @bpl @transaction-history-1 @bpl-596
+  @bpl @transaction-history-1 @bpl-596 @bpl-2.0
   Scenario: Transaction history with amount
     Given an active account holder exists for the retailer
     And the account holder's trenette-acc-campaign balance is 2000
@@ -29,7 +30,7 @@ Feature: Bink BPL - Transaction history
     Then The account holder's transaction history has 1 transactions, and the latest transaction is 6.50
 
 
-  @bpl @transaction-history-2 @bpl-596
+  @bpl @transaction-history-2 @bpl-596 @bpl-2.0
   Scenario: Transaction history with refund
     Given an active account holder exists for the retailer
     And the account holder's trenette-acc-campaign balance is 2650
@@ -40,7 +41,7 @@ Feature: Bink BPL - Transaction history
     And the account holder balance shown for trenette-acc-campaign is 1851
     Then The account holder's transaction history has 1 transactions, and the latest transaction is -7.99
 
-  @bpl @transaction-history-3 @bpl-596
+  @bpl @transaction-history-3 @bpl-596 @bpl-2.0
   Scenario: Transaction history with maximum 10 record
     Given an active account holder exists for the retailer
 
@@ -80,7 +81,7 @@ Feature: Bink BPL - Transaction history
     When BPL receives a transaction for the account holder for the amount of -310 pennies
     Then The account holder's transaction history has 10 transactions, and the latest transaction is -3.10
 
-  @bpl @transaction-history-4 @bpl-596
+  @bpl @transaction-history-4 @bpl-596 @bpl-2.0
   Scenario: Transaction history with amount showing for getbycredential
     Given an active account holder exists for the retailer
 
@@ -99,7 +100,7 @@ Feature: Bink BPL - Transaction history
     When BPL receives a transaction for the account holder for the amount of 1050 pennies
     Then there is 10 transaction history in array
 
-  @bpl @transaction-history-5 @bpl-596
+  @bpl @transaction-history-5 @bpl-596 @bpl-2.0
   Scenario: Number of transactions to appear for transaction history - For get by credential POST call
     Given an active account holder exists for the retailer
 
@@ -123,7 +124,7 @@ Feature: Bink BPL - Transaction history
 
     And BPL set up to receive only 4 recent transaction appeared into transaction history with get by credential for the account holder
 
-  @bpl @transaction_history-6 @bpl-596
+  @bpl @transaction-history-6 @bpl-596 @bpl-2.0
   Scenario: Number of transactions to appear for transaction history - For get account GET call
     Given an active account holder exists for the retailer
 

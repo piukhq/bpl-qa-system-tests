@@ -74,15 +74,15 @@ reward_rule:
       allocation_window: 0
 reward_config:
   PRE_LOADED:
-    - reward_slug: "free-item"
+    - slug: "free-item"
       required_fields_values: "validity_days: 30"
-      status: "ACTIVE"
-    - reward_slug: "10percentoff"
+      active: true
+    - slug: "10percentoff"
       required_fields_values: "validity_days: 30"
-      status: "ACTIVE"
-    - reward_slug: "20percent_egift"
+      active: true
+    - slug: "20percent_egift"
       required_fields_values: "validity_days: 30"
-      status: "ACTIVE"
+      active: true
 
 retailer_fetch_type:
   PRE_LOADED:
