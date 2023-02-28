@@ -476,7 +476,7 @@ def check_number_of_transaction_on_get_account_resonse(
         resp = send_number_of_accounts(num_of_transaction, retailer_config.slug, account_holder.account_holder_uuid)
         logging.info(f"Response HTTP status code: {resp.status_code}")
         logging.info(
-            f"Response of GET {settings.POLARIS_BASE_URL}{Endpoints.ACCOUNTS}"
+            f"Response of GET {settings.ACCOUNTS_API_BASE_URL}{Endpoints.ACCOUNTS}"
             f"{account_holder.account_holder_uuid}: {json.dumps(resp.json(), indent=4)}"
         )
     elif get_by_account == "get by credential":
