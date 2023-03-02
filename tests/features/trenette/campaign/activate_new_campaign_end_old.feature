@@ -23,21 +23,20 @@ Feature: Bink BPL - Activate new campaign, end old
 
         And 5 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
-    @bpl @campaign @bpl-289
+    @bpl @campaign @bpl-289 @bpl-2.0
     Scenario: Active campaign is ended and draft campaign is activated
         Given an active account holder exists for the retailer
         And the account holder's trenette-active-campaign balance is 500
         And the account has 3 pending rewards for the trenette-active-campaign campaign and 10percentoff reward slug with value 700
-        And the account has 3 issued unexpired rewards for the trenette-active-campaign campaign
-#
-#        And the retailer's trenette-draft-campaign campaign status is changed to active
-#        And BPL receives a transaction for the account holder for the amount of 600 pennies
-#        And the task worker queue is full
-#        And the retailer's trenette-active-campaign campaign status is changed to ended
-#        When the task worker queue is ready
-#
-#        Then all unallocated rewards for 10percentoff reward config are not soft deleted
-#        And the vela reward-adjustment task status is cancelled
-#        And the account holder's trenette-active-campaign balance does not exist
-#        And the account holder balance shown for trenette-draft-campaign is 0
-#        And 3 issued rewards are available to the account holder for the trenette-active-campaign campaign
+        And the account has 3 issued unexpired rewards for the trenette-active-campaign campaign and 10percentoff reward config
+
+        And the retailer's trenette-draft-campaign campaign status is changed to active
+        And BPL receives a transaction for the account holder for the amount of 600 pennies
+        And the task worker queue is full
+        And the retailer's trenette-active-campaign campaign status is changed to ended
+        When the task worker queue is ready
+
+        Then all unallocated rewards for 10percentoff reward config are not soft deleted
+        And the account holder's trenette-active-campaign balance does not exist
+        And the account holder balance shown for trenette-draft-campaign is 0
+        And 3 issued rewards are available to the account holder for the trenette-active-campaign campaign

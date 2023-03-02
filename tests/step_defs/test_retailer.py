@@ -12,23 +12,23 @@ from faker import Faker
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from retry_tasks_lib.enums import RetryTaskStatuses
+from sqlalchemy import func, select, sql
 
-# from retry_tasks_lib.enums import RetryTaskStatuses
-from sqlalchemy import select, sql
-
-# func,
 import settings
 
 from azure_actions.blob_storage import check_archive_blobcontainer
-from db.cosmos.models import AccountHolder, Campaign, PendingReward, Retailer
+from db.cosmos.models import AccountHolder, Campaign, PendingReward, Retailer, Reward
 from tests.api.base import Endpoints
 from tests.db_actions.cosmos import (
-    Reward,
     create_pending_rewards_with_all_value_for_existing_account_holder,
+    get_account_holder_balances_for_campaign,
     get_account_holder_for_retailer,
     get_account_holder_market_pref,
+    get_account_holder_reward,
     get_campaign_by_slug,
+    get_campaign_status,
     get_ordered_pending_rewards,
+    get_pending_rewards,
     get_retailer_id,
     get_reward_config_id,
     get_rewards,
@@ -36,22 +36,8 @@ from tests.db_actions.cosmos import (
     update_account_holder_pending_rewards_conversion_date,
 )
 from tests.db_actions.hubble import get_latest_activity_by_type
-
-# get_campaign_status,
-# from tests.db_actions.cosmos import (
-#     get_account_holder_balances_for_campaign,
-#     get_account_holder_reward,
-#     get_ordered_pending_rewards,
-#     get_pending_rewards,
-#     update_account_holder_pending_rewards_conversion_date,
-#     Campaign,
-#     Retailer,
-#     get_campaign_status,
-# )
 from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task
 from tests.db_actions.reward import get_last_created_reward_issuance_task
-
-# from tests.db_actions.vela import
 from tests.requests.enrolment import (
     send_get_accounts,
     send_get_accounts_by_credential,
@@ -62,21 +48,7 @@ from tests.requests.enrolment import (
 )
 from tests.requests.status_change import send_post_campaign_status_change
 from tests.shared_utils.response_fixtures.errors import TransactionResponses
-
-#     send_get_accounts_by_credential,
-#     send_number_of_accounts,
-#     send_number_of_accounts_by_post_credential,
-# )
-# from tests.requests.status_change import send_post_campaign_status_change
-# from tests.shared_utils.response_fixtures.errors import TransactionResponses
 from utils import word_pos_to_list_item
-
-# get_retry_task_audit_data,
-# get_tasks_by_type_and_key_value,
-
-# from tests.db_actions.reward import get_last_created_reward_issuance_task
-
-
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -157,40 +129,40 @@ def reward_gets_soft_deleted(cosmos_db_session: "Session", imported_reward_ids: 
     logging.info("All Rewards were soft deleted")
 
 
-# # fmt: off
-# @then(parse("there are {rewards_n:d} rewards for the {reward_slug} reward config, with allocated set to "
-#             "{allocation_status} and deleted set to {deleted_status}"))
-# # fmt: on
-# def check_rewards(
-#     carina_db_session: "Session",
-#     reward_slug: str,
-#     allocation_status: str,
-#     deleted_status: str,
-#     retailer_config: RetailerConfig,
-#     rewards_n: int,
-# ) -> None:
-#     allocation_status_bool = allocation_status == "true"
-#     deleted_status_bool = deleted_status == "true"
-#
-#     for i in range(10):
-#         logging.info(f"Sleeping for {i} seconds...")
-#         sleep(i)
-#         count = carina_db_session.execute(
-#             select(func.count("*"))
-#             .select_from(Reward)
-#             .join(Reward.rewardconfig)
-#             .join(Reward.retailer)
-#             .where(
-#                 Reward.allocated.is_(allocation_status_bool),
-#                 Reward.deleted.is_(deleted_status_bool),
-#                 RewardConfig.reward_slug == reward_slug,
-#                 Retailer.slug == retailer_config.slug,
-#             )
-#         ).scalar()
-#         if count == rewards_n:
-#             break
-#         logging.info(f"Reward count for query is {count}")
-#     assert count == rewards_n
+# fmt: off
+@then(parse("there are {rewards_n:d} rewards for the {reward_slug} reward config, with allocated set to "
+            "{allocation_status} and deleted set to {deleted_status}"))
+# fmt: on
+def check_rewards(
+    carina_db_session: "Session",
+    reward_slug: str,
+    allocation_status: str,
+    deleted_status: str,
+    retailer_config: Retailer,
+    rewards_n: int,
+) -> None:
+    allocation_status_bool = allocation_status == "true"
+    deleted_status_bool = deleted_status == "true"
+
+    for i in range(10):
+        logging.info(f"Sleeping for {i} seconds...")
+        sleep(i)
+        count = carina_db_session.execute(
+            select(func.count("*"))
+            .select_from(Reward)
+            .join(Reward.rewardconfig)
+            .join(Reward.retailer)
+            .where(
+                Reward.allocated.is_(allocation_status_bool),
+                Reward.deleted.is_(deleted_status_bool),
+                Reward.reward_slug == reward_slug,
+                Retailer.slug == retailer_config.slug,
+            )
+        ).scalar()
+        if count == rewards_n:
+            break
+        logging.info(f"Reward count for query is {count}")
+    assert count == rewards_n
 
 
 @when(parse("the {reward_slug} reward config status has been updated to {status}"))
@@ -353,29 +325,29 @@ def check_account_balance(
     check_returned_account_holder_campaign_balance(retailer_config, account_holder, campaign_slug, expected_balance)
 
 
-# # fmt: off
-# @then(parse("the balance shown for each account holder for the {campaign_slug} campaign "
-#             "is {expected_balance:d}"))
-# # fmt: on
-# def check_balances_for_account_holders(
-#     retailer_config: Retailer,
-#     account_holders: list[AccountHolder],
-#     expected_balance: int,
-#     campaign_slug: str,
-# ) -> None:
-#     for account_holder in account_holders:
-#         check_returned_account_holder_campaign_balance
-#         (retailer_config, account_holder, campaign_slug, expected_balance)
+# fmt: off
+@then(parse("the balance shown for each account holder for the {campaign_slug} campaign "
+            "is {expected_balance:d}"))
+# fmt: on
+def check_balances_for_account_holders(
+    retailer_config: Retailer,
+    account_holders: list[AccountHolder],
+    expected_balance: int,
+    campaign_slug: str,
+) -> None:
+    for account_holder in account_holders:
+        check_returned_account_holder_campaign_balance
+        (retailer_config, account_holder, campaign_slug, expected_balance)
 
 
-# @then(parse("no balance is shown for each account holder for the {campaign_slug} campaign"))
-# def check_balance_is_is_not_present(
-#     polaris_db_session: "Session",
-#     account_holders: list[AccountHolder],
-#     campaign_slug: str,
-# ) -> None:
-#     balances = get_account_holder_balances_for_campaign(polaris_db_session, account_holders, campaign_slug)
-#     assert not balances
+@then(parse("no balance is shown for each account holder for the {campaign_slug} campaign"))
+def check_balance_is_is_not_present(
+    cosmos_db_session: "Session",
+    account_holders: list[AccountHolder],
+    campaign_slug: str,
+) -> None:
+    balances = get_account_holder_balances_for_campaign(cosmos_db_session, account_holders, campaign_slug)
+    assert not balances
 
 
 @then(parse("the account holder's {campaign_slug} balance does not exist"))
@@ -388,7 +360,7 @@ def check_account_holder_balance_no_longer_exists(
         sleep(i)
         cosmos_db_session.refresh(account_holder)
         balances_by_campaign_slug = {
-            ahcb.campaign_slug: ahcb.balance for ahcb in account_holder.campaignbalance_collection
+            ahcb.campaign_id: ahcb.balance for ahcb in account_holder.campaignbalance_collection
         }
         if campaign_slug in balances_by_campaign_slug:
             continue
@@ -548,38 +520,39 @@ def check_rewards_for_account_holder(
                 assert pending_reward["campaign_slug"] == campaign_slug
 
 
-# # fmt: off
-# @then(parse("{expected_num_rewards:d} {state} rewards are available to each account holder "
-#             "for the {campaign_slug} campaign"))
-# # fmt: on
-# def check_rewards_for_each_account_holder(
-#     retailer_config: RetailerConfig,
-#     account_holders: list[AccountHolder],
-#     expected_num_rewards: int,
-#     state: str,
-#     campaign_slug: str,
-# ) -> None:
-#     for account_holder in account_holders:
-#         check_rewards_for_account_holder(retailer_config, account_holder, expected_num_rewards, state, campaign_slug)
-#
-#
-# @then(parse("there are {num:d} pending reward records for {campaign_slug} associated with the account holder"))
-# def check_for_pending_rewards(
-#     polaris_db_session: "Session",
-#     account_holder: AccountHolder,
-#     num: int,
-#     campaign_slug: str,
-# ) -> None:
-#     for i in range(5):
-#         sleep(i)
-#         pending_rewards = get_pending_rewards(
-#             polaris_db_session=polaris_db_session, account_holder=account_holder, campaign_slug=campaign_slug
-#         )
-#         if len(pending_rewards) == num:
-#             break
-#     assert len(pending_rewards) == num
-#
-#
+# fmt: off
+@then(parse("{expected_num_rewards:d} {state} rewards are available to each account holder "
+            "for the {campaign_slug} campaign"))
+# fmt: on
+def check_rewards_for_each_account_holder(
+    retailer_config: Retailer,
+    account_holders: list[AccountHolder],
+    expected_num_rewards: int,
+    state: str,
+    campaign_slug: str,
+) -> None:
+    for account_holder in account_holders:
+        check_rewards_for_account_holder(retailer_config, account_holder, expected_num_rewards, state, campaign_slug)
+
+
+@then(parse("there are {num:d} pending reward records for {campaign_slug} associated with the account holder"))
+def check_for_pending_rewards(
+    cosmos_db_session: "Session",
+    account_holder: AccountHolder,
+    num: int,
+    campaign_slug: str,
+) -> None:
+    campaign_id = get_campaign_by_slug(cosmos_db_session, campaign_slug)
+    for i in range(5):
+        sleep(i)
+        pending_rewards = get_pending_rewards(
+            cosmos_db_session=cosmos_db_session, account_holder=account_holder, campaign_id=campaign_id
+        )
+        if len(pending_rewards) == num:
+            break
+    assert len(pending_rewards) == num
+
+
 # def _get_reward_slug_from_account_holder_reward_collection(
 #     account_holder: AccountHolder,
 #     reward_slug: str,
@@ -639,25 +612,26 @@ def check_account_holder_reward_statuses(
         for i in range(6):
             time.sleep(10)  # Give it up to 1 min for the worker to do its job
             cosmos_db_session.refresh(account_holder_reward)
-            if account_holder_reward.status != "ISSUED":
+            if account_holder_reward.cancelled_date is not None:
                 break
 
-        assert account_holder_reward.status == reward_status
+        assert (account_holder_reward.cancelled_date).date() == arrow.utcnow().date()
+        logging.info(f"cancelled date: {(account_holder_reward.cancelled_date).date()}")
 
 
-# @then(parse("any {retailer_slug} account holder rewards for {reward_slug} are cancelled"))
-# def check_account_holder_rewards_are_cancelled(
-#     reward_slug: str,
-#     retailer_slug: str,
-#     polaris_db_session: "Session",
-# ) -> None:
-#     account_holder_rewards = get_account_holder_reward(
-#         polaris_db_session=polaris_db_session, reward_slug=reward_slug, retailer_slug=retailer_slug
-#     )
-#     for reward in account_holder_rewards:
-#         if str(reward.status) == "CANCELLED":
-#             continue
-#         assert str(reward.status) == "CANCELLED"
+@then(parse("any {retailer_slug} account holder rewards for {reward_slug} are cancelled"))
+def check_account_holder_rewards_are_cancelled(
+    reward_slug: str,
+    retailer_slug: str,
+    cosmos_db_session: "Session",
+) -> None:
+    account_holder_rewards = get_account_holder_reward(
+        cosmos_db_session=cosmos_db_session, reward_slug=reward_slug, retailer_slug=retailer_slug
+    )
+    for reward in account_holder_rewards:
+        if str(reward.cancelled_date) is not None:
+            continue
+        assert str(reward.cancelled_date) is not None
 
 
 @then(parse("the account holder has {num:d} pending reward records for the {campaign_slug} campaign"))
@@ -667,7 +641,8 @@ def account_holder_has_num_pending_reward_records(
     campaign_slug: str,
     num: int,
 ) -> None:
-    assert len(get_ordered_pending_rewards(cosmos_db_session, account_holder, campaign_slug)) == num
+    campaign_id = get_campaign_by_slug(cosmos_db_session, campaign_slug)
+    assert len(get_ordered_pending_rewards(cosmos_db_session, account_holder, campaign_id)) == num
 
 
 # fmt: off
@@ -688,8 +663,9 @@ def account_holder_has_pending_reward_with_trc(
     time.sleep(3)
 
     try:
+        campaign_id = get_campaign_by_slug(cosmos_db_session, campaign_slug)
         pending_reward = word_pos_to_list_item(
-            list_position, get_ordered_pending_rewards(cosmos_db_session, account_holder, campaign_slug)
+            list_position, get_ordered_pending_rewards(cosmos_db_session, account_holder, campaign_id)
         )
     except IndexError:
         assert False, f"No '{list_position}' pending reward found."

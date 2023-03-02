@@ -13,7 +13,7 @@ Feature: Bink BPL - Decoupling reward type
         And the retailer has a 10percentoff reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
 
 
-    @bpl @campaign-accumulator @bpl-724 @bpl-589
+    @bpl @campaign-accumulator @bpl-724 @bpl-589 @bpl-2.0
     Scenario: Single reward slug can be used against multiple campaign - accumulator
 
         Given the retailer's trenette-active-campaign ACCUMULATOR campaign starts 10 days ago and ends in a day and is ACTIVE
@@ -28,20 +28,20 @@ Feature: Bink BPL - Decoupling reward type
         And an active account holder exists for the retailer
         When BPL receives a transaction for the account holder for the amount of 1000 pennies
         Then BPL responds with a HTTP 200 and awarded message
-#        And 1 issued rewards are available to the account holder for the trenette-active-campaign campaign
+        And 1 issued rewards are available to the account holder for the trenette-active-campaign campaign
         And the account holder balance shown for trenette-active-campaign is 300
 
         When the retailer's trenette-draft-campaign campaign status is changed to active
         And the retailer's trenette-active-campaign campaign status is changed to cancelled
         Then 1 cancelled rewards are available to the account holder for the trenette-active-campaign campaign
         And the status of the allocated account holder for trenette rewards are updated with CANCELLED
-#        And 1 reward for the account holder shows as cancelled with redeemed date
+        And 1 reward for the account holder shows as cancelled with redeemed date
 
         Then all unallocated rewards for 10percentoff reward config are not soft deleted
 
         When BPL receives a transaction for the account holder for the amount of 1000 pennies
         Then BPL responds with a HTTP 200 and awarded message
-#        And 1 issued rewards are available to the account holder for the trenette-draft-campaign campaign
+        And 1 issued rewards are available to the account holder for the trenette-draft-campaign campaign
         And the account holder balance shown for trenette-draft-campaign is 100
 
     @bpl @campaign-stamps @bpl-724 @bpl-589-1

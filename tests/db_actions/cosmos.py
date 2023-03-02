@@ -90,14 +90,14 @@ def get_account_holder_reward(cosmos_db_session: "Session", reward_slug: str, re
 
 
 def get_pending_rewards(
-    polaris_db_session: "Session",
+    cosmos_db_session: "Session",
     account_holder: AccountHolder,
-    campaign_slug: str,
+    campaign_id: int,
 ) -> list[PendingReward]:
     return (
-        polaris_db_session.execute(
+        cosmos_db_session.execute(
             select(PendingReward).where(
-                campaign_slug == campaign_slug, PendingReward.account_holder_id == account_holder.id
+                campaign_id == campaign_id, PendingReward.account_holder_id == account_holder.id
             )
         )
         .scalars()
@@ -106,9 +106,9 @@ def get_pending_rewards(
 
 
 def get_ordered_pending_rewards(
-    polaris_db_session: "Session", account_holder: AccountHolder, campaign_slug: str
+    polaris_db_session: "Session", account_holder: AccountHolder, campaign_id: int
 ) -> list[PendingReward]:
-    pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_slug)
+    pending_rewards = get_pending_rewards(polaris_db_session, account_holder, campaign_id)
     return sorted(
         pending_rewards,
         key=lambda x: x.created_at,

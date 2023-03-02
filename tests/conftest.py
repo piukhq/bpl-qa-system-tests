@@ -702,7 +702,8 @@ def location_attached(cosmos_db_session: "Session", retailer_config: Retailer, s
 
 
 # fmt: off
-@given(parse("the account has {reward_count} issued unexpired rewards for the {campaign_slug} campaign"))
+@given(parse("the account has {reward_count} issued unexpired rewards for the {campaign_slug} "
+             "campaign and {reward_slug} reward config"))
 # fmt: on
 def update_existing_account_holder_with_rewards(
     account_holder: AccountHolder,
@@ -710,6 +711,7 @@ def update_existing_account_holder_with_rewards(
     reward_count: int,
     campaign_slug: str,
     cosmos_db_session: "Session",
+    reward_slug: str,
 ) -> AccountHolder:
 
     create_rewards_for_existing_account_holder(
@@ -718,6 +720,7 @@ def update_existing_account_holder_with_rewards(
         reward_count=reward_count,
         account_holder_id=account_holder.id,
         campaign_slug=campaign_slug,
+        reward_slug=reward_slug,
     )
 
     return account_holder
