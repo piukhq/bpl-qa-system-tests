@@ -4,7 +4,7 @@ Feature: Bink BPL - Transaction doesn't meet threshold
   I am doing transaction with less then threshold amount
   So I make sure that I dont get reward or balance increament
 
-  @bpl @transaction @bpl-308-1
+  @bpl @transaction @bpl-308 @bpl-2.0
   Scenario Outline: Transaction doesn’t qualify for earn
     Given the trenette retailer exists with status as TEST
     And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
@@ -30,7 +30,7 @@ Feature: Bink BPL - Transaction doesn't meet threshold
       | campaign_type         | loyalty_type | increment | reward_goal | max_amount |
       | trenette-acc-campaign | ACCUMULATOR  | 0         | 1000        | 0          |
 
-  @bpl @transaction @bpl-308
+  @bpl @transaction @bpl-308 @bpl-2.0
   Scenario Outline: Account holder already has balance but new transaction doesn't qualify for earn and balance
     Given the trenette retailer exists with status as TEST
     And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999

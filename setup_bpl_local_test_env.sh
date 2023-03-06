@@ -75,55 +75,7 @@ SEND_EMAIL=false
 EOF
     )
 
-#     POLARIS_ENV_FILE=$(
-#         cat <<EOF
-# POSTGRES_DB=polaris_auto
-# SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
-# LOG_FORMATTER=brief
-# DISABLE_METRICS=true
-# USE_CALLBACK_OAUTH2=false
-# POLARIS_HOST=http://localhost:8000
-# VELA_HOST=http://localhost:8001
-# CARINA_HOST=http://localhost:8002
-# REDIS_URL=redis://localhost:6379/0
-# BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
-# TASK_RETRY_BACKOFF_BASE="0.2"
-# PENDING_REWARDS_SCHEDULE=* * * * *
-# POLARIS_PUBLIC_URL=http://localhost:8000
-# SEND_EMAIL=false
-# EOF
-#     )
-
-#     VELA_ENV_FILE=$(
-#         cat <<EOF
-# POSTGRES_DB=vela_auto
-# SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
-# LOG_FORMATTER=brief
-# POLARIS_HOST=http://localhost:8000
-# CARINA_HOST=http://localhost:8002
-# REDIS_URL=redis://localhost:6379/0
-# REPORT_ANOMALOUS_TASKS_SCHEDULE=* * * * *
-# ACTIVATE_TASKS_METRICS=false
-# EOF
-#     )
-
-#     CARINA_ENV_FILE=$(
-#         cat <<EOF
-# POSTGRES_DB=carina_auto
-# SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
-# LOG_FORMATTER=brief
-# POLARIS_HOST=http://localhost:8000
-# REDIS_URL=redis://localhost:6379/0
-# BLOB_STORAGE_DSN=$BLOB_STORAGE_DSN
-# BLOB_IMPORT_CONTAINER=$BLOB_IMPORT_CONTAINER
-# BLOB_ARCHIVE_CONTAINER=$BLOB_ARCHIVE_CONTAINER
-# BLOB_IMPORT_SCHEDULE=* * * * *
-# REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
-# PRE_LOADED_REWARD_BASE_URL=http://fake-reward.url
-# EOF
-#     )
-
-    HUBBLE_ENV_FILE=$(
+HUBBLE_ENV_FILE=$(
         cat <<EOF
 DATABASE_NAME=hubble_auto
 DATABASE_URI="$BASE_DB_URI/{}"
@@ -244,22 +196,6 @@ run_services() {
     tmux send-keys -t 4 "cd $ROOT_DIR/cosmos && PROMETHEUS_HTTP_SERVER_PORT=9101 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/cosmos poetry run cosmos task-worker" C-m
     tmux select-pane -t 5 -T Cosmos_Cron_Scheduler
     tmux send-keys -t 5 "cd $ROOT_DIR/cosmos && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/cosmos poetry run cosmos cron-scheduler" C-m
-
-    # ## Vela
-    # tmux select-pane -t 1 -T VelaAPI
-    # tmux send-keys -t 1 "cd $ROOT_DIR/vela && poetry run uvicorn asgi:app --port 8001" C-m
-    # tmux select-pane -t 4 -T VelaWorker
-    # tmux send-keys -t 4 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9102 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela poetry run python -m vela.core.cli task-worker" C-m
-    # tmux select-pane -t 7 -T VelaCronScheduler
-    # tmux send-keys -t 7 "cd $ROOT_DIR/vela && PROMETHEUS_HTTP_SERVER_PORT=9110 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/vela poetry run python -m vela.core.cli cron-scheduler" C-m
-
-    # ## Carina
-    # tmux select-pane -t 2 -T CarinaAPI
-    # tmux send-keys -t 2 "cd $ROOT_DIR/carina && poetry run uvicorn asgi:app --port 8002" C-m
-    # tmux select-pane -t 5 -T CarinaWorker
-    # tmux send-keys -t 5 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9103 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli task-worker" C-m
-    # tmux select-pane -t 8 -T CarinaCronScheduler
-    # tmux send-keys -t 8 "cd $ROOT_DIR/carina && PROMETHEUS_HTTP_SERVER_PORT=9107 PROMETHEUS_MULTIPROC_DIR=$PROMETHEUS_ROOT_DIR/carina poetry run python -m carina.core.cli cron-scheduler" C-m
 
     ## Luna
     tmux select-pane -t 6 -T Luna
