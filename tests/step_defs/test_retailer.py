@@ -26,7 +26,6 @@ from tests.db_actions.cosmos import (
     get_account_holder_market_pref,
     get_account_holder_reward,
     get_campaign_by_slug,
-    get_campaign_status,
     get_ordered_pending_rewards,
     get_pending_rewards,
     get_retailer_id,
