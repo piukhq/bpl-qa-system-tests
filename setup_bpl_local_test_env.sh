@@ -65,6 +65,7 @@ BLOB_ARCHIVE_CONTAINER=$BLOB_ARCHIVE_CONTAINER
 EVENT_HORIZON_CLIENT_ID=$EVENT_HORIZON_CLIENT_ID
 BLOB_IMPORT_SCHEDULE=* * * * *
 REWARD_ISSUANCE_REQUEUE_BACKOFF_SECONDS=15
+PENDING_REWARDS_SCHEDULE=* * * * *
 PROMETHEUS_HTTP_SERVER_PORT=9300
 PRE_LOADED_REWARD_BASE_URL=http://reward-base.url
 ACTIVITY_DB=hubble_auto
@@ -78,7 +79,7 @@ EOF
 HUBBLE_ENV_FILE=$(
         cat <<EOF
 DATABASE_NAME=hubble_auto
-DATABASE_URI="$BASE_DB_URI/{}"
+DATABASE_URI="postgresql+psycopg://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT/{}"
 PG_CONNECTION_POOLING=False
 SQL_DEBUG=False
 USE_NULL_POOL=True
@@ -110,6 +111,7 @@ EOF
     echo "- Writing sane .env"
     echo "$HUBBLE_ENV_FILE" >.env
     poetry config --local virtualenvs.in-project true
+    poetry env use 3.11
     poetry install --sync --without dev
     if [[ -n ${HUBBLE_REF} ]]; then
         GIT_REF=${HUBBLE_REF}
@@ -125,7 +127,7 @@ EOF
     psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE hubble_template ;"
     psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE hubble_template ;"
     echo "- Running alembic migrations"
-    poetry run alembic -x db_dsn="${BASE_DB_URI}/hubble_template" upgrade head
+    poetry run alembic -x db_dsn="postgresql+psycopg://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT/hubble_template" upgrade head
 
     # Cosmos
     if [[ ! -d $PROMETHEUS_ROOT_DIR/cosmos ]]; then

@@ -152,11 +152,9 @@ def create_rewards_for_existing_account_holder(
 
 def create_pending_rewards_for_existing_account_holder(
     cosmos_db_session: "Session",
-    retailer_slug: str,
     num_rewards: int,
     account_holder_id: int,
     campaign_slug: str,
-    reward_slug: str | None,
     reward_goal: int,
 ) -> None:
     campaign = get_campaign_by_slug(cosmos_db_session=cosmos_db_session, campaign_slug=campaign_slug)
@@ -217,11 +215,12 @@ def create_balance_for_account_holder(
 def get_account_holder_balances_for_campaign(
     cosmos_db_session: "Session", account_holders: list[AccountHolder], campaign_slug: str
 ) -> list[CampaignBalance]:
+    campaign = get_campaign_by_slug(cosmos_db_session, campaign_slug)
     return (
         cosmos_db_session.execute(
             select(CampaignBalance).where(
                 CampaignBalance.account_holder_id.in_([ah.id for ah in account_holders]),
-                CampaignBalance.campaign_slug == campaign_slug,
+                CampaignBalance.campaign_id == campaign.id,
             )
         )
         .scalars()
