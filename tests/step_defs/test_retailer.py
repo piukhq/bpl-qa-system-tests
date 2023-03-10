@@ -12,7 +12,7 @@ from faker import Faker
 from pytest_bdd import given, scenarios, then, when
 from pytest_bdd.parsers import parse
 from retry_tasks_lib.enums import RetryTaskStatuses
-from sqlalchemy import func, select, sql
+from sqlalchemy import select, sql
 
 import settings
 
@@ -26,17 +26,21 @@ from tests.db_actions.cosmos import (
     get_account_holder_market_pref,
     get_account_holder_reward,
     get_campaign_by_slug,
+    get_campaign_status,
     get_ordered_pending_rewards,
     get_pending_rewards,
     get_retailer_id,
     get_reward_config_id,
     get_rewards,
     get_rewards_by_reward_config,
-    update_account_holder_pending_rewards_conversion_date, get_campaign_status,
+    update_account_holder_pending_rewards_conversion_date,
 )
 from tests.db_actions.hubble import get_latest_activity_by_type
-from tests.db_actions.retry_tasks import get_latest_callback_task_for_account_holder, get_latest_task, \
-    get_tasks_by_type_and_key_value
+from tests.db_actions.retry_tasks import (
+    get_latest_callback_task_for_account_holder,
+    get_latest_task,
+    get_tasks_by_type_and_key_value,
+)
 from tests.db_actions.reward import get_last_created_reward_issuance_task
 from tests.requests.enrolment import (
     send_get_accounts,
@@ -135,7 +139,9 @@ def check_reward_config_status(
 ) -> None:
     reward_config_id = get_reward_config_id(cosmos_db_session, reward_slug)
     reward_config = cosmos_db_session.execute(
-        select(Reward).join(Retailer).where(Retailer.id == retailer_config.id, Reward.reward_config_id == reward_config_id)
+        select(Reward)
+        .join(Retailer)
+        .where(Retailer.id == retailer_config.id, Reward.reward_config_id == reward_config_id)
     ).scalar_one()
     for i in range(10):
         sleep(i)
@@ -585,7 +591,8 @@ def check_account_holder_reward_statuses(
             if account_holder_reward.redeemed_date is not None:
                 break
             assert (account_holder_reward.redeemed_date).date() == arrow.utcnow().date()
-            logging.info(f"cancelled date: {(account_holder_reward.redeemed_date).date()}")
+            logging.info(f"redeemed date: {(account_holder_reward.redeemed_date).date()}")
+    logging.info(f"the status of the allocated account holder is updated to {reward_status}")
 
 
 @then(parse("any {retailer_slug} account holder rewards for {reward_slug} are cancelled"))

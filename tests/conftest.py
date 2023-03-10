@@ -5,7 +5,7 @@ import random
 import time
 import uuid
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from time import sleep
 from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
 from uuid import uuid4
@@ -18,8 +18,7 @@ from azure.storage.blob import BlobClient
 from faker import Faker
 from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
-
-from retry_tasks_lib.utils.synchronous import sync_create_many_tasks, enqueue_many_retry_tasks
+from retry_tasks_lib.utils.synchronous import enqueue_many_retry_tasks, sync_create_many_tasks
 from sqlalchemy import create_engine, delete, update
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
@@ -71,7 +70,6 @@ from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.redis import pause_redis, unpause_redis
-
 
 if TYPE_CHECKING:
     from _pytest.config import Config
@@ -566,7 +564,9 @@ def make_account_holder_pending_rewards(
     value: int,
 ) -> None:
     for account_holder in account_holders:
-        create_pending_rewards_for_existing_account_holder(cosmos_db_session, num_rewards, account_holder.id, campaign_slug, value)
+        create_pending_rewards_for_existing_account_holder(
+            cosmos_db_session, num_rewards, account_holder.id, campaign_slug, value
+        )
 
 
 # fmt: off

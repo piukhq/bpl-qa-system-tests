@@ -3,7 +3,7 @@ import logging
 
 from typing import TYPE_CHECKING
 
-from tests.api.base import Endpoints, get_campaign_mngt, get_campaign_headers
+from tests.api.base import Endpoints, get_campaign_headers, get_campaign_mngt
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
