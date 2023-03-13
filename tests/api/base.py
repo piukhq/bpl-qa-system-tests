@@ -6,11 +6,13 @@ from enum import Enum
 import settings
 
 from settings import (
+    ACCOUNT_API_AUTH_TOKEN,
     ACCOUNTS_API_BASE_URL,
+    CAMPAIGN_API_AUTH_TOKEN,
     CAMPAINGS_API_BASE_URL,
-    POLARIS_API_AUTH_TOKEN,
+    PUBLIC_API_BASE_URL,
     TRANSACTIONS_API_BASE_URL,
-    VELA_API_AUTH_TOKEN,
+    TX_API_AUTH_TOKEN,
 )
 
 
@@ -26,9 +28,9 @@ class Endpoints(str, Enum):
         return self.split("/")[-1]
 
 
-def get_polaris_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
+def get_accounts_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
     if valid_token:
-        auth_token = POLARIS_API_AUTH_TOKEN
+        auth_token = ACCOUNT_API_AUTH_TOKEN
     else:
         auth_token = "incorrect-token"
 
@@ -44,9 +46,27 @@ def get_polaris_headers(channel_header: bool = True, valid_token: bool = True) -
     return headers
 
 
-def get_vela_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
+def get_transaction_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
     if valid_token:
-        auth_token = VELA_API_AUTH_TOKEN
+        auth_token = TX_API_AUTH_TOKEN
+    else:
+        auth_token = "incorrect-token"
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": f"Token {auth_token}",
+    }
+    if channel_header:
+        headers["bpl-user-channel"] = "user-channel"
+
+    logging.info(f"Headers: {json.dumps(headers, indent=4)}")
+    return headers
+
+
+def get_campaign_headers(channel_header: bool = True, valid_token: bool = True) -> dict:
+    if valid_token:
+        auth_token = CAMPAIGN_API_AUTH_TOKEN
     else:
         auth_token = "incorrect-token"
 
@@ -75,7 +95,7 @@ def get_campaign_mngt(retailer_slug: str, endpoint: Endpoints) -> str:
 
 
 def get_public_api(retailer_slug: str, endpoint: Endpoints) -> str:
-    return f"{settings.PUBLIC_API_BASE_URL}/" + retailer_slug + endpoint
+    return f"{PUBLIC_API_BASE_URL}/" + retailer_slug + endpoint
 
 
 def get_callback_url(

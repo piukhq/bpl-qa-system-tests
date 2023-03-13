@@ -6,9 +6,6 @@ import time
 import uuid
 
 from datetime import datetime
-
-# , timezone
-# , timedelta,
 from time import sleep
 from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
 from uuid import uuid4
@@ -21,10 +18,7 @@ from azure.storage.blob import BlobClient
 from faker import Faker
 from pytest_bdd import given, then, when
 from pytest_bdd.parsers import parse
-
-# from redis import Redis
-# from retry_tasks_lib.utils.synchronous import sync_create_many_tasks
-# enqueue_many_retry_tasks,
+from retry_tasks_lib.utils.synchronous import enqueue_many_retry_tasks, sync_create_many_tasks
 from sqlalchemy import create_engine, delete, update
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
@@ -51,8 +45,6 @@ from db.cosmos.models import (
     RewardConfig,
     RewardRule,
 )
-
-#     FetchType,
 from db.hubble import models as hubble_models
 from settings import (
     BLOB_STORAGE_DSN,
@@ -78,9 +70,6 @@ from tests.requests.status_change import send_post_campaign_status_change
 from tests.requests.transaction import post_transaction_request
 from tests.shared_utils.fixture_loader import load_fixture
 from tests.shared_utils.redis import pause_redis, unpause_redis
-
-# from retry_tasks_lib.utils.synchronous import sync_create_many_tasks
-
 
 if TYPE_CHECKING:
     from _pytest.config import Config
@@ -309,76 +298,6 @@ def add_rewards(
         )
     logging.info(f"{rewards_n} rewards attached to {rewards}")
     return rewards
-
-
-# # fmt: off
-# @given(parse("that campaign has the standard reward config configured with {reward_n:d} allocable rewards"),
-#        target_fixture="standard_reward_configs",
-#        )
-# # fmt: on
-# def standard_reward_and_reward_config(
-#     cosmos_db_session: "Session",
-#     reward_n: int,
-#     retailer_config: Retailer,
-#     fetch_types: list[FetchType],
-#     standard_campaign: Campaign,
-# ) -> list[RewardConfig]:
-#     fixture_data = load_fixture(retailer_config.slug)
-#     reward_configs: list = []
-#     for fetch_type in fetch_types:
-#
-#         for reward_config_data in fixture_data.reward_config.get(fetch_type.name, []):
-#             reward_config = RewardConfig(
-#                 retailer_id=retailer_config.id, fetch_type_id=fetch_type.id, **reward_config_data
-#             )
-#             cosmos_db_session.add(reward_config)
-#             reward_configs.append(reward_config)
-#
-#     if reward_n > 0:
-#         cosmos_db_session.flush()
-#         for config in reward_configs:
-#             cosmos_db_session.add_all(
-#                 Reward(
-#                     id=str(uuid4()),
-#                     code=f"{config.slug}/{i}",
-#                     deleted=False,
-#                     reward_config_id=config.id,
-#                     retailer_id=retailer_config.id,
-#                     associated_url="",
-#                     issued_date=None,
-#                     expiry_date=None,
-#                     redeemed_date=None,
-#                     cancelled_date=None,
-#                     campaign_id=standard_campaign.id,
-#                     account_holder_id=None
-#                 )
-#                 for i in range(1, reward_n + 1)
-#             )
-#
-#     cosmos_db_session.commit()
-#     return reward_configs
-
-
-# # fmt: off
-# @given(parse("required fetch type are configured for the current retailer"), target_fixture="fetch_types")
-# # fmt: on
-# def get_fetch_type(
-#     cosmos_db_session: "Session", retailer_config: Retailer
-# ) -> list[FetchType]:
-#     fixture_data = load_fixture(retailer_config.slug)
-#     fetch_types = cosmos_db_session.execute(select(FetchType)).scalars().all()
-#     for fetch_type in fetch_types:
-#         if fetch_type.name in fixture_data.retailer_fetch_type:
-#             cosmos_db_session.add(
-#                 RetailerFetchType(
-#                     retailer_id=retailer_config.id,
-#                     fetch_type_id=fetch_type.id,
-#                     **fixture_data.retailer_fetch_type[fetch_type.name],
-#                 )
-#             )
-#
-#     cosmos_db_session.commit()
-#     return fetch_types
 
 
 @pytest.fixture(scope="function")
@@ -645,8 +564,9 @@ def make_account_holder_pending_rewards(
     value: int,
 ) -> None:
     for account_holder in account_holders:
-        create_pending_rewards_for_existing_account_holder
-        (cosmos_db_session, retailer_config.slug, num_rewards, account_holder.id, campaign_slug, reward_slug, value)
+        create_pending_rewards_for_existing_account_holder(
+            cosmos_db_session, num_rewards, account_holder.id, campaign_slug, value
+        )
 
 
 # fmt: off
@@ -740,7 +660,7 @@ def update_existing_account_holder_with_pending_rewards(
     reward_slug: str,
 ) -> AccountHolder:
     create_pending_rewards_for_existing_account_holder(
-        cosmos_db_session, retailer_config.slug, count, account_holder.id, campaign_slug, reward_slug, reward_goal
+        cosmos_db_session, count, account_holder.id, campaign_slug, reward_goal
     )
 
     return account_holder
@@ -810,38 +730,6 @@ def update_existing_account_holder_with_rewards_for_reward_slug(
         reward_slug=reward_slug,
     )
     return account_holder
-
-
-# # VELA FIXTURES
-# # fmt: off
-# @given(parse("that retailer has the standard campaigns configured"),
-#        target_fixture="standard_campaigns",
-#        )
-# # fmt: on
-# def standard_campaigns_and_reward_slugs(
-#     campaign_slug: str, vela_db_session: "Session", retailer_config: RetailerConfig
-# ) -> list[Campaign]:
-#     fixture_data = load_fixture(retailer_config.slug)
-#     campaigns: list = []
-#
-#     for campaign_data in fixture_data.campaign:
-#         campaign = Campaign(retailer_id=retailer_config.id, **campaign_data)
-#         vela_db_session.add(campaign)
-#         vela_db_session.flush()
-#         campaigns.append(campaign)
-#
-#         vela_db_session.add_all(
-#             EarnRule(campaign_id=campaign.id, **earn_rule_data)
-#             for earn_rule_data in fixture_data.earn_rule.get(campaign.slug, [])
-#         )
-#
-#         vela_db_session.add_all(
-#             RewardRule(campaign_id=campaign.id, **reward_rule_data)
-#             for reward_rule_data in fixture_data.reward_rule.get(campaign.slug, [])
-#         )
-#
-#     vela_db_session.commit()
-#     return campaigns
 
 
 # fmt: off
@@ -966,86 +854,47 @@ def send_post_campaign_change_request(
     assert request.status_code == 200
 
 
-# RETRY TASK FIXTURES
 # fmt: off
-@when(parse("each account holder has a queued reward-adjustment task for the {campaign_slug} campaign with an "
-            "adjustment amount of {adjustment_amount:d}"))
+@when(parse("there are reward-issuance tasks for the account holders for the {reward_slug} reward slug "
+            "and {campaign_slug} campaign_slug on the queue"))
 # fmt: on
-def enqueue_reward_adjustment_tasks_for_account_holders(
+def enqueue_reward_issuance_tasks_for_account_holders(
     retailer_config: Retailer,
     cosmos_db_session: "Session",
     account_holders: list[AccountHolder],
+    reward_slug: str,
     campaign_slug: str,
-    adjustment_amount: int,
 ) -> None:
-    # task_params_list = [
-    #     {
-    #         "processed_transaction_id": list(range(len(account_holders)))[i],
-    #         "retailer_slug": retailer_config.slug,
-    #         "adjustment_amount": adjustment_amount,
-    #         "campaign_slug": campaign_slug,
-    #         "account_holder_uuid": ah.account_holder_uuid,
-    #         "transaction_datetime": datetime.now(tz=timezone.utc),
-    #     }
-    #     for i, ah in enumerate(account_holders)
-    # ]
-    logging.info("Making reward-adjustment tasks...")
-    # tasks = sync_create_many_tasks(cosmos_db_session,
-    #                                task_type_name="reward-adjustment", params_list=task_params_list)
+    reward_config_id = cosmos_db_session.execute(
+        select(RewardConfig.id)
+        .join(Retailer)
+        .where(RewardConfig.slug == reward_slug, RewardConfig.retailer_id == retailer_config.id)
+    ).scalar()
+
+    campaign = get_campaign_by_slug(cosmos_db_session, campaign_slug)
+
+    task_params_list = [
+        {
+            "campaign_id": campaign.id,
+            "account_holder_id": ah.id,
+            "reward_config_id": reward_config_id,
+            "agent_state_params_raw": json.dumps(
+                {
+                    "associated_url": (
+                        "http://dummy-reward-provider-site/reward"
+                        f"?retailer={retailer_config.slug}&reward=a96c90cf-0944-44de-a180-bae2ed93816e"
+                    )
+                }
+            ),
+            "reason": "CAMPAIGN_END",
+        }
+        for ah in account_holders
+    ]
+    logging.info("Making reward-issuance tasks...")
+    tasks = sync_create_many_tasks(cosmos_db_session, task_type_name="reward-issuance", params_list=task_params_list)
+    cosmos_db_session.add_all(tasks)
     cosmos_db_session.commit()
-    logging.info("Enqueueing reward-adjustment tasks...")
-    # redis = Redis.from_url(REDIS_URL)
-    # enqueue_many_retry_tasks
-    # (cosmos_db_session, retry_tasks_ids=[task.retry_task_id for task in tasks], connection=redis)
-
-
-# # fmt: off
-# @when(parse("there are reward-issuance tasks for the account holders for the {reward_slug} reward slug "
-#             "and {campaign_slug} campaign_slug on the queue"))
-# # fmt: on
-# def enqueue_reward_issuance_tasks_for_account_holders(
-#     retailer_config: RetailerConfig,
-#     carina_db_session: "Session",
-#     account_holders: list[AccountHolder],
-#     reward_slug: str,
-#     campaign_slug: str,
-# ) -> None:
-#     reward_config_id = carina_db_session.execute(
-#         select(RewardConfig.id)
-#         .join(Retailer)
-#         .where(RewardConfig.reward_slug == reward_slug, Retailer.slug == retailer_config.slug)
-#     ).scalar()
-#     task_params_list = [
-#         {
-#             "code": str(uuid4()),
-#             "expiry_date": (datetime.now(tz=timezone.utc) + timedelta(days=1)).timestamp(),
-#             "reward_uuid": str(uuid4()),
-#             "reward_slug": reward_slug,
-#             "retailer_slug": retailer_config.slug,
-#             "campaign_slug": campaign_slug,
-#             "reward_config_id": reward_config_id,
-#             "issued_date": datetime.now(tz=timezone.utc).timestamp(),
-#             "account_url": (
-#                 f"{settings.POLARIS_BASE_URL}/{retailer_config.slug}/accounts/{ah.account_holder_uuid}/rewards"
-#             ),
-#             "idempotency_token": str(uuid4()),
-#             "agent_state_params_raw": json.dumps(
-#                 {
-#                     "associated_url": (
-#                         "http://dummy-reward-provider-site/reward"
-#                         f"?retailer={retailer_config.slug}&reward=a96c90cf-0944-44de-a180-bae2ed93816e"
-#                     )
-#                 }
-#             ),
-#             "reason": "campaign ended",
-#         }
-#         for ah in account_holders
-#     ]
-#     logging.info("Making reward-issuance tasks...")
-#     tasks = sync_create_many_tasks(carina_db_session, task_type_name="reward-issuance", params_list=task_params_list)
-#     carina_db_session.add_all(tasks)
-#     carina_db_session.commit()
-#     logging.info("Enqueueing reward-issuance tasks...")
-#     enqueue_many_retry_tasks(
-#         carina_db_session, retry_tasks_ids=[task.retry_task_id for task in tasks], connection=redis
-#     )
+    logging.info("Enqueueing reward-issuance tasks...")
+    enqueue_many_retry_tasks(
+        cosmos_db_session, retry_tasks_ids=[task.retry_task_id for task in tasks], connection=settings.redis
+    )

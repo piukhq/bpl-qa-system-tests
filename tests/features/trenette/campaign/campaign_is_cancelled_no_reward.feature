@@ -5,6 +5,11 @@ Feature: Bink BPL - Campaign is set to cancelled and reward is not allocated
 
   Background:
     Given the trenette retailer exists with status as TEST
+    And the retailer has a WELCOME_EMAIL email template configured with template id 99999999
+    And the email template with template id 99999999 has the following required template variables: first_name, last_name, account_number, marketing_token
+    And the retailer has a REWARD_ISSUANCE email template configured with template id 99999999
+    And the email template with template id 99999999 has the following required template variables: reward_url, account_number, first_name
+
     And a PRE_LOADED fetch type is configured for the current retailer with an agent config of None
     And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
     And the retailer has a free-item-2 reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type

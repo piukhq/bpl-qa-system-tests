@@ -1,13 +1,13 @@
 import json
 import logging
 
-from tests.api.base import get_transaction_api, get_vela_headers
+from tests.api.base import get_transaction_api, get_transaction_headers
 from tests.retry_requests import retry_session
 
 
 def post_transaction_request(request_body: dict, retailer_slug: str, request_context: dict) -> None:
 
-    headers = get_vela_headers()
+    headers = get_transaction_headers()
     url = get_transaction_api(retailer_slug)
     session = retry_session()
     resp = session.post(url, headers=headers, json=request_body)

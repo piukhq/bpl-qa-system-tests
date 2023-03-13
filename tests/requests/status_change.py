@@ -3,7 +3,7 @@ import logging
 
 from typing import TYPE_CHECKING
 
-from tests.api.base import Endpoints, get_campaign_mngt, get_vela_headers
+from tests.api.base import Endpoints, get_campaign_headers, get_campaign_mngt
 from tests.retry_requests import retry_session
 
 if TYPE_CHECKING:
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 def send_post_campaign_status_change(request_context: dict, retailer_slug: str, request_body: dict) -> "Response":
-    headers = get_vela_headers()
+    headers = get_campaign_headers()
     url = get_campaign_mngt(retailer_slug, Endpoints.STATUSCHANGE)
     session = retry_session()
     resp = session.post(url, headers=headers, json=request_body)

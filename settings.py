@@ -34,13 +34,7 @@ load_dotenv()
 logger = logging.getLogger("bpl_automation_tests_logger")
 logger.setLevel(logging.DEBUG)
 
-CARINA_DATABASE_URI = getenv("CARINA_DATABASE_URI")
-POLARIS_DATABASE_URI = getenv("POLARIS_DATABASE_URI")
-VELA_DATABASE_URI = getenv("VELA_DATABASE_URI")
 HUBBLE_DATABASE_URI = getenv("HUBBLE_DATABASE_URI")
-CARINA_TEMPLATE_DB_NAME = getenv("CARINA_TEMPLATE_DB_NAME")
-POLARIS_TEMPLATE_DB_NAME = getenv("POLARIS_TEMPLATE_DB_NAME")
-VELA_TEMPLATE_DB_NAME = getenv("VELA_TEMPLATE_DB_NAME")
 HUBBLE_TEMPLATE_DB_NAME = getenv("HUBBLE_TEMPLATE_DB_NAME")
 
 COSMOS_DATABASE_URI = getenv("COSMOS_DATABASE_URI")
@@ -48,19 +42,19 @@ COSMOS_TEMPLATE_DB_NAME = getenv("COSMOS_TEMPLATE_DB_NAME")
 
 VAULT_URL = getenv("VAULT_URL")
 vault = KeyVault(VAULT_URL)
-POLARIS_API_AUTH_TOKEN = vault.get_secret("bpl-polaris-api-auth-token")
-VELA_API_AUTH_TOKEN = vault.get_secret("bpl-vela-api-auth-token")
-CARINA_API_AUTH_TOKEN = vault.get_secret("bpl-carina-api-auth-token")
-# COSMOS_API_AUTH_TOKEN = vault.get_secret("bpl-cosmos-api-auth-token")
+
+CAMPAIGN_API_AUTH_TOKEN = vault.get_secret("bpl-campaigns-api-auth-token")
+TX_API_AUTH_TOKEN = vault.get_secret("bpl-transactions-api-auth-token")
+ACCOUNT_API_AUTH_TOKEN = vault.get_secret("bpl-accounts-api-auth-token")
 
 LOCAL = getenv("LOCAL", default="False", conv=boolconv)
 
 BLOB_STORAGE_DSN = getenv("BLOB_STORAGE_DSN")
 REPORT_CONTAINER = getenv("REPORT_CONTAINER", default="qareports")
 REPORT_DIRECTORY = getenv("REPORT_DIRECTORY", default="bpl/isolated/")
-BLOB_IMPORT_CONTAINER = getenv("BLOB_IMPORT_CONTAINER", "carina-imports")
-BLOB_ARCHIVE_CONTAINER = getenv("BLOB_ARCHIVE_CONTAINER", "carina-archive")
-BLOB_ERROR_CONTAINER = getenv("BLOB_ERROR_CONTAINER", "carina-errors")
+BLOB_IMPORT_CONTAINER = getenv("BLOB_IMPORT_CONTAINER", "cosmos-imports")
+BLOB_ARCHIVE_CONTAINER = getenv("BLOB_ARCHIVE_CONTAINER", "cosmos-archive")
+BLOB_ERROR_CONTAINER = getenv("BLOB_ERROR_CONTAINER", "cosmos-errors")
 
 TEAMS_WEBHOOK = getenv("TEAMS_WEBHOOK") if not LOCAL else None
 FRIENDLY_NAME = getenv("FRIENDLY_NAME", default="BPL")
@@ -68,10 +62,6 @@ SCHEDULE = getenv("SCHEDULE")
 COMMAND = getenv("COMMAND", default="pytest -m bpl")
 ALERT_ON_SUCCESS = getenv("ALERT_ON_SUCCESS", default="True", conv=boolconv)
 ALERT_ON_FAILURE = getenv("ALERT_ON_FAILURE", default="True", conv=boolconv)
-
-CARINA_BASE_URL = getenv("CARINA_ENV_BASE_URL")
-POLARIS_BASE_URL = getenv("POLARIS_ENV_BASE_URL")
-VELA_BASE_URL = getenv("VELA_ENV_BASE_URL")
 
 ACCOUNTS_API_BASE_URL = getenv("ACCOUNTS_ENV_API_BASE_URL")
 TRANSACTIONS_API_BASE_URL = getenv("TRANSACTIONS_ENV_API_BASE_URL")

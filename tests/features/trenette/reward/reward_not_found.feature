@@ -17,7 +17,6 @@ Feature: Reward already allocated and uploading status from 3rd party
 
   @reward @bpl @bpl-299 @bpl-2.0
   Scenario: Reward not found
-
     When the trenette retailer updates selected rewards to redeemed status
     Then the file is moved to the archive container by the reward importer
     And the imported rewards are soft deleted

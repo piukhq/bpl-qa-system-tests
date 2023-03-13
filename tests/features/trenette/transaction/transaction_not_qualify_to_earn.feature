@@ -15,8 +15,6 @@ Feature: Bink BPL - Transaction doesn't meet threshold
 
     And the retailer's <campaign_type> <loyalty_type> campaign starts 5 days ago and ends in a day and is ACTIVE
     And the <campaign_type> campaign has an earn rule with a threshold of 500, an increment of <increment>, a multiplier of 1 and max amount of <max_amount>
-#    And required fetch type are configured for the current retailer
-#    And that campaign has the standard reward config configured with 1 allocable rewards
     And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, allocation window: 0 and reward cap: 0
     And 1 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
