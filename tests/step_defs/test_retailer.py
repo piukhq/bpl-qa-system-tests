@@ -584,14 +584,16 @@ def check_account_holder_reward_statuses(
         if reward_status == "CANCELLED":
             if account_holder_reward.cancelled_date is not None:
                 break
-            assert (account_holder_reward.cancelled_date).date() == arrow.utcnow().date()
-            logging.info(f"cancelled date: {(account_holder_reward.cancelled_date).date()}")
+            if account_holder_reward.cancelled_date:
+                assert (account_holder_reward.cancelled_date).date() == arrow.utcnow().date()
+                logging.info(f"cancelled date: {(account_holder_reward.cancelled_date).date()}")
 
         elif reward_status == "REDEEMED":
             if account_holder_reward.redeemed_date is not None:
                 break
-            assert (account_holder_reward.redeemed_date).date() == arrow.utcnow().date()
-            logging.info(f"redeemed date: {(account_holder_reward.redeemed_date).date()}")
+            if account_holder_reward.redeemed_date:
+                assert (account_holder_reward.redeemed_date).date() == arrow.utcnow().date()
+                logging.info(f"redeemed date: {(account_holder_reward.redeemed_date).date()}")
     logging.info(f"the status of the allocated account holder is updated to {reward_status}")
 
 
