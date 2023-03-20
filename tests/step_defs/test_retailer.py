@@ -192,6 +192,7 @@ def the_account_holder_activation_is_started(
     retailer_config: Retailer,
     standard_campaign: Campaign,
 ) -> AccountHolder:
+    time.sleep(2)
     account_holder = get_account_holder_for_retailer(cosmos_db_session, retailer_config.id)
     assert account_holder.status == "ACTIVE"
 

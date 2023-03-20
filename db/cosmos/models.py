@@ -47,7 +47,7 @@ class EarnRule(Base):
     __tablename__ = "earn_rule"
 
     campaign = relationship("Campaign", back_populates="earn_rule")
-    transaction_earns = relationship("TransactionEarn", back_populates="earn_rule")
+    # transaction_earns = relationship("TransactionEarn", back_populates="earn_rule")
 
 
 class RewardRule(Base):
@@ -175,5 +175,5 @@ class Transaction(Base):
 class TransactionEarn(Base):
     __tablename__ = "transaction_earn"
 
-    earn_rule = relationship("EarnRule", uselist=False, back_populates="transaction_earns")
+    # earn_rule = relationship("EarnRule", uselist=False, back_populates="transaction_earns")
     transaction = relationship("Transaction", uselist=False, back_populates="transaction_earns")
