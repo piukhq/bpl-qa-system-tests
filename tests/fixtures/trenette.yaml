@@ -4,6 +4,8 @@ retailer:
   account_number_prefix: "TRNT"
   loyalty_name: "Trenette"
   status: "TEST"
+  balance_lifespan: 20
+  balance_reset_advanced_warning_days: 10
   profile_config:
     !as_yaml_string
     email:
