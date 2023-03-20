@@ -9,7 +9,7 @@ from settings import (
     ACCOUNT_API_AUTH_TOKEN,
     ACCOUNTS_API_BASE_URL,
     CAMPAIGN_API_AUTH_TOKEN,
-    CAMPAINGS_API_BASE_URL,
+    CAMPAIGNS_API_BASE_URL,
     PUBLIC_API_BASE_URL,
     TRANSACTIONS_API_BASE_URL,
     TX_API_AUTH_TOKEN,
@@ -91,7 +91,7 @@ def get_transaction_api(retailer_slug: str) -> str:
 
 
 def get_campaign_mngt(retailer_slug: str, endpoint: Endpoints) -> str:
-    return f"{CAMPAINGS_API_BASE_URL}/" + retailer_slug + endpoint
+    return f"{CAMPAIGNS_API_BASE_URL}/" + retailer_slug + endpoint
 
 
 def get_public_api(retailer_slug: str, endpoint: Endpoints) -> str:
