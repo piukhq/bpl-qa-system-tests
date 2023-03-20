@@ -560,10 +560,16 @@ def check_reward_issuance(
 
 @then(parse("the status of the allocated account holder for {retailer_slug} rewards are updated with {reward_status}"))
 def check_account_holder_reward_statuses(
-    cosmos_db_session: "Session", available_rewards: list[Reward], retailer_slug: str, reward_status: str
+    cosmos_db_session: "Session",
+    account_holder: AccountHolder,
+    available_rewards: list[Reward],
+    retailer_slug: str,
+    reward_status: str,
 ) -> None:
     retailer_id = get_retailer_id(cosmos_db_session=cosmos_db_session, retailer_slug=retailer_slug)
-    allocated_reward_codes = [reward.code for reward in available_rewards if reward.account_holder_id]
+    allocated_reward_codes = [
+        reward.code for reward in available_rewards if reward.account_holder_id == account_holder.id
+    ]
     account_holder_rewards = (
         cosmos_db_session.execute(
             select(Reward).where(
@@ -578,24 +584,20 @@ def check_account_holder_reward_statuses(
     assert len(allocated_reward_codes) == len(account_holder_rewards)
 
     for account_holder_reward in account_holder_rewards:
-        for i in range(6):
+        for _ in range(6):
             time.sleep(10)  # Give it up to 1 min for the worker to do its job
             cosmos_db_session.refresh(account_holder_reward)
 
-        if reward_status == "CANCELLED":
-            if account_holder_reward.cancelled_date is not None:
-                break
-            if account_holder_reward.cancelled_date:
-                assert (account_holder_reward.cancelled_date).date() == arrow.utcnow().date()
-                logging.info(f"cancelled date: {(account_holder_reward.cancelled_date).date()}")
+            if reward_status == "CANCELLED":
+                attr = account_holder_reward.cancelled_date
+            elif reward_status == "REDEEMED":
+                attr = account_holder_reward.redeemed_date
 
-        elif reward_status == "REDEEMED":
-            if account_holder_reward.redeemed_date is not None:
-                break
-            if account_holder_reward.redeemed_date:
-                assert (account_holder_reward.redeemed_date).date() == arrow.utcnow().date()
-                logging.info(f"redeemed date: {(account_holder_reward.redeemed_date).date()}")
-    logging.info(f"the status of the allocated account holder is updated to {reward_status}")
+            if not attr:
+                continue
+
+        assert attr.date() == arrow.utcnow().date()
+        logging.info(f"{reward_status.lower()} date: {attr.date()}")
 
 
 @then(parse("any {retailer_slug} account holder rewards for {reward_slug} are cancelled"))
