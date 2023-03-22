@@ -20,7 +20,7 @@ Feature: Bink BPL - Ensure a customer can enrol successfully and activation star
         And I enrol an account holder passing in all required and all optional fields
 
         Then the account holder activation is started
-        Then an enrolment callback task is saved in the database
+        And an enrolment callback task is saved in the database
         And the cosmos account-holder-activation task status is success
         And the cosmos send-email task status is success
         And the cosmos enrolment-callback task status is success
