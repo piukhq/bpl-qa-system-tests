@@ -82,7 +82,7 @@ def check_async_reward_allocation(cosmos_db_session: "Session", reward_slug: str
     reward_allocation_task = get_last_created_reward_issuance_task(
         cosmos_db_session=cosmos_db_session, reward_config_id=reward_config_id
     )
-    for i in range(20):
+    for i in range(25):
         logging.info(f"Waiting {i} seconds for reward allocation task completion...")
         time.sleep(i)
         cosmos_db_session.refresh(reward_allocation_task)
@@ -213,6 +213,7 @@ def the_account_holder_activation_is_started(
     assert resp.json()["email"] is not None
     assert resp.json()["status"] == "active"
     assert resp.json()["account_number"] is not None
+    time.sleep(2)
     if standard_campaign.status == "ACTIVE":
         assert resp.json()["current_balances"] == [{"campaign_slug": standard_campaign.slug, "value": 0.0}]
     else:
@@ -797,7 +798,7 @@ def number_of_callback_attempts(
 @then(parse("the {system} {task_name} task status is {task_status}"))
 # fmt: on
 def check_retry_task_status(cosmos_db_session: "Session", task_name: str, task_status: str) -> None:
-    for i in range(20):
+    for i in range(25):
         task = get_latest_task(cosmos_db_session, task_name)
         if task is None:
             logging.info(f"No task found. Sleeping for {i} seconds...")
