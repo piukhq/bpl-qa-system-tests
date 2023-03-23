@@ -185,7 +185,7 @@ def account_holder_is_activated(cosmos_db_session: "Session", retailer_config: R
 
 
 # fmt: off
-@then("the account holder activation is started", target_fixture="account_holder")
+@then("the account holder activation is started")
 # fmt: on
 def the_account_holder_activation_is_started(
     cosmos_db_session: "Session",
