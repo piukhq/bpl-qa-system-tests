@@ -14,7 +14,7 @@ Feature: Bink BPL - Transaction with a reward cap with no allocation window
 
         And the retailer's trenette-acc-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
         And the trenette-acc-campaign campaign has an earn rule with a threshold of 0, an increment of 0, a multiplier of 1 and max amount of 0
-        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: 0 and reward cap: 2
+        And the trenette-acc-campaign campaign has reward rule with reward goal: 10000, allocation window: None and reward cap: 2
         And 5 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
     @bpl @trc @bpl-702 @bpl-2.0

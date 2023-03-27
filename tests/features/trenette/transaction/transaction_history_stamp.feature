@@ -13,7 +13,7 @@ Feature: Bink BPL - Transaction history for stamp campaign
 
     And the retailer's trenette-acc-campaign STAMPS campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-acc-campaign campaign has an earn rule with a threshold of 5, an increment of 100, a multiplier of 1 and max amount of 0
-    And the trenette-acc-campaign campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
+    And the trenette-acc-campaign campaign has reward rule with reward goal: 700, allocation window: None and reward cap: None
 
     And 5 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
