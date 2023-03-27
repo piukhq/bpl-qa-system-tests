@@ -10,12 +10,12 @@ Feature: Bink BPL - Activate new campaign, end old with balances and rewards ACC
 
         And the retailer's trenette-active-campaign ACCUMULATOR campaign starts 10 days ago and ends in a day and is ACTIVE
         And the trenette-active-campaign campaign has an earn rule with a threshold of 500, an increment of 100, a multiplier of 1 and max amount of 0
-        And the trenette-active-campaign campaign has reward rule with reward goal: 700, allocation window: 30 and reward cap: 0
+        And the trenette-active-campaign campaign has reward rule with reward goal: 700, allocation window: 30 and reward cap: None
 
         And the retailer has a free-item reward config configured with validity_days: 30, and a status of ACTIVE and a PRE_LOADED fetch type
         And the retailer's trenette-draft-campaign ACCUMULATOR campaign starts 5 days ago and ends in a week and is DRAFT
         And the trenette-draft-campaign campaign has an earn rule with a threshold of 1000, an increment of 200, a multiplier of 1 and max amount of 0
-        And the trenette-draft-campaign campaign has reward rule with reward goal: 900, allocation window: 30 and reward cap: 0
+        And the trenette-draft-campaign campaign has reward rule with reward goal: 900, allocation window: 30 and reward cap: None
 
     @bpl @campaign @bpl-290-1 @bpl-2.0
     Scenario: Activate new campaign, cancel old - accumulator campaign

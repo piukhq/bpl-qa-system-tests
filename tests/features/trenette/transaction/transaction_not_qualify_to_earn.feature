@@ -15,7 +15,7 @@ Feature: Bink BPL - Transaction doesn't meet threshold
 
     And the retailer's <campaign_type> <loyalty_type> campaign starts 5 days ago and ends in a day and is ACTIVE
     And the <campaign_type> campaign has an earn rule with a threshold of 500, an increment of <increment>, a multiplier of 1 and max amount of <max_amount>
-    And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, allocation window: 0 and reward cap: 0
+    And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, allocation window: None and reward cap: None
     And 1 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
     And an active account holder exists for the retailer
@@ -38,7 +38,7 @@ Feature: Bink BPL - Transaction doesn't meet threshold
 
     And the retailer's <campaign_type> <loyalty_type> campaign starts 5 days ago and ends in a day and is ACTIVE
     And the <campaign_type> campaign has an earn rule with a threshold of 500, an increment of <increment>, a multiplier of 1 and max amount of 0
-    And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, allocation window: 0 and reward cap: 0
+    And the <campaign_type> campaign has reward rule with reward goal: <reward_goal>, allocation window: None and reward cap: None
     And 1 unassigned rewards are generated for the free-item reward config with deleted status set to false
 
     And an active account holder exists for the retailer

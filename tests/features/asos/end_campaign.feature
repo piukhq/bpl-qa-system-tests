@@ -16,10 +16,10 @@ Feature: Bink BPL - Jigshaw egift - End campaign and delete/issue pending reward
     And the retailer's old-campaign ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
 
     And the old-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
-    And the old-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 0
+    And the old-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: None
 
     And the new-campaign campaign has an earn rule with a threshold of 0, an increment of 100, a multiplier of 1 and max amount of 0
-    And the new-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: 0
+    And the new-campaign campaign has reward rule with reward goal: 10000, allocation window: 1 and reward cap: None
 
 
     And the retailer has 5 active account holders

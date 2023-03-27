@@ -13,7 +13,7 @@ Feature: Reward code added via azure
 
     And the retailer's trenette-acc-campaign-1 ACCUMULATOR campaign starts 5 days ago and ends in a day and is ACTIVE
     And the trenette-acc-campaign-1 campaign has an earn rule with a threshold of 100, an increment of 0, a multiplier of 1 and max amount of 0
-    And the trenette-acc-campaign-1 campaign has reward rule with reward goal: 700, allocation window: 0 and reward cap: 0
+    And the trenette-acc-campaign-1 campaign has reward rule with reward goal: 700, allocation window: None and reward cap: None
 
   @reward @bpl-678 @bpl-678-ac-1 @bpl @bpl-2.0
   Scenario: importing reward codes without expire date from azure blob storage

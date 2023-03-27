@@ -792,13 +792,13 @@ def create_earn_rule(
 
 # fmt: off
 @given(parse("the {campaign_slug} campaign has reward rule with reward goal: {reward_goal:d}, "
-             "allocation window: {allocation_window:d} and reward cap: {reward_cap}"))
+             "allocation window: {allocation_window} and reward cap: {reward_cap}"))
 # fmt: on
 def create_reward_rule(
     cosmos_db_session: "Session",
     campaign_slug: str,
     reward_goal: int,
-    allocation_window: int,
+    allocation_window: str,
     reward_cap: str,
     reward_config: Reward,
 ) -> None:
@@ -806,8 +806,8 @@ def create_reward_rule(
     reward_goal = RewardRule(
         campaign_id=campaign.id,
         reward_goal=reward_goal,
-        allocation_window=allocation_window,
-        reward_cap=reward_cap if int(reward_cap) > 0 else None,
+        allocation_window=None if allocation_window == "None" else int(allocation_window),
+        reward_cap=None if reward_cap == "None" else int(reward_cap),
         reward_config_id=reward_config.id,
     )
     cosmos_db_session.add(reward_goal)
