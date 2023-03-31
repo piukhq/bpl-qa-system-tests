@@ -43,7 +43,7 @@ from db.cosmos.models import (
     RetailerStore,
     Reward,
     RewardConfig,
-    RewardRule,
+    RewardRule, EmailType,
 )
 from db.hubble import models as hubble_models
 from settings import (
@@ -578,8 +578,8 @@ def create_email_template(
     cosmos_db_session: "Session",
     retailer_config: Retailer,
 ) -> None:
-
-    template = EmailTemplate(template_id=template_id, type=email_type, retailer_id=retailer_config.id)
+    email_type_id = select(EmailType.id).where(EmailType.slug == email_type).scalar_subquery()
+    template = EmailTemplate(template_id=template_id, email_type_id=email_type_id, retailer_id=retailer_config.id)
     cosmos_db_session.add(template)
     cosmos_db_session.commit()
 

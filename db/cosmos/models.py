@@ -16,6 +16,7 @@ class AccountHolder(Base):
     current_balances = relationship("CampaignBalance", back_populates="account_holder")
     marketing_preferences = relationship("MarketingPreference", back_populates="account_holder")
     transactions = relationship("Transaction", back_populates="account_holder")
+    sent_emails = relationship("AccountHolderEmail", back_populates="account_holder")
 
 
 class AccountHolderProfile(Base):
@@ -41,6 +42,14 @@ class Campaign(Base):
     rewards = relationship("Reward", back_populates="campaign")
     # transactions = relationship("Transaction", secondary="transaction_earn", back_populates="campaigns")
     # transaction_earn = relationship("TransactionEarn", back_populates="campaign", overlaps="transactions")
+
+
+class AccountHolderEmail(Base):
+    __tablename__ = "account_holder_email"
+
+    account_holder = relationship("AccountHolder", back_populates="sent_emails")
+    email_type = relationship("EmailType", back_populates="sent_emails")
+    campaign = relationship("Campaign", back_populates="sent_emails")
 
 
 class EarnRule(Base):
@@ -136,6 +145,7 @@ class EmailTemplate(Base):
         back_populates="email_templates",
         secondary="email_template_required_key",
     )
+    email_type = relationship("EmailType", back_populates="email_templates")
 
 
 class EmailTemplateKey(Base):
@@ -150,6 +160,12 @@ class EmailTemplateKey(Base):
 
 class EmailTemplateRequiredKey(Base):
     __tablename__ = "email_template_required_key"
+
+
+class EmailType(Base):
+    __tablename__ = "email_type"
+    email_templates = relationship("EmailTemplate", back_populates="email_type")
+    sent_emails = relationship("AccountHolderEmail", back_populates="email_type")
 
 
 class RetailerStore(Base):

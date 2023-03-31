@@ -79,6 +79,7 @@ EOF
 HUBBLE_ENV_FILE=$(
         cat <<EOF
 DATABASE_NAME=hubble_auto
+REDIS_URL=redis://localhost:6379/0
 DATABASE_URI="postgresql+psycopg://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT/{}"
 PG_CONNECTION_POOLING=False
 SQL_DEBUG=False
