@@ -11,6 +11,7 @@ from db.cosmos.models import (
     AccountHolder,
     Campaign,
     CampaignBalance,
+    EmailType,
     FetchType,
     MarketingPreference,
     PendingReward,
@@ -289,3 +290,7 @@ def get_campaign_status(
     campaign_slug: str,
 ) -> int:
     return cosmos_db_session.execute(select(Campaign.status).where(Campaign.slug == campaign_slug)).scalar_one()
+
+
+def get_email_type_id(email_type: str) -> int:
+    return select(EmailType.id).where(EmailType.slug == email_type).scalar_subquery()
