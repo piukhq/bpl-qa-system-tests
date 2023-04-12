@@ -53,7 +53,7 @@ REDIS_URL=redis://localhost:6379/0
 EOF
     )
 
-COSMOS_ENV_FILE=$(
+    COSMOS_ENV_FILE=$(
         cat <<EOF
 SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
 POSTGRES_DB=cosmos_auto
@@ -73,10 +73,11 @@ PUBLIC_URL=http://localhost:8000
 USE_CALLBACK_OAUTH2=false
 TASK_RETRY_BACKOFF_BASE="0.2"
 SEND_EMAIL=false
+KEY_VAULT_URI=https://uksouth-dev-2p5g.vault.azure.net/
 EOF
     )
 
-HUBBLE_ENV_FILE=$(
+    HUBBLE_ENV_FILE=$(
         cat <<EOF
 DATABASE_NAME=hubble_auto
 REDIS_URL=redis://localhost:6379/0
@@ -177,7 +178,6 @@ run_services() {
     done
 
     rm -rf $PROMETHEUS_ROOT_DIR/cosmos/*
-
 
     # tmux gui formatting
     tmux set -g mouse on
