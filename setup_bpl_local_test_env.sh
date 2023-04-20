@@ -38,6 +38,7 @@ RUN=${1}
 TMUX_SESSION_NAME=bpl
 
 BASE_DB_URI="postgresql://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT"
+COSMOS_DB_URI="postgresql+psycopg://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT"
 PROMETHEUS_ROOT_DIR=$ROOT_DIR/_prometheus_
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
@@ -53,9 +54,9 @@ REDIS_URL=redis://localhost:6379/0
 EOF
     )
 
-COSMOS_ENV_FILE=$(
+    COSMOS_ENV_FILE=$(
         cat <<EOF
-SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
+SQLALCHEMY_DATABASE_URI="$COSMOS_DB_URI/{}"
 POSTGRES_DB=cosmos_auto
 REDIS_URL=redis://localhost:6379/0
 LOG_FORMATTER=brief
@@ -76,7 +77,7 @@ SEND_EMAIL=false
 EOF
     )
 
-HUBBLE_ENV_FILE=$(
+    HUBBLE_ENV_FILE=$(
         cat <<EOF
 DATABASE_NAME=hubble_auto
 REDIS_URL=redis://localhost:6379/0
@@ -159,10 +160,10 @@ EOF
     poetry env use 3.11
     poetry install --sync --without dev
     echo "- Resetting cosmos database"
-    psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE cosmos_template;"
-    psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE cosmos_template;"
+    psql "${COSMOS_DB_URI}/postgres" -c "DROP DATABASE cosmos_template;"
+    psql "${COSMOS_DB_URI}/postgres" -c "CREATE DATABASE cosmos_template;"
     echo "- Running alembic migrations"
-    poetry run alembic -x db_dsn="${BASE_DB_URI}/cosmos_template" upgrade head
+    poetry run alembic -x db_dsn="${COSMOS_DB_URI}/cosmos_template" upgrade head
 
 }
 
@@ -177,7 +178,6 @@ run_services() {
     done
 
     rm -rf $PROMETHEUS_ROOT_DIR/cosmos/*
-
 
     # tmux gui formatting
     tmux set -g mouse on
