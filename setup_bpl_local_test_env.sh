@@ -209,7 +209,7 @@ run_services() {
     tmux send-keys -t 7 "cd $ROOT_DIR/hubble && poetry run python -m hubble.cli activity-consumer" C-m
 
     # Attach to the tmux session
-    # tmux attach-session -t $TMUX_SESSION_NAME
+    tmux attach-session -t $TMUX_SESSION_NAME
 }
 
 if [ $RUN = "services" ]; then
