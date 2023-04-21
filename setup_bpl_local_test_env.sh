@@ -7,6 +7,10 @@ set -x
 #
 # Variables:
 # ROOT_DIR:           The root installation directory
+# GIT_BRANCH:         The default branch for checking out in each project
+# <proj-name>_REF:    e.g. COSMOS_REF, HUBBLE_REF - a specific git-ref for a project
+#                     e.g. 3.0.1 (tag) or a81cafb58 (commit) or <branch-name> (branch)
+#                     If omitted, GIT_BRANCH will be used
 # DB_USERNAME:        Postgres username
 # DB_PASSWORD:        Postgres password
 # DB_PORT:            Port on which postgres is listening
@@ -21,6 +25,7 @@ set -x
 ########## example bpl_auto_test.env #############
 # export ROOT_DIR=$HOME/CHANGEME
 # export GIT_BRANCH=master
+# #export COSMOS_REF=develop
 # export DB_USERNAME=changeme
 # export DB_PASSWORD=changeme
 # export DB_PORT=changeme
@@ -55,7 +60,7 @@ EOF
 
 COSMOS_ENV_FILE=$(
         cat <<EOF
-SQLALCHEMY_DATABASE_URI="$BASE_DB_URI/{}"
+SQLALCHEMY_DATABASE_URI="postgresql+psycopg://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT/{}"
 POSTGRES_DB=cosmos_auto
 REDIS_URL=redis://localhost:6379/0
 LOG_FORMATTER=brief
@@ -73,6 +78,7 @@ PUBLIC_URL=http://localhost:8000
 USE_CALLBACK_OAUTH2=false
 TASK_RETRY_BACKOFF_BASE="0.2"
 SEND_EMAIL=false
+KEY_VAULT_URI=https://uksouth-dev-2p5g.vault.azure.net/
 EOF
     )
 
@@ -114,16 +120,7 @@ EOF
     poetry config --local virtualenvs.in-project true
     poetry env use 3.11
     poetry install --sync --without dev
-    if [[ -n ${HUBBLE_REF} ]]; then
-        GIT_REF=${HUBBLE_REF}
-    elif [[ -n ${GIT_BRANCH} ]]; then
-        GIT_REF=${GIT_BRANCH}
-    else
-        GIT_REF=$(git describe --tags $(git rev-list --tags --max-count=1))
-    fi
-    echo "- Checking out and updating $GIT_REF branch/ref"
-    git checkout $HUBBLE_REF
-    git pull --ff-only origin $GIT_REF
+    checkout_ref $HUBBLE_REF
     echo "- Resetting hubble database"
     psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE hubble_template ;"
     psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE hubble_template ;"
@@ -141,17 +138,7 @@ EOF
     fi
     cd "${ROOT_DIR}/cosmos"
     git fetch
-    tag_var_name="$(echo cosmos | tr 'a-z' 'A-Z')_REF"
-    if [[ -n ${!tag_var_name} ]]; then
-        GIT_REF=${!tag_var_name}
-    elif [[ -n ${GIT_BRANCH} ]]; then
-        GIT_REF=${GIT_BRANCH}
-    else
-        GIT_REF=$(git describe --tags $(git rev-list --tags --max-count=1))
-    fi
-    echo "- Checking out and updating $GIT_REF branch/ref"
-    git checkout $GIT_REF
-    git pull --ff-only origin $GIT_REF
+    checkout_ref $COSMOS_REF
     echo "- Writing sane local.env"
     echo "$COSMOS_ENV_FILE" >local.env
     echo "- Updating python environment"
@@ -162,8 +149,21 @@ EOF
     psql "${BASE_DB_URI}/postgres" -c "DROP DATABASE cosmos_template;"
     psql "${BASE_DB_URI}/postgres" -c "CREATE DATABASE cosmos_template;"
     echo "- Running alembic migrations"
-    poetry run alembic -x db_dsn="${BASE_DB_URI}/cosmos_template" upgrade head
+    poetry run alembic -x db_dsn="postgresql+psycopg://$DB_USERNAME:$DB_PASSWORD@localhost:$DB_PORT/cosmos_template" upgrade head
+}
 
+
+checkout_ref() {
+    if [[ -n $1 ]]; then
+        GIT_REF=$1
+    elif [[ -n ${GIT_BRANCH} ]]; then
+        GIT_REF=${GIT_BRANCH}
+    else
+        GIT_REF=$(git describe --tags $(git rev-list --tags --max-count=1))
+    fi
+    echo "- Checking out and updating $GIT_REF branch/ref"
+    git checkout $GIT_REF;
+    git pull --ff-only origin $GIT_REF
 }
 
 run_services() {
