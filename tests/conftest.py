@@ -5,7 +5,7 @@ import random
 import time
 import uuid
 
-from datetime import datetime
+from datetime import datetime, timezone
 from time import sleep
 from typing import TYPE_CHECKING, Any, Callable, Generator, Literal
 from uuid import uuid4
@@ -824,7 +824,7 @@ def the_account_holder_transaction_request(
     payload = {
         "id": str(uuid4()),
         "transaction_total": int(amount),
-        "datetime": int(datetime.utcnow().timestamp()),
+        "datetime": int(datetime.now(tz=timezone.utc).timestamp()),
         "MID": "12432432",
         "loyalty_id": str(account_holder.account_holder_uuid),
         "transaction_id": "BPL" + str(random.randint(1, (10**10))),
