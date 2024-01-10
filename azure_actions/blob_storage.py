@@ -58,7 +58,7 @@ def upload_report_to_blob_storage(filename: str, blob_prefix: str = "bpl-auto") 
         blob_name=blob_path,
     )
     with open(filename, "rb") as f:
-        blob.upload_blob(f, content_settings=ContentSettings(content_type="text/html"))
+        blob.upload_blob(f, content_settings=ContentSettings(content_type="text/html"))  # type: ignore [attr-defined]
 
     return blob
 
@@ -72,7 +72,7 @@ def upload_blob(blob_path: str, content: str) -> BlobClient:
 
     logger.info(f"Uploading {blob_path} to blob storage")
     try:
-        blob_client.upload_blob(
+        blob_client.upload_blob(  # type: ignore [attr-defined]
             content,
             blob_type=BlobType.BlockBlob,
             overwrite=True,
@@ -108,7 +108,6 @@ def check_archive_blobcontainer(
 
     container = blob_service_client.get_container_client(blob_container)
     for i in range(10):
-
         logging.info("Sleeping for 10 seconds...")
         sleep(10)
         logging.info(f"Looking for blobs on these paths: {blob_starts_withs}")

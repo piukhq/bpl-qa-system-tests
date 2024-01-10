@@ -3,8 +3,9 @@ FROM ghcr.io/binkhq/python:3.10-poetry
 WORKDIR /app
 ADD . .
 
-RUN poetry config http-basic.bink-pypi 269fdc63-af3d-4eca-8101-8bddc22d6f14 b694b5b1-f97e-49e4-959e-f3c202e3ab91
+ARG AZURE_DEVOPS_PAT
 RUN poetry config virtualenvs.create false
+RUN poetry config http-basic.azure jeff ${{ secrets.AZURE_DEVOPS_PAT }}
 RUN poetry install
 RUN apt-get update && apt-get install -y wget && apt-get install -y curl && \
     curl -sL https://aka.ms/InstallAzureCLIDeb | bash && \

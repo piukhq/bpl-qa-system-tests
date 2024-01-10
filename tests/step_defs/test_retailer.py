@@ -69,7 +69,7 @@ def check_file_moved(
 
     assert len(blobs) == 1
 
-    container.delete_blob(blobs[0])
+    container.delete_blob(blobs[0])  # type: ignore [arg-type]
 
 
 @then(parse("rewards are allocated to the account holder for the {reward_slug} reward"))
@@ -673,7 +673,6 @@ def update_existing_account_holder_with_pending_rewards(
     reward_slug: str,
     converting: str,
 ) -> AccountHolderPendingReward:
-
     pending_rewards = create_pending_rewards_with_all_value_for_existing_account_holder(
         polaris_db_session,
         retailer_config.slug,
@@ -749,7 +748,6 @@ def cancel_end_campaign(
 def retry_task_error_received(
     polaris_db_session: "Session", retry_task: str, number_of_time: int, status_code: int
 ) -> None:
-
     for i in range(15):
         sleep(i)
         task = get_latest_task(polaris_db_session, task_name=retry_task)
@@ -798,7 +796,6 @@ def check_retry_task_status(
     task_name: str,
     task_status: str,
 ) -> None:
-
     match system:
         case "polaris":
             db_session = polaris_db_session
@@ -826,7 +823,6 @@ def check_retry_task_status(
 
 @then(parse("the {retry_task} did not find rewards and return {status_code:d}"))
 def retry_task_not_found_rewards(carina_db_session: "Session", retry_task: str, status_code: int) -> None:
-
     for i in range(15):
         sleep(i)
         audit_data = get_retry_task_audit_data(carina_db_session, task_name=retry_task)
