@@ -27,7 +27,7 @@ class FixtureData(BaseModel):
 
 
 def _generate_datetime(loader: Union["FullLoader", "Loader", "UnsafeLoader"], node: "Node") -> str:
-    params = loader.construct_mapping(node)
+    params = loader.construct_mapping(node)  # type: ignore [arg-type]
     now = datetime.now(tz=timezone.utc)
     if "timedelta" in params:
         time = now + timedelta(days=params["timedelta"])
@@ -38,7 +38,7 @@ def _generate_datetime(loader: Union["FullLoader", "Loader", "UnsafeLoader"], no
 
 
 def _yaml_as_string(loader: Union["FullLoader", "Loader", "UnsafeLoader"], node: "Node") -> str:
-    content = loader.construct_mapping(node, deep=True)
+    content = loader.construct_mapping(node, deep=True)  # type: ignore [arg-type]
     return yaml.dump(content, indent=2)
 
 
